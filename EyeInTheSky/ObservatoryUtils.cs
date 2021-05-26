@@ -19,9 +19,9 @@ namespace WaspPile.EyeIntheSky
             }
             if (chosenCtor == null) throw new ArgumentException("suiting parameterless constructor not found");
             object res = chosenCtor.Invoke(new object[0]);
-            foreach (var fld in tp.GetFields())
+            foreach (var fld in tp.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public))
             {
-                fld.SetValue(res, fld.GetValue(o));
+                if (fld.FieldType.IsPrimitive) fld.SetValue(res, fld.GetValue(o));
             }
             return res;
         }

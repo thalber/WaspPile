@@ -6,9 +6,9 @@ using UnityEngine;
 
 namespace WaspPile.EyeIntheSky.Rulesets
 {
-    public class InitRuleset
+    public class SpriteArrayRuleset
     {
-        public InitRuleset(Type target, Dictionary<int, FSprite> ExampleSprites, int? extendArray = null)
+        public SpriteArrayRuleset(Type target, Dictionary<int, FSprite> ExampleSprites, int? extendArray = null)
         {
             targetType = target;
             spriteReplacements = ExampleSprites;

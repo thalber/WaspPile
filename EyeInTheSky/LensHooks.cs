@@ -10,9 +10,8 @@ namespace WaspPile.EyeIntheSky
 {
     public static class LensHooks
     {
-        public static void InitSpritesFilter(anyInitiateSprites orig, IDrawable self, RoomCamera.SpriteLeaser sleaser, RoomCamera rcam)
+        public static void InitSpritesFilter(anyInitSprites orig, IDrawable self, RoomCamera.SpriteLeaser sleaser, RoomCamera rcam)
         {
-#warning implement
             orig(self, sleaser, rcam);
             GeneralRuleset therule;
             if (BrotherBigEyes.TryGetRules(self.GetType(), out therule)) 
@@ -27,10 +26,11 @@ namespace WaspPile.EyeIntheSky
                         }
                 }
             }
-
-            throw new NotImplementedException("thalber get a job");
         }
-        public delegate void anyInitiateSprites(IDrawable self, RoomCamera.SpriteLeaser sleaser, RoomCamera rcam);
+        
+        public delegate void anyInitSprites(IDrawable self, RoomCamera.SpriteLeaser sleaser, RoomCamera rcam);
+        public delegate void anyDrawSprites(IDrawable self, RoomCamera.SpriteLeaser sleaser, RoomCamera rcam, float timeStacker);
+        public delegate void anyApplyPal(IDrawable self, RoomCamera.SpriteLeaser sleaser, RoomCamera rcam, RoomPalette pal);
 
         public static void AttemptApply(Type tp)
         {

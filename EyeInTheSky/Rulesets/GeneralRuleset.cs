@@ -7,8 +7,8 @@ namespace WaspPile.EyeIntheSky.Rulesets
 {
     public class GeneralRuleset
     {
-        public InitRuleset DoOnInit;
-        public SpriteDrawRuleset doOnDraw;
+        public SpriteArrayRuleset DoOnInit;
         public ApplyPaletteRuleset DoOnApplyPalette;
+        //public SpriteDrawRuleset doOnDraw;
     }
 }

@@ -35,8 +35,7 @@
     <Compile Include="ObservatoryUtils.cs" />
     <Compile Include="Rulesets\ApplyPaletteRuleset.cs" />
     <Compile Include="Rulesets\GeneralRuleset.cs" />
-    <Compile Include="Rulesets\SpriteDrawRuleset.cs" />
-    <Compile Include="Rulesets\InitRuleset.cs" />
+    <Compile Include="Rulesets\SpriteArrayRuleset.cs" />
     <Compile Include="Lens.cs" />
     <Compile Include="LensHooks.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

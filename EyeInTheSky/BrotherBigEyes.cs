@@ -9,7 +9,8 @@ namespace WaspPile.EyeIntheSky
     public static class BrotherBigEyes
     {
         public static Dictionary<Type, GeneralRuleset> AllMyRules;
-        public static bool TryGetRules(Type t, out GeneralRuleset rules) { rules = (AllMyRules.ContainsKey(t)) ? AllMyRules[t] : null; return (rules != null); }
+        public static bool TryGetRules(Type t, out GeneralRuleset rules) { rules = TryReturnRules(t); return (rules != null); }
+        public static GeneralRuleset TryReturnRules(Type t) { return (AllMyRules.ContainsKey(t)) ? AllMyRules[t] : null; }
 
     }
 }
