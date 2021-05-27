@@ -9,21 +9,14 @@ namespace WaspPile.EyeIntheSky
     public static class ObservatoryUtils
     {
 #warning rough, combusts when parameterless constructor is not present
-        public static object ShallowClone(this object o)
+        public static void CopyPropertiesToOther(this FSprite original, FSprite target)
         {
-            var tp = typeof(FSprite);
-            ConstructorInfo chosenCtor = null;
-            foreach (var ctor in tp.GetConstructors(BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic))
-            {
-                if (ctor.GetParameters().Length == 0 && !ctor.IsStatic) chosenCtor = ctor;
-            }
-            if (chosenCtor == null) throw new ArgumentException("suiting parameterless constructor not found");
-            object res = chosenCtor.Invoke(new object[0]);
-            foreach (var fld in tp.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public))
-            {
-                if (fld.FieldType.IsPrimitive) fld.SetValue(res, fld.GetValue(o));
-            }
-            return res;
+            target.scaleX = original.scaleX;
+            target.scaleY = original.scaleY;
+            target.element = original.element;
+            target.color = original.color;
+            target.sortZ = original.sortZ;
+            
         }
     }
 }

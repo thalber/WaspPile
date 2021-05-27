@@ -5,6 +5,7 @@ using System.Text;
 using MonoMod.RuntimeDetour;
 using System.Reflection;
 using WaspPile.EyeIntheSky.Rulesets;
+using UnityEngine;
 
 namespace WaspPile.EyeIntheSky
 {
@@ -16,16 +17,35 @@ namespace WaspPile.EyeIntheSky
             GeneralRuleset therule;
             if (BrotherBigEyes.TryGetRules(self.GetType(), out therule)) 
             {
+                Debug.Log($"LENS: modifying IDrawable {self.GetType()} on sprite init...");
+                var oldContainers = new FContainer[sleaser.sprites.Length];
+                for (int i = 0; i < oldContainers.Length; i++)
+                {
+                    oldContainers[i] = sleaser.sprites[i]._container;
+                }
                 var onMyInit = therule.DoOnInit;
                 if (onMyInit != null)
                 {
-                    if (onMyInit.additionalSlots.HasValue) Array.Resize(ref sleaser.sprites, sleaser.sprites.Length + onMyInit.additionalSlots.Value);
+                    if (onMyInit.additionalSlots.HasValue) 
+                    {
+                        Array.Resize(ref sleaser.sprites, sleaser.sprites.Length + onMyInit.additionalSlots.Value);
+                        Debug.Log($"resized sleaser.sprites; new size: {sleaser.sprites.Length}");
+                    }
                     if (onMyInit.spriteReplacements != null) foreach (var kvp in onMyInit.spriteReplacements)
                         {
-                            if (kvp.Key < sleaser.sprites.Length) sleaser.sprites[kvp.Key] = (FSprite)kvp.Value.ShallowClone();
+                            if (kvp.Key < sleaser.sprites.Length)
+                            {
+                                var old = sleaser.sprites[kvp.Key].container;
+                                sleaser.sprites[kvp.Key].RemoveFromContainer();
+                                kvp.Value.CopyPropertiesToOther(sleaser.sprites[kvp.Key]);
+                                old.AddChild(sleaser.sprites[kvp.Key]);
+                                Debug.Log($"replaced sprite: {kvp.Key} : {kvp.Value.element?.name}, {kvp.Value.scaleX}, {kvp.Value.scaleY}, {kvp.Value.shader}");
+
+                            }
                         }
                 }
             }
+            
         }
         
         public delegate void anyInitSprites(IDrawable self, RoomCamera.SpriteLeaser sleaser, RoomCamera rcam);

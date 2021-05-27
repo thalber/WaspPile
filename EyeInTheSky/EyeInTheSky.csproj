@@ -32,6 +32,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="BrotherBigEyes.cs" />
+    <Compile Include="FSpriteClonable.cs" />
     <Compile Include="ObservatoryUtils.cs" />
     <Compile Include="Rulesets\ApplyPaletteRuleset.cs" />
     <Compile Include="Rulesets\GeneralRuleset.cs" />

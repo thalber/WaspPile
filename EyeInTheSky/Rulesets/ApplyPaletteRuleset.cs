@@ -5,7 +5,7 @@ using System.Text;
 
 namespace WaspPile.EyeIntheSky.Rulesets
 {
-#error empty, implement
+//#error empty, implement
     public class ApplyPaletteRuleset
     {
 
