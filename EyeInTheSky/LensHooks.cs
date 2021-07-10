@@ -33,15 +33,13 @@ namespace WaspPile.EyeIntheSky
                     }
                     if (onMyInit.spriteReplacements != null) foreach (var kvp in onMyInit.spriteReplacements)
                         {
-                            if (kvp.Key < sleaser.sprites.Length)
-                            {
-                                var old = sleaser.sprites[kvp.Key].container;
-                                sleaser.sprites[kvp.Key].RemoveFromContainer();
-                                kvp.Value.CopyPropertiesToOther(sleaser.sprites[kvp.Key]);
-                                old.AddChild(sleaser.sprites[kvp.Key]);
-                                Debug.Log($"replaced sprite: {kvp.Key} : {kvp.Value.element?.name}, {kvp.Value.scaleX}, {kvp.Value.scaleY}, {kvp.Value.shader}");
-
-                            }
+                            if (kvp.Key >= sleaser.sprites.Length) continue;
+                            var oldContainer = sleaser.sprites[kvp.Key].container;
+                            sleaser.sprites[kvp.Key]?.RemoveFromContainer();
+                            sleaser.sprites[kvp.Key] = kvp.Value.Clone();
+                            oldContainer.AddChild(sleaser.sprites[kvp.Key]);
+                            var updatedSprite = sleaser.sprites[kvp.Key];
+                            Debug.Log($"replaced sprite: {kvp.Key} : {updatedSprite.element?.name}, {updatedSprite.scaleX}, {updatedSprite.scaleY}, {updatedSprite.container}, {updatedSprite.shader?.name}");
                         }
                 }
             }

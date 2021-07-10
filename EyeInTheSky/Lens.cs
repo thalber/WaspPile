@@ -26,15 +26,15 @@ namespace WaspPile.EyeIntheSky
         {
             orig(self, mngr, id);
             var testSpriteReplacements = new Dictionary<int, FSprite>();
-            for (int i = 0; i < 42; i++)
+            for (int i = 0; i < 3; i++)
             {
-                testSpriteReplacements.Add(i, new FSprite("PlayerArm0", false) { _scaleX = 10, _scaleY = 10, alpha = 1,  });
+                testSpriteReplacements.Add(i, new FSprite("BodyA", true) { scaleX = 10, scaleY = 10, alpha = 1,  });
             }
 
-            var oninit = new SpriteArrayRuleset(typeof(ShelterDoor), testSpriteReplacements);
+            var oninit = new SpriteArrayRuleset(typeof(DangleFruit), testSpriteReplacements);
             var grs = new GeneralRuleset();
             grs.DoOnInit = oninit;
-            BrotherBigEyes.AddOrUpdate(typeof(ShelterDoor), grs);
+            BrotherBigEyes.AddOrUpdate(typeof(DangleFruit), grs);
         }
     }
 }
