@@ -6,15 +6,15 @@ namespace WaspPile.RR
 {
     internal class RainReflectDetours
     {
-        public delegate void orig_MainMenu_Ctor(Menu.MainMenu self, ProcessManager manager, bool regspecbg);
-        public static void MainMenu_Ctor (orig_MainMenu_Ctor orig, Menu.MainMenu self, ProcessManager manager, bool rsbg)
+        public delegate void orig_MainMenu_Ctor(MainMenu self, ProcessManager manager, bool regspecbg);
+        public static void MainMenu_Ctor (orig_MainMenu_Ctor orig, MainMenu self, ProcessManager manager, bool rsbg)
         {
             orig(self, manager, rsbg);
-            self.pages[0].subObjects.Add(new Menu.SimpleButton(self, self.pages[0], "MODS", "MODMENU", new UnityEngine.Vector2(100f, 200f), new UnityEngine.Vector2(110f, 30f)));
+            self.pages[0].subObjects.Add(new SimpleButton(self, self.pages[0], "MODS", "MODMENU", new UnityEngine.Vector2(100f, 200f), new UnityEngine.Vector2(110f, 30f)));
         }
 
-        public delegate void orig_MainMenu_Signal(Menu.MainMenu self, Menu.MenuObject sender, string message);
-        public static void MainMenu_Signal(orig_MainMenu_Signal orig, Menu.MainMenu self, Menu.MenuObject sender, string message)
+        public delegate void orig_MainMenu_Signal(MainMenu self, MenuObject sender, string message);
+        public static void MainMenu_Signal(orig_MainMenu_Signal orig, MainMenu self, Menu.MenuObject sender, string message)
         {
             if (sender is SimpleButton && message == "MODMENU")
             {
