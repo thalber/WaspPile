@@ -17,11 +17,11 @@ namespace WaspPile.Remnant
         public override string StartRoom => STARTROOM;
         protected override void Disable()
         {
-            MartyrHooks.Enable();
+            MartyrHooks.Disable();
         }
         protected override void Enable()
         {
-            MartyrHooks.Disable();
+            MartyrHooks.Enable();
         }
     }
 }
