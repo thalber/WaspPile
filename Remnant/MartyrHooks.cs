@@ -6,6 +6,8 @@ using System.IO;
 using RWCustom;
 using UnityEngine;
 using static UnityEngine.Mathf;
+using MonoMod.RuntimeDetour;
+using System.Reflection;
 
 //todo
 //+base ability lifecycle
@@ -13,17 +15,22 @@ using static UnityEngine.Mathf;
 //+throwforce and damage (extra indication?)
 //+deflect
 //+unhooking
-//?waterbounce(crude but origo seems same) ((actually pretty bad and should be done properly))
-//-ac/deac sounds
-//-soft fade? sprite doesn't support it at all
+//?waterbounce(crude but origo seems same)
+//+ac/deac sounds
+//+soft fade? replaced with flicker
 //+em: infinite rolls
 //?import art
 //-testing
+//cycle limit
+//one sitting option
 
 namespace WaspPile.Remnant
 {
+
     public static class MartyrHooks 
     {
+        const BindingFlags allContexts = BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.CreateInstance;
+
 #warning stats are pretty arbitrary, sync
 #warning add customizable ability bind
         const float ECHOMODE_DAMAGE_BONUS = 1.5f;
@@ -66,10 +73,7 @@ namespace WaspPile.Remnant
             self.room.PlaySound(SoundID.Spear_Bounce_Off_Wall, self.firstChunk.pos, 1.0f, 0.5f);
             self.lungsExhausted = true;
             self.airInLungs = 0f;
-            if (fullDeplete)
-            {
-                self.exhausted = true;
-            }
+            
         }
         public static void powerUp(this Player self, ref MartyrFields mf)
         {
@@ -80,6 +84,7 @@ namespace WaspPile.Remnant
         }
         public static readonly Dictionary<int, MartyrFields> fieldsByPlayerHash = new Dictionary<int, MartyrFields>();
 
+        private readonly static List<Hook> manualHooks = new List<Hook>();
         public static void Enable()
         {
             //lc
@@ -99,9 +104,51 @@ namespace WaspPile.Remnant
             On.PlayerGraphics.AddToContainer += Player_ATC;
             On.PlayerGraphics.DrawSprites += Player_Draw;
 
-            //On.DataPearl.UniquePearlMainColor += Pearl_GetMainColor;
-            //On.DataPearl.UniquePearlHighLightColor += Pearl_GetHighlight;
+            //misc
+#warning finish redcycles fuckery
+            On.RedsIllness.RedsCycles += ChangeLimit;
+            On.HUD.Map.CycleLabel.UpdateCycleText += ChangeMapCycleText;
+            On.HUD.SubregionTracker.Update += SubregionTrackerText;
+            manualHooks.Add(new Hook(typeof(StoryGameSession).GetMethod("get_RedIsOutOfCycles", allContexts), typeof(MartyrHooks).GetMethod(nameof(AmIRunningOutOfTime), allContexts)));
         }
+        
+
+        private delegate bool sgs_rioc(StoryGameSession self);
+        private static bool AmIRunningOutOfTime(sgs_rioc orig, StoryGameSession self)
+        {
+            return self.saveStateNumber >= RedsIllness.RedsCycles(false);
+        }
+
+        #region misc
+        private static void ChangeMapCycleText(On.HUD.Map.CycleLabel.orig_UpdateCycleText orig, HUD.Map.CycleLabel self)
+        {
+            var ss = (self.owner.hud.owner as Player)?.abstractCreature.world.game.GetStorySession;
+            if (ss!= null)
+            {
+                var oldpi = ss.saveState.saveStateNumber;
+                ss.saveState.saveStateNumber = 2;
+                orig(self);
+                ss.saveState.saveStateNumber = oldpi;
+            }
+            else { orig(self); }
+        }
+        private static void SubregionTrackerText(On.HUD.SubregionTracker.orig_Update orig, HUD.SubregionTracker self)
+        {
+            var ss = (self.textPrompt.hud.owner as Player)?.abstractCreature.world.game.GetStorySession;
+            if (ss != null)
+            {
+                var oldpi = ss.saveState.saveStateNumber;
+                ss.saveState.saveStateNumber = 2;
+                orig(self);
+                ss.saveState.saveStateNumber = oldpi;
+            }
+            else { orig(self); }
+        }
+        private static int ChangeLimit(On.RedsIllness.orig_RedsCycles orig, bool extraCycles)
+        {
+            return 10;
+        }
+        #endregion
 
         #region idrawable
         //initsprites lock, active when vanilla run of initsprites is in effect
@@ -256,7 +303,8 @@ namespace WaspPile.Remnant
                 echoActive = false,
                 fade = 0f,
                 bubbleSpriteIndex = -1
-            }) ;
+            });
+            if (self.room.game.IsStorySession) self.redsIllness = new RedsIllness(self, Abs(RedsIllness.RedsCycles(false) - self.abstractCreature.world.game.GetStorySession.saveState.cycleNumber));
         }
         
         private static void GameStarts(On.RainWorldGame.orig_ctor orig, 
@@ -282,6 +330,13 @@ namespace WaspPile.Remnant
             On.PlayerGraphics.InitiateSprites -= Player_MakeSprites;
             On.PlayerGraphics.AddToContainer -= Player_ATC;
             On.PlayerGraphics.DrawSprites -= Player_Draw;
+
+            On.RedsIllness.RedsCycles -= ChangeLimit;
+            On.HUD.Map.CycleLabel.UpdateCycleText -= ChangeMapCycleText;
+            On.HUD.SubregionTracker.Update -= SubregionTrackerText;
+
+            foreach (var h in manualHooks) { h.Undo(); }
+            manualHooks.Clear(); 
         }
     }
 }

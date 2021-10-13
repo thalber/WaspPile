@@ -18,6 +18,7 @@ namespace WaspPile.Remnant
         public override Color? SlugcatColor() => new Color(0.15f, 0.15f, 0.3f);
         public override Color? SlugcatEyeColor() => Color.yellow;
         //public override string StartRoom => STARTROOM;
+        
         protected override void Disable()
         {
             MartyrHooks.Disable();

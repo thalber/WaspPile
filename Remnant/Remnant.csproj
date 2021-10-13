@@ -38,6 +38,7 @@
     </Reference>
     <Reference Include="Assembly-CSharp-firstpass">
       <HintPath>..\SolutionReferences\Assembly-CSharp-firstpass.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="BepInEx">
       <HintPath>..\SolutionReferences\BepInEx.dll</HintPath>
@@ -71,10 +72,6 @@
       <HintPath>..\SolutionReferences\MonoMod.RuntimeDetour.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="MonoMod.RuntimeDetour.HookGen">
-      <HintPath>..\SolutionReferences\MonoMod.RuntimeDetour.HookGen.exe</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="MonoMod.Utils">
       <HintPath>..\SolutionReferences\MonoMod.Utils.dll</HintPath>
       <Private>False</Private>
@@ -85,7 +82,7 @@
     </Reference>
     <Reference Include="SlugBase">
       <HintPath>..\SolutionReferences\SlugBase.dll</HintPath>
-      <Private>False</Private>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

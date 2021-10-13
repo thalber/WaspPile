@@ -1,9 +1,11 @@
 {
 	"images": [
-		{"name":"Background4.png", "x":672, "y":236, "depth":3.5},
-		{"name":"BgPlants2.png", "x":690, "y":80, "depth":2.0},
-		{"name":"Slugcat1.png", "x":690, "y":80, "depth":1.7},
-		{"name":"FgPlants0.png", "x":690, "y":80, "depth":1.5},
-		{"name":"Slugcat_Flat.png", "x":0, "y":300, "depth":10, "flatmode":true, "crisp":true}
-	]
+		{"name":"Background4.png", "x":430, "y":220, "depth":3.5},
+		{"name":"BgPlants2.png", "x":450, "y":220, "depth":2.3},
+		{"name":"Slugcat1.png", "x":430, "y":220, "depth":1.9},
+		{"name":"FgPlants0.png", "x":450, "y":220, "depth":1.5},
+		{"name":"Slugcat_Flat.png", "x":0, "y":0, "depth":10, "flatmode":true, "crisp":true}
+	],
+	"idledepths": [ 1.95, 1.80, 1.70 ],
+	"slugcatdepth": 0.9
 }
