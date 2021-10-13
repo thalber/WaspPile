@@ -8,7 +8,7 @@ using Steamworks;
 
 namespace WaspPile.Remnant
 {
-    [BepInPlugin("EchoWorld.Martyrdom", "Martyrdom", "0.0.1")]
+    [BepInPlugin("EchoWorld.Remnant", "Remnant", "0.0.1")]
     public class RemnantPlugin : BaseUnityPlugin
     {
         public void OnEnable()

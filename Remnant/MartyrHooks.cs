@@ -17,7 +17,7 @@ using static UnityEngine.Mathf;
 //-ac/deac sounds
 //-soft fade? sprite doesn't support it at all
 //+em: infinite rolls
-//-import art
+//?import art
 //-testing
 
 namespace WaspPile.Remnant
@@ -63,11 +63,20 @@ namespace WaspPile.Remnant
                 : ECHOMODE_DEPLETE_COOLDOWN * InverseLerp(mf.maxEchoReserve, 0f, mf.echoReserve) * 0.8f;
             Console.WriteLine($"cd: {mf.cooldown}");
             mf.echoActive = false;
+            self.room.PlaySound(SoundID.Spear_Bounce_Off_Wall, self.firstChunk.pos, 1.0f, 0.5f);
+            self.lungsExhausted = true;
+            self.airInLungs = 0f;
+            if (fullDeplete)
+            {
+                self.exhausted = true;
+            }
         }
         public static void powerUp(this Player self, ref MartyrFields mf)
         {
             Console.WriteLine($"Martyr ability up\nreserve: {mf.echoReserve}");
             mf.echoActive = true;
+            self.room.PlaySound(SoundID.Rock_Hit_Creature, self.firstChunk.pos, 1.0f, 0.5f);
+            self.airInLungs = 1f;
         }
         public static readonly Dictionary<int, MartyrFields> fieldsByPlayerHash = new Dictionary<int, MartyrFields>();
 
@@ -90,7 +99,6 @@ namespace WaspPile.Remnant
             On.PlayerGraphics.AddToContainer += Player_ATC;
             On.PlayerGraphics.DrawSprites += Player_Draw;
 
-            
             //On.DataPearl.UniquePearlMainColor += Pearl_GetMainColor;
             //On.DataPearl.UniquePearlHighLightColor += Pearl_GetHighlight;
         }
@@ -126,7 +134,7 @@ namespace WaspPile.Remnant
             bubble.element = Futile.atlasManager.GetElementWithName("Futile_White");
             var cf = Lerp(mf.lastFade, mf.fade, timeStacker);
             bubble.scale = Lerp(13f, 16f, cf);
-            bubble.isVisible = UnityEngine.Random.value <= cf;
+            bubble.isVisible = UnityEngine.Random.value < cf;
         }
 
         private static void Player_MakeSprites(On.PlayerGraphics.orig_InitiateSprites orig, 
@@ -221,6 +229,7 @@ namespace WaspPile.Remnant
                 mf.echoReserve = Min(mf.maxEchoReserve, mf.echoReserve + mf.rechargeRate);
                 mf.cooldown = Max(0, mf.cooldown - 1f);
                 if (toggleRequested && mf.cooldown == 0) self.powerUp(ref mf);
+                if (toggleRequested && mf.cooldown != 0) self.room.PlaySound(SoundID.Spear_Bounce_Off_Creauture_Shell, self.firstChunk.pos, 0.9f, 0.45f);
             }
 
             //basic stats modification
@@ -228,7 +237,7 @@ namespace WaspPile.Remnant
             self.buoyancy = mf.echoActive ? mf.baseBuoyancy * ECHOMODE_BUOYANCY_BONUS : mf.baseBuoyancy;
             self.waterFriction = mf.echoActive ? mf.baseWaterFric * ECHOMODE_WATERFRIC_BONUS : mf.baseWaterFric;
             mf.lastFade = mf.fade;
-            mf.fade = Custom.LerpAndTick(mf.fade, mf.echoActive ? 1f : 0f, 0.08f, 0.03f);
+            mf.fade = Custom.LerpAndTick(mf.fade, mf.echoActive ? 1f : 0f, 0.08f, 0.04f);
             orig(self, eu);
         }
         
