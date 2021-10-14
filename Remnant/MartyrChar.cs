@@ -18,7 +18,11 @@ namespace WaspPile.Remnant
         public override Color? SlugcatColor() => new Color(0.15f, 0.15f, 0.3f);
         public override Color? SlugcatEyeColor() => Color.yellow;
         //public override string StartRoom => STARTROOM;
-        
+        public override CustomSaveState CreateNewSave(PlayerProgression progression)
+        {
+            return new MartyrSave(progression, this);
+        }
+
         protected override void Disable()
         {
             MartyrHooks.Disable();
@@ -28,6 +32,19 @@ namespace WaspPile.Remnant
         {
             MartyrHooks.Enable();
             CommonHooks.Enable();
+        }
+
+        public class MartyrSave : CustomSaveState
+        {
+            public MartyrSave(PlayerProgression prog, SlugBaseCharacter schar) : base(prog, schar)
+            {
+            }
+
+            public override void SavePermanent(Dictionary<string, string> data, bool asDeath, bool asQuit)
+            {
+                if (RemnantConfig.MartyrLimited && asQuit && !data.ContainsKey("DISRUPT")) data.Add("DISRUPT", "YES");
+                base.SavePermanent(data, asDeath, asQuit);
+            }
         }
     }
 }

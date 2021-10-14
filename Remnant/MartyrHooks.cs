@@ -21,7 +21,7 @@ using System.Reflection;
 //+em: infinite rolls
 //?import art
 //-testing
-//cycle limit
+//cycle limit, cycleconfig integration
 //one sitting option
 
 namespace WaspPile.Remnant
@@ -72,7 +72,7 @@ namespace WaspPile.Remnant
             mf.echoActive = false;
             self.room.PlaySound(SoundID.Spear_Bounce_Off_Wall, self.firstChunk.pos, 1.0f, 0.5f);
             self.lungsExhausted = true;
-            self.airInLungs = 0f;
+            self.airInLungs = fullDeplete ? 0f : 0.2f;
             
         }
         public static void powerUp(this Player self, ref MartyrFields mf)
@@ -106,12 +106,22 @@ namespace WaspPile.Remnant
 
             //misc
 #warning finish redcycles fuckery
-            On.RedsIllness.RedsCycles += ChangeLimit;
-            On.HUD.Map.CycleLabel.UpdateCycleText += ChangeMapCycleText;
-            On.HUD.SubregionTracker.Update += SubregionTrackerText;
+            //On.RedsIllness.RedsCycles += ChangeLimit;
+            //On.HUD.Map.CycleLabel.UpdateCycleText += ChangeMapCycleText;
+            //On.HUD.SubregionTracker.Update += SubregionTrackerText;
+            //On.RainWorldGame.ExitGame += QuitOut;
+
             manualHooks.Add(new Hook(typeof(StoryGameSession).GetMethod("get_RedIsOutOfCycles", allContexts), typeof(MartyrHooks).GetMethod(nameof(AmIRunningOutOfTime), allContexts)));
         }
-        
+
+        private static void QuitOut(On.RainWorldGame.orig_ExitGame orig, RainWorldGame self, bool asDeath, bool asQuit)
+        {
+            if (RemnantConfig.MartyrLimited && asQuit)
+            {
+
+            }
+            else { orig(self, asDeath, asQuit); }
+        }
 
         private delegate bool sgs_rioc(StoryGameSession self);
         private static bool AmIRunningOutOfTime(sgs_rioc orig, StoryGameSession self)
@@ -123,7 +133,7 @@ namespace WaspPile.Remnant
         private static void ChangeMapCycleText(On.HUD.Map.CycleLabel.orig_UpdateCycleText orig, HUD.Map.CycleLabel self)
         {
             var ss = (self.owner.hud.owner as Player)?.abstractCreature.world.game.GetStorySession;
-            if (ss!= null)
+            if (ss != null)
             {
                 var oldpi = ss.saveState.saveStateNumber;
                 ss.saveState.saveStateNumber = 2;
@@ -304,7 +314,7 @@ namespace WaspPile.Remnant
                 fade = 0f,
                 bubbleSpriteIndex = -1
             });
-            if (self.room.game.IsStorySession) self.redsIllness = new RedsIllness(self, Abs(RedsIllness.RedsCycles(false) - self.abstractCreature.world.game.GetStorySession.saveState.cycleNumber));
+            //if (self.room.game.IsStorySession) self.redsIllness = new RedsIllness(self, Abs(RedsIllness.RedsCycles(false) - self.abstractCreature.world.game.GetStorySession.saveState.cycleNumber));
         }
         
         private static void GameStarts(On.RainWorldGame.orig_ctor orig, 
@@ -331,12 +341,13 @@ namespace WaspPile.Remnant
             On.PlayerGraphics.AddToContainer -= Player_ATC;
             On.PlayerGraphics.DrawSprites -= Player_Draw;
 
-            On.RedsIllness.RedsCycles -= ChangeLimit;
-            On.HUD.Map.CycleLabel.UpdateCycleText -= ChangeMapCycleText;
-            On.HUD.SubregionTracker.Update -= SubregionTrackerText;
+            //On.RedsIllness.RedsCycles -= ChangeLimit;
+            //On.HUD.Map.CycleLabel.UpdateCycleText -= ChangeMapCycleText;
+            //On.HUD.SubregionTracker.Update -= SubregionTrackerText;
 
             foreach (var h in manualHooks) { h.Undo(); }
             manualHooks.Clear(); 
+            
         }
     }
 }
