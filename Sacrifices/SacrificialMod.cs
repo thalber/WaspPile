@@ -5,6 +5,8 @@ using System.Text;
 
 namespace WaspPile.Sacrifices
 {
+    //todo: 
+    //import slime's fat free menuscene shader
     public class SacrificialMod : Partiality.Modloader.PartialityMod
     {
         // ------------------------------------------------

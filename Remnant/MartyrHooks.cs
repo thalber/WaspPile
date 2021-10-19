@@ -107,11 +107,12 @@ namespace WaspPile.Remnant
 
             //misc
 #warning finish redcycles fuckery
-            On.Player.ctor += PromptCycleWarning;
+            //On.Player.ctor += PromptCycleWarning;
         }
 
         private static void PromptCycleWarning(On.Player.orig_ctor orig, Player self, AbstractCreature abstractCreature, World world)
         {
+#warning impl
             throw new NotImplementedException();
         }
 

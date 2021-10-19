@@ -48,7 +48,7 @@ namespace WaspPile.Remnant
         }
         public override CustomScene BuildScene(string sceneName)
         {
-            if (sceneName == "SelectMenu") sceneName = "SelectMenuAscended";
+            if (sceneName == "SelectMenu") sceneName = "SleepScreen";
 #warning finish scenes setup
             return base.BuildScene(sceneName);
         }

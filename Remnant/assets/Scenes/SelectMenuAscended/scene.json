@@ -1,10 +1,9 @@
 {
 	"images": [
-		{"name":"GhostBkg.png", "x":430, "y":220, "depth":3.5},
-		{"name":"GhostB.png", "x":450, "y":220, "depth":2.3},
-		{"name":"GhostA.png", "x":450, "y":220, "depth":1.5},
+		{"name":"GhostBkg.png", "x":350, "y":220, "depth":2.0},
+		{"name":"GhostA.png", "x":540, "y":220, "depth":1.5},
 		{"name":"SelectMenuAscended_Flat.png", "x":0, "y":0, "depth":10, "flatmode":true, "crisp":true}
 	],
-	"idledepths": [ 1.95, 1.80, 1.70 ],
+	"idledepths": [ 1.5, 1.60 ],
 	"slugcatdepth": 1.5
 }
