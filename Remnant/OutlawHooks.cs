@@ -8,7 +8,7 @@ using static UnityEngine.Mathf;
 
 namespace WaspPile.Remnant
 {
-    public static class OutlawHooks
+    public class OutlawHooks
     {
         //todo:
         //-wall crawl (rip off casheww)

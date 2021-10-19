@@ -110,6 +110,7 @@
     <Compile Include="MartyrHooks.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RemnantConfig.cs" />
+    <Compile Include="RemnantUtils.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Resources.resx">

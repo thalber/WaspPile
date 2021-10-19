@@ -82,9 +82,10 @@ namespace WaspPile.Remnant
             self.room.PlaySound(SoundID.Rock_Hit_Creature, self.firstChunk.pos, 1.0f, 0.5f);
             self.airInLungs = 1f;
         }
+        
         public static readonly Dictionary<int, MartyrFields> fieldsByPlayerHash = new Dictionary<int, MartyrFields>();
-
         private readonly static List<Hook> manualHooks = new List<Hook>();
+
         public static void Enable()
         {
             //lc
@@ -106,58 +107,16 @@ namespace WaspPile.Remnant
 
             //misc
 #warning finish redcycles fuckery
-            //On.RedsIllness.RedsCycles += ChangeLimit;
-            //On.HUD.Map.CycleLabel.UpdateCycleText += ChangeMapCycleText;
-            //On.HUD.SubregionTracker.Update += SubregionTrackerText;
-            //On.RainWorldGame.ExitGame += QuitOut;
-
-            manualHooks.Add(new Hook(typeof(StoryGameSession).GetMethod("get_RedIsOutOfCycles", allContexts), typeof(MartyrHooks).GetMethod(nameof(AmIRunningOutOfTime), allContexts)));
+            On.Player.ctor += PromptCycleWarning;
         }
 
-        private static void QuitOut(On.RainWorldGame.orig_ExitGame orig, RainWorldGame self, bool asDeath, bool asQuit)
+        private static void PromptCycleWarning(On.Player.orig_ctor orig, Player self, AbstractCreature abstractCreature, World world)
         {
-            if (RemnantConfig.MartyrLimited && asQuit)
-            {
-
-            }
-            else { orig(self, asDeath, asQuit); }
-        }
-
-        private delegate bool sgs_rioc(StoryGameSession self);
-        private static bool AmIRunningOutOfTime(sgs_rioc orig, StoryGameSession self)
-        {
-            return self.saveStateNumber >= RedsIllness.RedsCycles(false);
+            throw new NotImplementedException();
         }
 
         #region misc
-        private static void ChangeMapCycleText(On.HUD.Map.CycleLabel.orig_UpdateCycleText orig, HUD.Map.CycleLabel self)
-        {
-            var ss = (self.owner.hud.owner as Player)?.abstractCreature.world.game.GetStorySession;
-            if (ss != null)
-            {
-                var oldpi = ss.saveState.saveStateNumber;
-                ss.saveState.saveStateNumber = 2;
-                orig(self);
-                ss.saveState.saveStateNumber = oldpi;
-            }
-            else { orig(self); }
-        }
-        private static void SubregionTrackerText(On.HUD.SubregionTracker.orig_Update orig, HUD.SubregionTracker self)
-        {
-            var ss = (self.textPrompt.hud.owner as Player)?.abstractCreature.world.game.GetStorySession;
-            if (ss != null)
-            {
-                var oldpi = ss.saveState.saveStateNumber;
-                ss.saveState.saveStateNumber = 2;
-                orig(self);
-                ss.saveState.saveStateNumber = oldpi;
-            }
-            else { orig(self); }
-        }
-        private static int ChangeLimit(On.RedsIllness.orig_RedsCycles orig, bool extraCycles)
-        {
-            return 10;
-        }
+
         #endregion
 
         #region idrawable
