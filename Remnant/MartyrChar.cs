@@ -7,6 +7,8 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
+using static WaspPile.Remnant.RemnantUtils;
+
 namespace WaspPile.Remnant
 {
     public class MartyrChar : SlugBaseCharacter
@@ -14,8 +16,8 @@ namespace WaspPile.Remnant
         public const string CHARNAME = "Martyr";
         public const string PERMADEATHKEY = "DISRUPT";
         public const string STARTROOM = "HI_C04";
-        public MartyrChar() : base(CHARNAME, FormatVersion.V1, 0) { }//instance = this; }
-        //public static MartyrChar instance;
+        public MartyrChar() : base(CHARNAME, FormatVersion.V1, 0) { instance = this; }
+        public static MartyrChar instance;
         public override string Description => "REMNANT OF A MIND IS MATERIALIZED\nWEAKNESS IS BRIDGE TO STRENGTH\nINSERTION IS VIOLATION";
         //proper colors
         public override Color? SlugcatColor() => new Color(0.15f, 0.15f, 0.3f);
@@ -38,19 +40,22 @@ namespace WaspPile.Remnant
         public override SelectMenuAccessibility GetSelectMenuState(SlugcatSelectMenu menu)
         {
             var crw = GameObject.FindObjectOfType<RainWorld>();
-            var meta = SaveManager.GetCharacterData("Martyr", crw.options.saveSlot);
-            if (meta.TryGetValue(PERMADEATHKEY, out var deathTime))
+            var meta = SaveManager.GetCharacterData(CHARNAME, crw.options.saveSlot);
+            if (meta.TryGetValue(PERMADEATHKEY, out var reason))
             {
-                Debug.Log($"REMNANT HAD BEEN DISRUPTED: {deathTime}, FORCING RESTART");
                 return SelectMenuAccessibility.MustRestart;
             }
             return SelectMenuAccessibility.Available;
         }
         public override CustomScene BuildScene(string sceneName)
         {
-            if (sceneName == "SelectMenu") sceneName = "SleepScreen";
-#warning finish scenes setup
+            if (sceneName == "SelectMenu" && MartyrIsDead(CRW.options.saveSlot)) sceneName = "SelectMenuDisrupt";
             return base.BuildScene(sceneName);
+        }
+        public override void StartNewGame(Room room)
+        {
+            SaveManager.GetCharacterData(CHARNAME, CRW.options.saveSlot).TryRemoveKey(PERMADEATHKEY);
+            base.StartNewGame(room);
         }
 
         public static bool MartyrIsDead(int saveslot)
@@ -62,24 +67,36 @@ namespace WaspPile.Remnant
             }
             catch { return false; }
         }
+
         public class MartyrSave : CustomSaveState
         {
             public MartyrSave(PlayerProgression prog, SlugBaseCharacter schar) : base(prog, schar)
             {
             }
 
-            public override void LoadPermanent(Dictionary<string, string> data)
+            public override void Save(Dictionary<string, string> data)
             {
+                base.Save(data);
+                if (cycleNumber >= RemnantConfig.martyrCycles.Value)
+                {
+                    var meta = SaveManager.GetCharacterData(CHARNAME, CRW.options.saveSlot);
+                    var deathmark = "VESSEL EXPIRATION";
+                    meta.SetKey(PERMADEATHKEY, deathmark);
+                    CRW.processManager.RequestMainProcessSwitch(ProcessManager.ProcessID.MainMenu);
+                    Debug.Log($"REMNANT DISRUPTED: {deathmark}");
+                }
             }
 
             public override void SavePermanent(Dictionary<string, string> data, bool asDeath, bool asQuit)
             {
-                if (RemnantConfig.MartyrLimited && asQuit)
+                if (RemnantConfig.noQuits.Value && asQuit)
                 {
-                    var crw = GameObject.FindObjectOfType<RainWorld>();
-                    var meta = SaveManager.GetCharacterData("Martyr", crw.options.saveSlot);
-                    var deathmark = DateTime.Now.ToString();
+                SPECEX:
+                    var meta = SaveManager.GetCharacterData(CHARNAME, CRW.options.saveSlot);
+                    var deathmark = "ACTOR DESYNC";
                     meta.SetKey(PERMADEATHKEY, deathmark);
+                    UnityEngine.Object.FindObjectOfType<RainWorld>().processManager.RequestMainProcessSwitch(ProcessManager.ProcessID.MainMenu);
+                    Debug.Log($"REMNANT DISRUPTED: {deathmark}");
                 }
                 base.SavePermanent(data, asDeath, asQuit);
             }

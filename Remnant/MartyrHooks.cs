@@ -21,7 +21,7 @@ using System.Reflection;
 //+em: infinite rolls
 //?import art
 //-testing
-//cycle limit, cycleconfig integration
+//+cycle limit?
 //one sitting option
 
 namespace WaspPile.Remnant
@@ -29,10 +29,9 @@ namespace WaspPile.Remnant
 
     public static class MartyrHooks 
     {
-        const BindingFlags allContexts = BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.CreateInstance;
-
 #warning stats are pretty arbitrary, sync
 #warning add customizable ability bind
+
         const float ECHOMODE_DAMAGE_BONUS = 1.5f;
         const float ECHOMODE_THROWFORCE_BONUS = 1.8f;
         const float ECHOMODE_RUNSPEED_BONUS = 1.3f;
@@ -106,14 +105,13 @@ namespace WaspPile.Remnant
             On.PlayerGraphics.DrawSprites += Player_Draw;
 
             //misc
-#warning finish redcycles fuckery
-            //On.Player.ctor += PromptCycleWarning;
+            On.Player.ctor += PromptCycleWarning;
         }
 
         private static void PromptCycleWarning(On.Player.orig_ctor orig, Player self, AbstractCreature abstractCreature, World world)
         {
-#warning impl
-            throw new NotImplementedException();
+            orig(self, abstractCreature, world);
+            abstractCreature.Room.realizedRoom?.AddObject(new CyclePrompt());
         }
 
         #region misc
@@ -305,9 +303,29 @@ namespace WaspPile.Remnant
             //On.HUD.Map.CycleLabel.UpdateCycleText -= ChangeMapCycleText;
             //On.HUD.SubregionTracker.Update -= SubregionTrackerText;
 
+            On.Player.ctor -= PromptCycleWarning;
+
             foreach (var h in manualHooks) { h.Undo(); }
             manualHooks.Clear(); 
             
         }
+    }
+
+    internal class CyclePrompt : UpdatableAndDeletable
+    {
+        public override void Update(bool eu)
+        {
+            base.Update(eu);
+            string message = $"remaining cycles: {RemnantConfig.martyrCycles.Value - room.game?.rainWorld.progression.currentSaveState.cycleNumber}";
+            if (message != null)
+            {
+                room.game?.cameras[0].hud.textPrompt.AddMessage(message, 15, 400, false, false);
+                Destroy();
+            }
+            lt--;
+            if (lt < 0) Destroy();
+        }
+
+        int lt = 45;
     }
 }
