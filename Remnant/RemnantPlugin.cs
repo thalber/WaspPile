@@ -21,8 +21,12 @@ namespace WaspPile.Remnant
                 SlugBase.PlayerManager.RegisterCharacter(new MartyrChar());
                 registered = true;
             }
-            if (martyrCycles is null) martyrCycles = Config.Bind("Martyr", "Cycle limit", 10, "Number of cycles available for a run");
-            if (noQuits is null) noQuits = Config.Bind("Martyr", "No quits", true, "Exiting the game kills the run");
+            for (int i = 0; i < abilityBinds.Length; i++)
+            {
+                if (abilityBinds[i] == null) abilityBinds[i] = Config.Bind("Martyr", $"Ability hotkey for P{i + 1}", UnityEngine.KeyCode.LeftAlt, $"Martyr's ability keybind for player {i + 1}");
+            } 
+            if (martyrCycles == null) martyrCycles = Config.Bind("Martyr", "Cycle limit", 10, "Number of cycles available for a run");
+            if (noQuits == null) noQuits = Config.Bind("Martyr", "No quits", true, "Exiting the game kills the run");
         }
         bool registered = false;
     }

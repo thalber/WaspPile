@@ -16,12 +16,20 @@ namespace WaspPile.Remnant
         public const string CHARNAME = "Martyr";
         public const string PERMADEATHKEY = "DISRUPT";
         public const string STARTROOM = "HI_C04";
-        public MartyrChar() : base(CHARNAME, FormatVersion.V1, 0) { instance = this; }
+        public static readonly Color baseBodyCol = new Color(0.15f, 0.15f, 0.4f);
+        public static readonly Color deplBodyCol = new Color(0.1f, 0.1f, 0.15f);
+        public static readonly Color baseEyeCol = RainWorld.GoldRGB;
+        public static readonly Color deplEyeCol = Color.yellow;
+
+        public MartyrChar() : base(CHARNAME, FormatVersion.V1, 0) { 
+            instance = this;
+            
+        }
         public static MartyrChar instance;
         public override string Description => "REMNANT OF A MIND IS MATERIALIZED\nWEAKNESS IS BRIDGE TO STRENGTH\nINSERTION IS VIOLATION";
         //proper colors
-        public override Color? SlugcatColor() => new Color(0.15f, 0.15f, 0.3f);
-        public override Color? SlugcatEyeColor() => Color.yellow;
+        public override Color? SlugcatColor() => baseBodyCol;
+        public override Color? SlugcatEyeColor() => baseEyeCol;
         //public override string StartRoom => STARTROOM;
         public override CustomSaveState CreateNewSave(PlayerProgression progression)
         {
@@ -34,13 +42,13 @@ namespace WaspPile.Remnant
         }
         protected override void Enable()
         {
+            
             MartyrHooks.Enable();
             CommonHooks.Enable();
         }
         public override SelectMenuAccessibility GetSelectMenuState(SlugcatSelectMenu menu)
         {
-            var crw = GameObject.FindObjectOfType<RainWorld>();
-            var meta = SaveManager.GetCharacterData(CHARNAME, crw.options.saveSlot);
+            var meta = SaveManager.GetCharacterData(CHARNAME, CRW.options.saveSlot);
             if (meta.TryGetValue(PERMADEATHKEY, out var reason))
             {
                 return SelectMenuAccessibility.MustRestart;

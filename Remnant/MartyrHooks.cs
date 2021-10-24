@@ -10,7 +10,7 @@ using MonoMod.RuntimeDetour;
 using System.Reflection;
 
 //todo
-//+base ability lifecycle
+//+base ability lifecycle (improve triggering)
 //+visuals (bubble container problems)
 //+throwforce and damage (extra indication?)
 //+deflect
@@ -19,10 +19,10 @@ using System.Reflection;
 //+ac/deac sounds
 //+soft fade? replaced with flicker
 //+em: infinite rolls
-//?import art
+//?import art (remove asset dupes, move to ER)
 //-testing
 //+cycle limit?
-//one sitting option
+//?one sitting option (mostly done, make sure early quit doesn't count either)
 
 namespace WaspPile.Remnant
 {
@@ -32,13 +32,12 @@ namespace WaspPile.Remnant
 #warning stats are pretty arbitrary, sync
 #warning add customizable ability bind
 
-        const float ECHOMODE_DAMAGE_BONUS = 1.5f;
+        const float ECHOMODE_DAMAGE_BONUS = 1.7f;
         const float ECHOMODE_THROWFORCE_BONUS = 1.8f;
-        const float ECHOMODE_RUNSPEED_BONUS = 1.3f;
+        const float ECHOMODE_RUNSPEED_BONUS = 1.4f;
         const float ECHOMODE_DEPLETE_COOLDOWN = 270f;
         const float ECHOMODE_BUOYANCY_BONUS = 8f;
         const float ECHOMODE_WATERFRIC_BONUS = 1.1f;
-        const KeyCode ECHOMODE_TRIGGERKEY = KeyCode.LeftControl;
 
         //represents additional martyr related fields for Player
         public class MartyrFields
@@ -47,13 +46,21 @@ namespace WaspPile.Remnant
             public float maxEchoReserve;
             public float rechargeRate;
             public float echoReserve;
+            public bool keyDown;
+            public bool lastKeyDown;
             //cooldown after depletion turning off, ticks down by 1f every frame
             public float cooldown;
             public bool echoActive;
 
-            //meant for fade but it don't work, sadge
+            //toggle fade
             public float lastFade;
             public float fade;
+
+            //bodycol
+            public Color bCol;
+            public Color lastBCol;
+            public Color eCol;
+            public Color lastECol;
             
             //service
             public int bubbleSpriteIndex;
@@ -108,14 +115,14 @@ namespace WaspPile.Remnant
             On.Player.ctor += PromptCycleWarning;
         }
 
+
+        #region misc
+
         private static void PromptCycleWarning(On.Player.orig_ctor orig, Player self, AbstractCreature abstractCreature, World world)
         {
             orig(self, abstractCreature, world);
             abstractCreature.Room.realizedRoom?.AddObject(new CyclePrompt());
         }
-
-        #region misc
-
         #endregion
 
         #region idrawable
@@ -129,7 +136,7 @@ namespace WaspPile.Remnant
             if (!fieldsByPlayerHash.TryGetValue(self.player.GetHashCode(), out var mf) || mf.bubbleSpriteIndex == -1 || PLAYER_SIN_LOCK) return;
             try
             {
-                Console.WriteLine($"martyr addtocont: bubble indes {mf.bubbleSpriteIndex} sleaser.s length {sLeaser.sprites.Length}");
+                Console.WriteLine($"martyr addtocont: bubble indecks {mf.bubbleSpriteIndex} sleaser.s length {sLeaser.sprites.Length}");
                 var bubble = sLeaser.sprites[mf.bubbleSpriteIndex];
                 bubble.RemoveFromContainer();
                 rCam.ReturnFContainer("HUD").AddChild(bubble);
@@ -150,6 +157,8 @@ namespace WaspPile.Remnant
             var cf = Lerp(mf.lastFade, mf.fade, timeStacker);
             bubble.scale = Lerp(13f, 16f, cf);
             bubble.isVisible = UnityEngine.Random.value < cf;
+            var ccol = Color.Lerp(mf.lastBCol, mf.bCol, timeStacker);
+            for (int i = 0; i < 9; i++) sLeaser.sprites[i].color = ccol;
         }
 
         private static void Player_MakeSprites(On.PlayerGraphics.orig_InitiateSprites orig, 
@@ -229,7 +238,9 @@ namespace WaspPile.Remnant
         {
             if (!fieldsByPlayerHash.TryGetValue(self.GetHashCode(), out var mf)) return;
             //basic recharge/cooldown and activation
-            bool toggleRequested = Input.GetKeyDown(ECHOMODE_TRIGGERKEY);
+            mf.lastKeyDown = mf.keyDown;
+            mf.keyDown = Input.GetKeyDown(RemnantConfig.GetKeyForPlayer(self.room.game.Players.IndexOf(self.abstractCreature)));
+            bool toggleRequested = (mf.keyDown && !mf.lastKeyDown);
             if (toggleRequested) Console.WriteLine("Martyr toggle req");
             if (mf.echoActive)
             {
@@ -248,11 +259,23 @@ namespace WaspPile.Remnant
             }
 
             //basic stats modification
-            self.slugcatStats.runspeedFac = mf.echoActive ? mf.baseRunSpeed * ECHOMODE_RUNSPEED_BONUS : mf.baseRunSpeed;
-            self.buoyancy = mf.echoActive ? mf.baseBuoyancy * ECHOMODE_BUOYANCY_BONUS : mf.baseBuoyancy;
-            self.waterFriction = mf.echoActive ? mf.baseWaterFric * ECHOMODE_WATERFRIC_BONUS : mf.baseWaterFric;
+            self.slugcatStats.runspeedFac = mf.echoActive 
+                ? mf.baseRunSpeed * ECHOMODE_RUNSPEED_BONUS 
+                : mf.baseRunSpeed;
+            self.buoyancy = mf.echoActive 
+                ? mf.baseBuoyancy * ECHOMODE_BUOYANCY_BONUS 
+                : mf.baseBuoyancy;
+            self.waterFriction = mf.echoActive 
+                ? mf.baseWaterFric * ECHOMODE_WATERFRIC_BONUS 
+                : mf.baseWaterFric;
+
+            //visuals
             mf.lastFade = mf.fade;
             mf.fade = Custom.LerpAndTick(mf.fade, mf.echoActive ? 1f : 0f, 0.08f, 0.04f);
+            mf.lastBCol = mf.bCol;
+            mf.lastECol = mf.eCol;
+            mf.bCol = Color.Lerp(MartyrChar.deplBodyCol, MartyrChar.baseBodyCol, mf.echoReserve / mf.maxEchoReserve);
+            mf.eCol = Color.Lerp(MartyrChar.deplEyeCol, MartyrChar.baseEyeCol, mf.echoReserve / mf.maxEchoReserve);
             orig(self, eu);
         }
         
@@ -270,8 +293,10 @@ namespace WaspPile.Remnant
                 baseWaterFric = self.waterFriction,
                 echoActive = false,
                 fade = 0f,
-                bubbleSpriteIndex = -1
-            });
+                bubbleSpriteIndex = -1,
+                bCol = MartyrChar.baseBodyCol,
+                lastBCol = MartyrChar.baseBodyCol
+            }) ;
             //if (self.room.game.IsStorySession) self.redsIllness = new RedsIllness(self, Abs(RedsIllness.RedsCycles(false) - self.abstractCreature.world.game.GetStorySession.saveState.cycleNumber));
         }
         
@@ -316,16 +341,9 @@ namespace WaspPile.Remnant
         public override void Update(bool eu)
         {
             base.Update(eu);
-            string message = $"remaining cycles: {RemnantConfig.martyrCycles.Value - room.game?.rainWorld.progression.currentSaveState.cycleNumber}";
-            if (message != null)
-            {
-                room.game?.cameras[0].hud.textPrompt.AddMessage(message, 15, 400, false, false);
-                Destroy();
-            }
-            lt--;
-            if (lt < 0) Destroy();
+            string message = $"Remaining cycles: {RemnantConfig.martyrCycles.Value - room.game?.rainWorld.progression.currentSaveState.cycleNumber}";
+            room.game?.cameras[0].hud.textPrompt.AddMessage(message, 15, 400, false, false);
+            Destroy();
         }
-
-        int lt = 45;
     }
 }
