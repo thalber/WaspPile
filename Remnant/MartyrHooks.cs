@@ -20,9 +20,10 @@ using System.Reflection;
 //+soft fade? replaced with flicker
 //+em: infinite rolls
 //?import art (remove asset dupes, move to ER)
-//-testing
+//?testing
 //+cycle limit?
-//?one sitting option (mostly done, make sure early quit doesn't count either)
+//+one sitting option
+//?face sprites (make a new set? mildly tedious)
 
 namespace WaspPile.Remnant
 {
@@ -150,15 +151,27 @@ namespace WaspPile.Remnant
             orig(self, sLeaser, rCam, timeStacker, camPos);
             if (self.owner.slatedForDeletetion || self.owner.room != rCam.room || !fieldsByPlayerHash.TryGetValue(self.player.GetHashCode(), out var mf)) return;
             var npos = Vector2.Lerp(self.head.lastPos, self.head.pos, timeStacker);
+            
+            //martyr bubble
             var bubble = sLeaser.sprites[mf.bubbleSpriteIndex];
             bubble.SetPosition(npos - camPos);
-            bubble.alpha = Lerp(mf.lastFade, mf.fade, timeStacker);
+            //bubble.alpha = Lerp(mf.lastFade, mf.fade, timeStacker);
             bubble.element = Futile.atlasManager.GetElementWithName("Futile_White");
             var cf = Lerp(mf.lastFade, mf.fade, timeStacker);
             bubble.scale = Lerp(13f, 16f, cf);
             bubble.isVisible = UnityEngine.Random.value < cf;
-            var ccol = Color.Lerp(mf.lastBCol, mf.bCol, timeStacker);
-            for (int i = 0; i < 9; i++) sLeaser.sprites[i].color = ccol;
+            
+            //ability body color fade
+            var currBodyCol = Color.Lerp(mf.lastBCol, mf.bCol, timeStacker);
+            var currEyeCol = Color.Lerp(mf.lastECol, mf.eCol, timeStacker);
+            for (int i = 0; i < 9; i++) sLeaser.sprites[i].color = currBodyCol;
+            sLeaser.sprites[9].color = currEyeCol;
+
+            //face elm
+            sLeaser.sprites[9].element = Futile.atlasManager.GetElementWithName(
+                HUD.KarmaMeter.KarmaSymbolSprite(
+                    true, new IntVector2(Min(9, (int)(mf.echoReserve / mf.maxEchoReserve * 10)), 9)));
+            sLeaser.sprites[9].scale = 0.26f;
         }
 
         private static void Player_MakeSprites(On.PlayerGraphics.orig_InitiateSprites orig, 

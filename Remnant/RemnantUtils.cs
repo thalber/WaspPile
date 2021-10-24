@@ -9,7 +9,9 @@ namespace WaspPile.Remnant
 {
     internal static class RemnantUtils
     {
-        const BindingFlags allContexts = BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.CreateInstance;
+        const BindingFlags allContextsInstance = BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic;
+        const BindingFlags allContextStatic = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
+        const BindingFlags allContextsCtor = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.CreateInstance;
 
         internal static void SetKey<tKey, tValue> (this Dictionary<tKey, tValue> dict, tKey key, tValue val){
             if (dict == null) throw new ArgumentNullException();
@@ -21,6 +23,6 @@ namespace WaspPile.Remnant
             if (dict.ContainsKey(key)) dict.Remove(key);
         }
 
-        internal static RainWorld CRW => GameObject.FindObjectOfType<RainWorld>();
+        internal static RainWorld CRW => UnityEngine.Object.FindObjectOfType<RainWorld>();
     }
 }
