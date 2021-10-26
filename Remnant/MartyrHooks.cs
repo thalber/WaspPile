@@ -168,10 +168,18 @@ namespace WaspPile.Remnant
             sLeaser.sprites[9].color = currEyeCol;
 
             //face elm
-            sLeaser.sprites[9].element = Futile.atlasManager.GetElementWithName(
+            if (mf.echoActive)
+            {
+                sLeaser.sprites[9].element = Futile.atlasManager.GetElementWithName(
                 HUD.KarmaMeter.KarmaSymbolSprite(
                     true, new IntVector2(Min(9, (int)(mf.echoReserve / mf.maxEchoReserve * 10)), 9)));
-            sLeaser.sprites[9].scale = 0.26f;
+                sLeaser.sprites[9].scale = 0.26f;
+            }
+            else
+            {
+                sLeaser.sprites[9].scale = 1f;
+            }
+            
         }
 
         private static void Player_MakeSprites(On.PlayerGraphics.orig_InitiateSprites orig, 

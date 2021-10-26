@@ -16,8 +16,8 @@ namespace WaspPile.Remnant
         public const string CHARNAME = "Martyr";
         public const string PERMADEATHKEY = "DISRUPT";
         public const string STARTROOM = "HI_C04";
-        public static readonly Color baseBodyCol = new Color(0.15f, 0.15f, 0.4f);
-        public static readonly Color deplBodyCol = new Color(0.1f, 0.1f, 0.15f);
+        public static readonly Color baseBodyCol = new Color(0.2f, 0.2f, 0.3f);
+        public static readonly Color deplBodyCol = new Color(0.15f, 0.15f, 0.15f);
         public static readonly Color baseEyeCol = RainWorld.GoldRGB;
         public static readonly Color deplEyeCol = Color.yellow;
 
