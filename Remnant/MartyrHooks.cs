@@ -165,19 +165,26 @@ namespace WaspPile.Remnant
             var currBodyCol = Color.Lerp(mf.lastBCol, mf.bCol, timeStacker);
             var currEyeCol = Color.Lerp(mf.lastECol, mf.eCol, timeStacker);
             for (int i = 0; i < 9; i++) sLeaser.sprites[i].color = currBodyCol;
-            sLeaser.sprites[9].color = currEyeCol;
+            //sLeaser.sprites[9].color = currEyeCol;
 
             //face elm
+            var face = sLeaser.sprites[9];
+            face.color = currEyeCol;
+            //var oldelm = face.element;
             if (mf.echoActive)
             {
-                sLeaser.sprites[9].element = Futile.atlasManager.GetElementWithName(
+                face.element = Futile.atlasManager.GetElementWithName(
                 HUD.KarmaMeter.KarmaSymbolSprite(
                     true, new IntVector2(Min(9, (int)(mf.echoReserve / mf.maxEchoReserve * 10)), 9)));
-                sLeaser.sprites[9].scale = 0.26f;
+                face.scale = 0.25f;
+                face.x = Round(face.x);
+                face.y = Round(face.y);
             }
             else
             {
-                sLeaser.sprites[9].scale = 1f;
+                face.scaleY = 1f;
+                //face.scaleX = Sign(face.scaleX);
+                //face.element = oldelm;
             }
             
         }
@@ -257,7 +264,7 @@ namespace WaspPile.Remnant
         private static void RunAbilityCycle(On.Player.orig_Update orig, 
             Player self, bool eu)
         {
-            if (!fieldsByPlayerHash.TryGetValue(self.GetHashCode(), out var mf)) return;
+            if (!fieldsByPlayerHash.TryGetValue(self.GetHashCode(), out var mf)) goto skipNotMine;
             //basic recharge/cooldown and activation
             mf.lastKeyDown = mf.keyDown;
             mf.keyDown = Input.GetKeyDown(RemnantConfig.GetKeyForPlayer(self.room.game.Players.IndexOf(self.abstractCreature)));
@@ -297,6 +304,7 @@ namespace WaspPile.Remnant
             mf.lastECol = mf.eCol;
             mf.bCol = Color.Lerp(MartyrChar.deplBodyCol, MartyrChar.baseBodyCol, mf.echoReserve / mf.maxEchoReserve);
             mf.eCol = Color.Lerp(MartyrChar.deplEyeCol, MartyrChar.baseEyeCol, mf.echoReserve / mf.maxEchoReserve);
+            skipNotMine:
             orig(self, eu);
         }
         

@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using System.Reflection;
 
 using static WaspPile.Remnant.RemnantUtils;
 
@@ -64,6 +65,19 @@ namespace WaspPile.Remnant
         {
             SaveManager.GetCharacterData(CHARNAME, CRW.options.saveSlot).TryRemoveKey(PERMADEATHKEY);
             base.StartNewGame(room);
+        }
+        public override Stream GetResource(params string[] path)
+        {
+            var patchedPath = new string[path.Length];
+            for (int i = path.Length - 1; i > -1; i--) patchedPath[i] = path[i];
+            //kinda janky for having 2 overlapping scenes but whatevs
+            if (path[path.Length - 2] == "SelectMenuDisrupt" && path.Last() != "scene.json") 
+                patchedPath[path.Length - 2] = "SelectMenu";
+            string oresname = "WaspPile.Remnant.assets." + string.Join(".", patchedPath);
+
+            var tryret = Assembly.GetExecutingAssembly().GetManifestResourceStream(oresname);
+            if (tryret != null) Console.WriteLine($"BUILDING SCENE FROM ER: {oresname}");
+            return tryret ?? base.GetResource(path);
         }
 
         public static bool MartyrIsDead(int saveslot)

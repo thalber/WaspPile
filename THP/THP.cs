@@ -1,7 +1,7 @@
 ﻿using Partiality.Modloader;
 using System.Collections.Generic;
 using System.Linq;
-
+using System;
 
 namespace WaspPile.playground
 {
@@ -14,14 +14,16 @@ namespace WaspPile.playground
             this.ModID = "THP";
         }
 
-        private List<string> resnames;
-
         public override void OnEnable()
         {
-            base.OnEnable();
-            resnames = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceNames().ToList();
-            resnames.Add(Properties.Resources.SecondString);
-            System.IO.File.WriteAllLines(System.IO.Path.Combine(RWCustom.Custom.RootFolderDirectory(), "RESNAMES.txt"), resnames.ToArray());
+            try
+            {
+                throw new Exception("I'm here, right at the line...");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
         }
     }
 }

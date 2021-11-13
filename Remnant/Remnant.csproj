@@ -119,7 +119,45 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="assets\" />
+    <EmbeddedResource Include="assets\Scenes\SelectMenuAscended\GhostA.png" />
+    <EmbeddedResource Include="assets\Scenes\SelectMenuAscended\GhostA1.png" />
+    <EmbeddedResource Include="assets\Scenes\SelectMenuAscended\GhostB.png" />
+    <EmbeddedResource Include="assets\Scenes\SelectMenuAscended\GhostBkg.png" />
+    <EmbeddedResource Include="assets\Scenes\SelectMenuAscended\SelectMenuAscended_Flat.png" />
+    <EmbeddedResource Include="assets\Scenes\SleepScreen\bg1.png" />
+    <EmbeddedResource Include="assets\Scenes\SleepScreen\grass3.png" />
+    <EmbeddedResource Include="assets\Scenes\SleepScreen\plants4.png" />
+    <EmbeddedResource Include="assets\Scenes\SleepScreen\sleep_flat.png" />
+    <EmbeddedResource Include="assets\Scenes\SleepScreen\snug2.png" />
+    <EmbeddedResource Include="assets\Scenes\SleepScreen\walls5.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="assets\Scenes\SelectMenuAscended\scene.json" />
+    <EmbeddedResource Include="assets\Scenes\SelectMenuDisrupt\scene.json" />
+    <EmbeddedResource Include="assets\Scenes\SelectMenu\Background4.png" />
+    <EmbeddedResource Include="assets\Scenes\SelectMenu\scene.json" />
+    <EmbeddedResource Include="assets\Scenes\SleepScreen\scene.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="assets\Scenes\SelectMenu\BgPlants2.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="assets\Scenes\SelectMenu\FgPlants0.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="assets\Scenes\SelectMenu\Slugcat_Dark_Flat.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="assets\Scenes\SelectMenu\Slugcat_Flat.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="assets\Scenes\SelectMenu\Slugcat1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="assets\Scenes\SelectMenu\Slugcat1_Dark.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="assets\Scenes\SelectMenu\Spears3.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

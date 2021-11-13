@@ -4,8 +4,10 @@ using MonoMod.RuntimeDetour;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using Steamworks;
+using System.Resources;
+using System.Reflection;
+using System.IO;
+
 using static WaspPile.Remnant.RemnantConfig;
 
 namespace WaspPile.Remnant
@@ -16,18 +18,28 @@ namespace WaspPile.Remnant
 
         public void OnEnable()
         {
-            if (!registered)
-            {
-                SlugBase.PlayerManager.RegisterCharacter(new MartyrChar());
-                registered = true;
-            }
+            if (registered) goto skipReg;
+
+            SlugBase.PlayerManager.RegisterCharacter(new MartyrChar());
             for (int i = 0; i < abilityBinds.Length; i++)
             {
                 if (abilityBinds[i] == null) abilityBinds[i] = Config.Bind("Martyr", $"Ability hotkey for P{i + 1}", UnityEngine.KeyCode.LeftAlt, $"Martyr's ability keybind for player {i + 1}");
             } 
             if (martyrCycles == null) martyrCycles = Config.Bind("Martyr", "Cycle limit", 10, "Number of cycles available for a run");
             if (noQuits == null) noQuits = Config.Bind("Martyr", "No quits", true, "Exiting the game kills the run");
+            registered = true;
+
+        skipReg:
+            try
+            {
+                var resnames = Assembly.GetExecutingAssembly().GetManifestResourceNames();
+                File.WriteAllLines(Path.Combine(RWCustom.Custom.RootFolderDirectory(), "kek.txt"), resnames);
+            }
+            catch { }
+
         }
+        
+        
         bool registered = false;
     }
 
