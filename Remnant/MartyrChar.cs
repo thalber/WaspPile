@@ -8,6 +8,8 @@ using System.Text;
 using UnityEngine;
 using System.Reflection;
 
+
+using static RWCustom.Custom;
 using static WaspPile.Remnant.RemnantUtils;
 
 namespace WaspPile.Remnant
@@ -17,20 +19,22 @@ namespace WaspPile.Remnant
         public const string CHARNAME = "Martyr";
         public const string PERMADEATHKEY = "DISRUPT";
         public const string STARTROOM = "HI_C04";
-        public static readonly Color baseBodyCol = new Color(0.2f, 0.2f, 0.3f);
-        public static readonly Color deplBodyCol = new Color(0.15f, 0.15f, 0.15f);
-        public static readonly Color baseEyeCol = RainWorld.GoldRGB;
-        public static readonly Color deplEyeCol = Color.yellow;
+        public static readonly Color baseBodyCol = HSL2RGB(0.583f, 0.3583f, 0.225f);//HSL2RGB(0.5835f, 0.15f, 0.45f + 0.15f);
+        public static readonly Color deplBodyCol = HSL2RGB(0.5835f, 0.15f, 0.6f);
+        public static readonly Color baseEyeCol = Color.yellow;
+        public static readonly Color deplEyeCol = RainWorld.GoldRGB;
 
-        public MartyrChar() : base(CHARNAME, FormatVersion.V1, 0) { 
+        public MartyrChar() : base(CHARNAME, FormatVersion.V1, 2) { 
             instance = this;
             
         }
         public static MartyrChar instance;
+
         public override string Description => "REMNANT OF A MIND IS MATERIALIZED\nWEAKNESS IS BRIDGE TO STRENGTH\nINSERTION IS VIOLATION";
         //proper colors
         public override Color? SlugcatColor() => baseBodyCol;
         public override Color? SlugcatEyeColor() => baseEyeCol;
+        public override bool HasGuideOverseer => false;
         //public override string StartRoom => STARTROOM;
         public override CustomSaveState CreateNewSave(PlayerProgression progression)
         {
@@ -113,7 +117,6 @@ namespace WaspPile.Remnant
             {
                 if (RemnantConfig.noQuits.Value && asQuit)
                 {
-                SPECEX:
                     var meta = SaveManager.GetCharacterData(CHARNAME, CRW.options.saveSlot);
                     var deathmark = "ACTOR DESYNC";
                     meta.SetKey(PERMADEATHKEY, deathmark);

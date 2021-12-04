@@ -5,25 +5,15 @@ using System.Text;
 using System.IO;
 using RWCustom;
 using UnityEngine;
-using static UnityEngine.Mathf;
 using MonoMod.RuntimeDetour;
 using System.Reflection;
+using WaspPile.Remnant.UAD;
 
-//todo
-//+base ability lifecycle (improve triggering)
-//+visuals (bubble container problems)
-//+throwforce and damage (extra indication?)
-//+deflect
-//+unhooking
-//?waterbounce(crude but origo seems same)
-//+ac/deac sounds
-//+soft fade? replaced with flicker
-//+em: infinite rolls
-//?import art (remove asset dupes, move to ER)
-//?testing
-//+cycle limit?
-//+one sitting option
-//?face sprites (make a new set? mildly tedious)
+using static RWCustom.Custom;
+using static UnityEngine.Mathf;
+using static WaspPile.Remnant.RemnantUtils;
+
+using URand = UnityEngine.Random;
 
 namespace WaspPile.Remnant
 {
@@ -31,10 +21,9 @@ namespace WaspPile.Remnant
     public static class MartyrHooks 
     {
 #warning stats are pretty arbitrary, sync
-#warning add customizable ability bind
 
         const float ECHOMODE_DAMAGE_BONUS = 1.7f;
-        const float ECHOMODE_THROWFORCE_BONUS = 1.8f;
+        const float ECHOMODE_THROWFORCE_BONUS = 1.4f;
         const float ECHOMODE_RUNSPEED_BONUS = 1.4f;
         const float ECHOMODE_DEPLETE_COOLDOWN = 270f;
         const float ECHOMODE_BUOYANCY_BONUS = 8f;
@@ -68,7 +57,21 @@ namespace WaspPile.Remnant
             public float baseBuoyancy;
             public float baseRunSpeed;
             public float baseWaterFric;
+            public Color palBlack = new Color(0.1f, 0.1f, 0.1f);
         }
+        //same for martyr spears
+        public class WeaponFields
+        {
+            public WeaponFields(Color rpbc, Room room)
+            {
+                black = rpbc;
+                fss = new Smoke.FireSmoke(room);
+            }
+            public Smoke.FireSmoke fss;
+            public Color black;
+            public bool disableNextFrame = false;
+        }
+
         public static void powerDown(this Player self, ref MartyrFields mf, bool fullDeplete = false)
         {
             Console.WriteLine("Martyr ability down");
@@ -90,8 +93,9 @@ namespace WaspPile.Remnant
             self.airInLungs = 1f;
         }
         
-        public static readonly Dictionary<int, MartyrFields> fieldsByPlayerHash = new Dictionary<int, MartyrFields>();
-        private readonly static List<Hook> manualHooks = new List<Hook>();
+        internal static readonly Dictionary<int, MartyrFields> fieldsByPlayerHash = new Dictionary<int, MartyrFields>();
+        internal static readonly List<Hook> manualHooks = new List<Hook>();
+        internal static readonly Dictionary<int, WeaponFields> poweredWeapons = new Dictionary<int, WeaponFields>();
 
         public static void Enable()
         {
@@ -101,13 +105,31 @@ namespace WaspPile.Remnant
             On.Player.Update += RunAbilityCycle;
 
             //em
-            On.Player.ThrownSpear += EchomodeDamageBonus;
+            //On.Player.ThrownSpear += EchomodeDamageBonus;
             On.Player.MovementUpdate += EchomodeExtendRoll;
             On.Creature.SpearStick += EchomodeDeflection;
             On.Weapon.Thrown += EchomodeVelBonus;
             On.Creature.Violence += EchomodePreventDamage;
-
+            On.Weapon.Update += flightVfx;
+            foreach(Type t in new[] { typeof(Spear), typeof(Rock), typeof(WaterNut), typeof(Weapon) })
+            {
+                try
+                {
+                    var hs = t.GetMethod("HitSomething", allContextsInstance);
+                    var hw = t.GetMethod("HitWall", allContextsInstance);
+                    if (hs != null) manualHooks.Add(new Hook(hs,
+                        mhk_t.GetMethod(nameof(extraPunch), allContextsStatic)));
+                    if (hw != null) manualHooks.Add(new Hook(t.GetMethod("HitWall", allContextsInstance), 
+                        mhk_t.GetMethod(nameof(wallbang), allContextsStatic)));
+                }
+                catch (Exception e)
+                {
+                    Debug.Log("couldn't register extra kick: " + e.Message);
+                }
+            }
             //id
+            On.PlayerGraphics.ApplyPalette += Player_APal;
+
             On.PlayerGraphics.InitiateSprites += Player_MakeSprites;
             On.PlayerGraphics.AddToContainer += Player_ATC;
             On.PlayerGraphics.DrawSprites += Player_Draw;
@@ -115,6 +137,7 @@ namespace WaspPile.Remnant
             //misc
             On.Player.ctor += PromptCycleWarning;
         }
+
 
 
         #region misc
@@ -125,7 +148,6 @@ namespace WaspPile.Remnant
             abstractCreature.Room.realizedRoom?.AddObject(new CyclePrompt());
         }
         #endregion
-
         #region idrawable
         //initsprites lock, active when vanilla run of initsprites is in effect
         private static bool PLAYER_SIN_LOCK;
@@ -159,7 +181,7 @@ namespace WaspPile.Remnant
             bubble.element = Futile.atlasManager.GetElementWithName("Futile_White");
             var cf = Lerp(mf.lastFade, mf.fade, timeStacker);
             bubble.scale = Lerp(13f, 16f, cf);
-            bubble.isVisible = UnityEngine.Random.value < cf;
+            bubble.isVisible = URand.value < cf;
             
             //ability body color fade
             var currBodyCol = Color.Lerp(mf.lastBCol, mf.bCol, timeStacker);
@@ -204,8 +226,114 @@ namespace WaspPile.Remnant
             sLeaser.sprites[mf.bubbleSpriteIndex].shader = self.player.room.game.rainWorld.Shaders["GhostDistortion"];
             self.AddToContainer(sLeaser, rCam, null);
         }
+
+        private static void Player_APal(On.PlayerGraphics.orig_ApplyPalette orig, PlayerGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
+        {
+            orig(self, sLeaser, rCam, palette);
+            if (fieldsByPlayerHash.TryGetValue(self.player.GetHashCode(), out var mf))
+            {
+                mf.palBlack = palette.blackColor;
+            }
+        }
         #endregion
         #region ability
+
+        private static void wallbang(Action<Weapon> orig,
+            Weapon self)
+        {
+            orig(self);
+            if (poweredWeapons.TryGetValue(self.GetHashCode(), out var wf))
+            {
+                self.room.AddObject(new Explosion(self.room,
+                        sourceObject: self,
+                        pos: self.firstChunk.pos,
+                        lifeTime: 6,
+                        rad: URand.Range(20f, 24f),
+                        force: URand.Range(7f, 10f),
+                        damage: 0.01f,
+                        stun: URand.Range(0.4f, 1.1f),
+                        deafen: 0.1f,
+                        killTagHolder: self.thrownBy,
+                        killTagHolderDmgFactor: 0.3f,
+                        minStun: 0.01f,
+                        backgroundNoise: 0.5f
+                        ));
+                self.room.AddObject(new Explosion.ExplosionLight(self.firstChunk.pos,
+                    rad: URand.Range(26f, 30f),
+                    alpha: URand.Range(0.65f, 0.73f),
+                    lifeTime: 5,
+                    lightColor: RainWorld.GoldRGB));
+                self.room.PlaySound(SoundID.Gate_Water_Steam_Puff, self.firstChunk.pos, 0.8f, 1.2f);
+            }
+        }
+        private static bool extraPunch(Func<Weapon, SharedPhysics.CollisionResult, bool, bool> orig, 
+            Weapon self, SharedPhysics.CollisionResult result, bool eu)
+        {
+            var res = orig(self, result, eu);
+            if (poweredWeapons.TryGetValue(self.GetHashCode(), out var wf) && result.chunk != null)
+            {
+                self.room.AddObject(new Explosion(self.room,
+                        sourceObject: self,
+                        pos: self.firstChunk.pos,
+                        lifeTime: 6,
+                        rad: URand.Range(12f, 14f),
+                        force: URand.Range(4f, 8.5f),
+                        damage: 0.09f,
+                        stun: URand.Range(0.12f, 0.18f),
+                        deafen: 0.3f,
+                        killTagHolder: self.thrownBy,
+                        killTagHolderDmgFactor: 0.3f,
+                        minStun: 0.02f,
+                        backgroundNoise: 0.3f
+                        ));
+                self.room.AddObject(new Explosion.ExplosionLight(self.firstChunk.pos,
+                    rad: URand.Range(26f, 30f),
+                    alpha: URand.Range(0.65f, 0.73f),
+                    lifeTime: 5,
+                    lightColor: RainWorld.GoldRGB));
+                self.room.PlaySound(SoundID.Fire_Spear_Explode, self.firstChunk.pos, 1.1f, 3.7f);
+                self.room.ScreenMovement(self.firstChunk.pos, default, 1.4f);
+                Console.WriteLine("Smack!");
+            }
+            return res;
+        }
+
+        private static void flightVfx(On.Weapon.orig_Update orig, Weapon self, bool eu)
+        {
+            orig(self, eu);
+            if (poweredWeapons.TryGetValue(self.GetHashCode(), out var wf))
+            {
+                if (wf.disableNextFrame)
+                {
+                    poweredWeapons.Remove(self.GetHashCode());
+                    return;
+                }
+
+                bool hit = false;
+                if (self.mode != Weapon.Mode.Thrown)
+                {
+#warning make custom nondamaging explosion? tune either way
+                    
+                    wf.disableNextFrame = true;
+                    hit = true;
+                }
+
+                for (int i = hit ? URand.Range(5, 8) : URand.Range(2, 3); i > 0; i--)
+                {
+                    Vector2 ppos = hit ? self.firstChunk.pos + RNV() * 10 : V2RandLerp(self.firstChunk.lastPos, self.firstChunk.pos);
+                    Vector2 pvel = PerpendicularVector(self.firstChunk.lastLastPos - self.firstChunk.pos) *  RandSign();
+                    var part = new Smoke.FireSmoke.FireSmokeParticle();
+                    part.Reset(wf.fss, 
+                        pos: hit? ppos : ppos + pvel * 5f, 
+                        vel: hit? pvel : RNV() * URand.Range(10f, 15f), 
+                        lifeTime: 9);
+                    part.colorFadeTime = 12;
+                    part.effectColor = RainWorld.GoldRGB;
+                    self.room.AddObject(part);
+#warning finalize particle spawning
+                }
+            }
+        }
         private static void EchomodeExtendRoll(On.Player.orig_MovementUpdate orig, 
             Player self, bool eu)
         {
@@ -231,9 +359,12 @@ namespace WaspPile.Remnant
             Weapon self, Creature thrownBy, Vector2 thrownPos, Vector2? firstFrameTraceFromPos, IntVector2 throwDir, float frc, bool eu)
         {
             orig(self, thrownBy, thrownPos, firstFrameTraceFromPos, throwDir, frc, eu);
-            if (thrownBy is Player m && fieldsByPlayerHash.TryGetValue(m.GetHashCode(), out var mf))
+            if (thrownBy is Player m && fieldsByPlayerHash.TryGetValue(m.GetHashCode(), out var mf) && mf.echoActive)
             {
-                if (mf.echoActive) foreach (var c in self.bodyChunks) c.vel *= ECHOMODE_THROWFORCE_BONUS;
+                poweredWeapons.Add(self.GetHashCode(), new WeaponFields(mf.palBlack, self.room));
+                foreach (var c in self.bodyChunks) c.vel *= ECHOMODE_THROWFORCE_BONUS;
+                if (!(self is Spear spear)) return;
+                spear.spearDamageBonus *= ECHOMODE_DAMAGE_BONUS;
             }
         }
         
@@ -247,18 +378,11 @@ namespace WaspPile.Remnant
             return orig(self, source, dmg, chunk, appPos, direction);
         }
         
-        private static void EchomodeDamageBonus(On.Player.orig_ThrownSpear orig, 
-            Player self, Spear spear)
-        {
-            orig(self, spear);
-            if (fieldsByPlayerHash.TryGetValue(self.GetHashCode(), out var mf))
-            {
-                if (mf.echoActive)
-                {
-                    spear.spearDamageBonus *= ECHOMODE_DAMAGE_BONUS;
-                }
-            }
-        }
+        //private static void EchomodeDamageBonus(On.Player.orig_ThrownSpear orig, 
+        //    Player self, Spear spear)
+        //{
+        //    orig(self, spear);
+        //}
         #endregion
         #region lifecycle
         private static void RunAbilityCycle(On.Player.orig_Update orig, 
@@ -334,6 +458,7 @@ namespace WaspPile.Remnant
         {
             orig(self, manager);
             fieldsByPlayerHash.Clear();
+            poweredWeapons.Clear();
         }
         #endregion
 
@@ -343,7 +468,8 @@ namespace WaspPile.Remnant
             On.Player.ctor -= RegisterFieldset;
             On.Player.Update -= RunAbilityCycle;
 
-            On.Player.ThrownSpear -= EchomodeDamageBonus;
+            On.Weapon.Update -= flightVfx;
+            //On.Player.ThrownSpear -= EchomodeDamageBonus;
             On.Creature.SpearStick -= EchomodeDeflection;
             On.Weapon.Thrown -= EchomodeVelBonus;
             On.Creature.Violence -= EchomodePreventDamage;
@@ -352,10 +478,7 @@ namespace WaspPile.Remnant
             On.PlayerGraphics.InitiateSprites -= Player_MakeSprites;
             On.PlayerGraphics.AddToContainer -= Player_ATC;
             On.PlayerGraphics.DrawSprites -= Player_Draw;
-
-            //On.RedsIllness.RedsCycles -= ChangeLimit;
-            //On.HUD.Map.CycleLabel.UpdateCycleText -= ChangeMapCycleText;
-            //On.HUD.SubregionTracker.Update -= SubregionTrackerText;
+            On.PlayerGraphics.ApplyPalette -= Player_APal;
 
             On.Player.ctor -= PromptCycleWarning;
 
@@ -363,16 +486,7 @@ namespace WaspPile.Remnant
             manualHooks.Clear(); 
             
         }
-    }
 
-    internal class CyclePrompt : UpdatableAndDeletable
-    {
-        public override void Update(bool eu)
-        {
-            base.Update(eu);
-            string message = $"Remaining cycles: {RemnantConfig.martyrCycles.Value - room.game?.rainWorld.progression.currentSaveState.cycleNumber}";
-            room.game?.cameras[0].hud.textPrompt.AddMessage(message, 15, 400, false, false);
-            Destroy();
-        }
+        private static readonly Type mhk_t = typeof(MartyrHooks);
     }
 }

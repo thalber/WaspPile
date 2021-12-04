@@ -16,6 +16,14 @@ namespace WaspPile.Remnant
             On.DataPearl.InitiateSprites += Pearl_MakeSprites;
             On.DataPearl.DrawSprites += Pearl_Draw;
             On.DataPearl.AddToContainer += Pearl_ATC;
+            On.RainWorldGame.Update += ApplyHitFrames;
+        }
+
+        internal static int freeze = 0;
+        private static void ApplyHitFrames(On.RainWorldGame.orig_Update orig, RainWorldGame self)
+        {
+            if (freeze > 0) { freeze--; return; }
+            orig(self);
         }
 
         private static int ScavAI_PearlCost(On.ScavengerAI.orig_CollectScore_PhysicalObject_bool orig, ScavengerAI self, PhysicalObject obj, bool weaponFiltered)
@@ -78,6 +86,8 @@ namespace WaspPile.Remnant
             On.DataPearl.InitiateSprites -= Pearl_MakeSprites;
             On.DataPearl.DrawSprites -= Pearl_Draw;
             On.DataPearl.AddToContainer -= Pearl_ATC;
+
+            On.RainWorldGame.Update -= ApplyHitFrames;
         }
     }
 }

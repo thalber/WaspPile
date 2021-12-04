@@ -1,0 +1,15 @@
+﻿todo
++base ability lifecycle (improve triggering)
++visuals (bubble container problems)
++throwforce and damage ?(extra indication: hit-stop and bang)
++deflect
++unhooking
+?waterbounce(crude but origo seems same)
++ac/deac sounds
++soft fade? replaced with flicker
++em: infinite rolls
++import art 
+?testing
++cycle limit?
++one sitting option
+?face sprites (make a new set? mildly tedious)

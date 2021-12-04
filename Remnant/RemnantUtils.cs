@@ -5,13 +5,15 @@ using System.Text;
 using System.Reflection;
 using UnityEngine;
 
+using URand = UnityEngine.Random;
+
 namespace WaspPile.Remnant
 {
     internal static class RemnantUtils
     {
-        const BindingFlags allContextsInstance = BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic;
-        const BindingFlags allContextStatic = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
-        const BindingFlags allContextsCtor = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.CreateInstance;
+        internal const BindingFlags allContextsInstance = BindingFlags.Public | BindingFlags.Instance | BindingFlags.NonPublic;
+        internal const BindingFlags allContextsStatic = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
+        internal const BindingFlags allContextsCtor = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.CreateInstance;
 
         internal static void SetKey<tKey, tValue> (this Dictionary<tKey, tValue> dict, tKey key, tValue val){
             if (dict == null) throw new ArgumentNullException();
@@ -22,6 +24,8 @@ namespace WaspPile.Remnant
         {
             if (dict.ContainsKey(key)) dict.Remove(key);
         }
+        internal static float RandSign() => URand.value > 0.5f ? -1f : 1f;
+        internal static Vector2 V2RandLerp(Vector2 a, Vector2 b) => Vector2.Lerp(a, b, URand.value);
 
         internal static RainWorld CRW => UnityEngine.Object.FindObjectOfType<RainWorld>();
     }
