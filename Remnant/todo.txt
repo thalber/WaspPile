@@ -16,5 +16,5 @@
 
 Lizards:
 	-register breed template changes
-	-replace lizgraph cosmetics init
+	+replace lizgraph cosmetics init
 	-enlarge tail pieces

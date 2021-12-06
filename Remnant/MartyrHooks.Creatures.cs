@@ -33,8 +33,8 @@ namespace WaspPile.Remnant
             On.LizardCosmetics.TailFin.DrawSprites += recolorTailFins;
             //IL.LizardGraphics.ctor += IL_makeLizGraphic;
             //manualHooks.Add(new ILHook(mhk_t.GetMethod(nameof())));
-            var lizgc = typeof(LizardGraphics).GetMethod(".ctor", allContextsCtor);
-            Console.WriteLine($"{lizgc}");
+            var lizgc = typeof(LizardGraphics).GetConstructors(allContextsInstance)[0];
+            Console.WriteLine($"lgc: {lizgc}");
             manualHooks.Add(new ILHook(lizgc, IL_makeLizGraphic));
             foreach(var t in new[] { CreatureTemplate.Type.RedLizard, CreatureTemplate.Type.RedCentipede })
             {
@@ -54,7 +54,8 @@ namespace WaspPile.Remnant
                     ins1 => ins1.MatchLdarg(0),
                     ins2 => ins2.MatchLdfld(nameof(LizardGraphics), nameof(LizardGraphics.lizard)),
                     ins3 => ins3.MatchCallvirt<Creature>("get_mainBodyChunk"));
-            var exit = c.DefineLabel();
+            var exitl = c.DefineLabel();
+            var ex2 = c.Instrs[c.Index];
             Console.WriteLine($"exit defined");
             c.Index = 0;
             int some = default;
@@ -81,7 +82,7 @@ namespace WaspPile.Remnant
                 });
                 c.Emit(Stloc_S, mynum);
 #warning make sure label pick
-                c.Emit(Br, exit);
+                c.Emit(Br, ex2);
                 Console.WriteLine("MARTYRLIZ: liz graphics ctor defiled successfully");
                 File.WriteAllText(Path.Combine(RootFolderDirectory(), "ild.txt"), il.ToString());
             }
