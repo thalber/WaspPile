@@ -1,5 +1,4 @@
-﻿todo
-+base ability lifecycle (improve triggering)
+﻿+base ability lifecycle (improve triggering)
 +visuals (bubble container problems)
 +throwforce and damage ?(extra indication: hit-stop and bang)
 +deflect
@@ -13,3 +12,9 @@
 +cycle limit?
 +one sitting option
 ?face sprites (make a new set? mildly tedious)
+-arena compat
+
+Lizards:
+	-register breed template changes
+	-replace lizgraph cosmetics init
+	-enlarge tail pieces

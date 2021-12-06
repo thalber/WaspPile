@@ -102,6 +102,7 @@
   <ItemGroup>
     <Compile Include="CommonHooks.cs" />
     <Compile Include="MartyrChar.cs" />
+    <Compile Include="MartyrHooks.Creatures.cs" />
     <Compile Include="OutlawChar.cs" />
     <Compile Include="OutlawHooks.cs" />
     <Compile Include="Properties\Resources.Designer.cs">

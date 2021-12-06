@@ -18,16 +18,16 @@ using URand = UnityEngine.Random;
 namespace WaspPile.Remnant
 {
 
-    public static class MartyrHooks 
+    public static partial class MartyrHooks 
     {
 #warning stats are pretty arbitrary, sync
 
-        const float ECHOMODE_DAMAGE_BONUS = 1.7f;
-        const float ECHOMODE_THROWFORCE_BONUS = 1.4f;
-        const float ECHOMODE_RUNSPEED_BONUS = 1.4f;
-        const float ECHOMODE_DEPLETE_COOLDOWN = 270f;
-        const float ECHOMODE_BUOYANCY_BONUS = 8f;
-        const float ECHOMODE_WATERFRIC_BONUS = 1.1f;
+        internal const float ECHOMODE_DAMAGE_BONUS = 1.7f;
+        internal const float ECHOMODE_THROWFORCE_BONUS = 1.4f;
+        internal const float ECHOMODE_RUNSPEED_BONUS = 1.4f;
+        internal const float ECHOMODE_DEPLETE_COOLDOWN = 270f;
+        internal const float ECHOMODE_BUOYANCY_BONUS = 8f;
+        internal const float ECHOMODE_WATERFRIC_BONUS = 1.1f;
 
         //represents additional martyr related fields for Player
         public class MartyrFields
@@ -94,7 +94,7 @@ namespace WaspPile.Remnant
         }
         
         internal static readonly Dictionary<int, MartyrFields> fieldsByPlayerHash = new Dictionary<int, MartyrFields>();
-        internal static readonly List<Hook> manualHooks = new List<Hook>();
+        internal static readonly List<IDetour> manualHooks = new List<IDetour>();
         internal static readonly Dictionary<int, WeaponFields> poweredWeapons = new Dictionary<int, WeaponFields>();
 
         public static void Enable()
@@ -133,9 +133,10 @@ namespace WaspPile.Remnant
             On.PlayerGraphics.InitiateSprites += Player_MakeSprites;
             On.PlayerGraphics.AddToContainer += Player_ATC;
             On.PlayerGraphics.DrawSprites += Player_Draw;
-
             //misc
             On.Player.ctor += PromptCycleWarning;
+
+            CRIT_Enable();
         }
 
 
@@ -464,6 +465,8 @@ namespace WaspPile.Remnant
 
         public static void Disable()
         {
+            CRIT_Disable();
+
             On.RainWorldGame.ctor -= GameStarts;
             On.Player.ctor -= RegisterFieldset;
             On.Player.Update -= RunAbilityCycle;
