@@ -15,6 +15,6 @@
 -arena compat
 
 Lizards:
-	-register breed template changes
+	?register breed template changes
 	+replace lizgraph cosmetics init
 	-enlarge tail pieces

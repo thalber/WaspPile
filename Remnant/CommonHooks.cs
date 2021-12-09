@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using System.IO;
 
 namespace WaspPile.Remnant
 {
@@ -37,7 +38,7 @@ namespace WaspPile.Remnant
 
         private static bool IsEchoPearl(DataPearl instance)
         {
-#warning add better pearltype detection
+            //TODO: add better pearltype detection
             return instance.AbstractPearl.dataPearlType.ToString().Contains("MARTYR");
         }
         private static bool PEARL_SIN_LOCK;

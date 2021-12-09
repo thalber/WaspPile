@@ -17,7 +17,7 @@ namespace WaspPile.Remnant
         public override string Description => "GNAWING, ACIDIC SIMPLICITY\nTHE VERY WALLS KNEEL\nCOGNITION IS BURDEN";
         protected override void GetStats(SlugcatStats stats)
         {
-#warning finish outlawyer stats
+            //TODO: finish outlawyer stats
             base.GetStats(stats);
             stats.bodyWeightFac = 1.21f;
             stats.runspeedFac = 1.3f;

@@ -10,12 +10,6 @@ namespace WaspPile.Remnant
 {
     public class OutlawHooks
     {
-        //todo:
-        //-wall crawl (rip off casheww)
-        //-no weapon
-        //-nyoom
-        //-grabbing alive creatures
-        //-damage by eating
         public static void Enable() {
             On.Player.Grabability += SwitchGrabability;
             On.Player.EatMeatUpdate += Crunch;

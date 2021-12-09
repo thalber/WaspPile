@@ -101,6 +101,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CommonHooks.cs" />
+    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="MartyrChar.cs" />
     <Compile Include="MartyrHooks.Creatures.cs" />
     <Compile Include="OutlawChar.cs" />

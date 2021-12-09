@@ -17,10 +17,9 @@ using URand = UnityEngine.Random;
 
 namespace WaspPile.Remnant
 {
-
     public static partial class MartyrHooks 
     {
-#warning stats are pretty arbitrary, sync
+        //TODO: stats are pretty arbitrary, reach agreement
 
         internal const float ECHOMODE_DAMAGE_BONUS = 1.7f;
         internal const float ECHOMODE_THROWFORCE_BONUS = 1.4f;
@@ -313,7 +312,7 @@ namespace WaspPile.Remnant
                 bool hit = false;
                 if (self.mode != Weapon.Mode.Thrown)
                 {
-#warning make custom nondamaging explosion? tune either way
+                    //TODO: make custom nondamaging explosion? tune either way
                     
                     wf.disableNextFrame = true;
                     hit = true;
@@ -331,7 +330,7 @@ namespace WaspPile.Remnant
                     part.colorFadeTime = 12;
                     part.effectColor = RainWorld.GoldRGB;
                     self.room.AddObject(part);
-#warning finalize particle spawning
+                    //TODO: finalize particle spawning
                 }
             }
         }
@@ -486,8 +485,8 @@ namespace WaspPile.Remnant
             On.Player.ctor -= PromptCycleWarning;
 
             foreach (var h in manualHooks) { h.Undo(); }
-            manualHooks.Clear(); 
-            
+            manualHooks.Clear();
+            System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(typeof(StaticWorld).TypeHandle);
         }
 
         private static readonly Type mhk_t = typeof(MartyrHooks);
