@@ -31,58 +31,56 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="0Harmony">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Rain World\BepInEx\core\0Harmony.dll</HintPath>
-    </Reference>
     <Reference Include="Assembly-CSharp">
       <HintPath>..\SolutionReferences\Assembly-CSharp.dll</HintPath>
-      <Private>False</Private>
     </Reference>
-    <Reference Include="Assembly-CSharp - publicitystuntd">
-      <HintPath>..\SolutionReferences\Assembly-CSharp - publicitystuntd.dll</HintPath>
-      <Private>False</Private>
+    <Reference Include="Assembly-CSharp-firstpass">
+      <HintPath>..\SolutionReferences\Assembly-CSharp-firstpass.dll</HintPath>
     </Reference>
     <Reference Include="BepInEx">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Rain World\BepInEx\core\BepInEx.dll</HintPath>
-    </Reference>
-    <Reference Include="BepInEx.Harmony">
-      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Rain World\BepInEx\core\BepInEx.Harmony.dll</HintPath>
+      <HintPath>..\SolutionReferences\BepInEx.dll</HintPath>
     </Reference>
     <Reference Include="ConfigMachine">
       <HintPath>..\SolutionReferences\ConfigMachine.dll</HintPath>
-      <Private>False</Private>
+    </Reference>
+    <Reference Include="CustomSpritesLoader">
+      <HintPath>..\SolutionReferences\CustomSpritesLoader.dll</HintPath>
+    </Reference>
+    <Reference Include="EnumExtender">
+      <HintPath>..\SolutionReferences\EnumExtender.dll</HintPath>
     </Reference>
     <Reference Include="HOOKS-Assembly-CSharp">
       <HintPath>..\SolutionReferences\HOOKS-Assembly-CSharp.dll</HintPath>
-      <Private>False</Private>
     </Reference>
-    <Reference Include="ManagedPlacedObjects">
-      <HintPath>..\SolutionReferences\ManagedPlacedObjects.dll</HintPath>
-      <Private>False</Private>
+    <Reference Include="Mono.Cecil">
+      <HintPath>..\SolutionReferences\Mono.Cecil.dll</HintPath>
     </Reference>
-    <Reference Include="Mono.Cecil, Version=0.10.4.0, Culture=neutral, PublicKeyToken=50cebf1cceb9d05e, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Rain World\BepInEx\core\Mono.Cecil.dll</HintPath>
+    <Reference Include="Mono.Cecil.Mdb">
+      <HintPath>..\SolutionReferences\Mono.Cecil.Mdb.dll</HintPath>
+    </Reference>
+    <Reference Include="Mono.Cecil.Pdb">
+      <HintPath>..\SolutionReferences\Mono.Cecil.Pdb.dll</HintPath>
+    </Reference>
+    <Reference Include="Mono.Cecil.Rocks">
+      <HintPath>..\SolutionReferences\Mono.Cecil.Rocks.dll</HintPath>
     </Reference>
     <Reference Include="MonoMod">
-      <HintPath>..\SolutionReferences\MonoMod.exe</HintPath>
-      <Private>False</Private>
+      <HintPath>..\SolutionReferences\MonoMod.dll</HintPath>
     </Reference>
     <Reference Include="MonoMod.RuntimeDetour">
       <HintPath>..\SolutionReferences\MonoMod.RuntimeDetour.dll</HintPath>
-      <Private>False</Private>
     </Reference>
-    <Reference Include="MonoMod.RuntimeDetour.HookGen">
-      <HintPath>..\SolutionReferences\MonoMod.RuntimeDetour.HookGen.exe</HintPath>
-      <Private>False</Private>
+    <Reference Include="MonoMod.Utils">
+      <HintPath>..\SolutionReferences\MonoMod.Utils.dll</HintPath>
     </Reference>
     <Reference Include="Partiality">
       <HintPath>..\SolutionReferences\Partiality.dll</HintPath>
-      <Private>False</Private>
     </Reference>
-    <Reference Include="PublicityStunt">
-      <HintPath>..\SolutionReferences\PublicityStunt.dll</HintPath>
-      <Private>False</Private>
+    <Reference Include="RegionKit">
+      <HintPath>..\SolutionReferences\RegionKit.dll</HintPath>
+    </Reference>
+    <Reference Include="SlugBase">
+      <HintPath>..\SolutionReferences\SlugBase.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

@@ -30,8 +30,11 @@ namespace WaspPile.Remnant
 
         internal static void CRIT_Enable()
         {
-            On.Lizard.ctor += makeLiz;
+            //liz
+            On.Lizard.ctor += recolorLiz;
             On.LizardCosmetics.TailFin.DrawSprites += recolorTailFins;
+            On.LizardCosmetics.TailFin.ctor += increaseFinSize;
+
             manualHooks.Add(new ILHook(typeof(LizardGraphics).GetConstructor(new[] { typeof(PhysicalObject) }), IL_makeLizGraphic));
             manualHooks.Add(new ILHook(typeof(LizardBreeds).GetMethod(nameof(LizardBreeds.BreedTemplate), allContextsStatic), IL_changeLizTemplate));
             
@@ -42,8 +45,67 @@ namespace WaspPile.Remnant
             }
             var gliz = GetTemp(CRIT_CT_GOLDLIZ);
             //StaticWorld.creatureTemplates[(int)CRIT_CT_GOLDLIZ] = LizardBreeds.BreedTemplate(CRIT_CT_GOLDLIZ, gliz.ancestor, GetTemp(CreatureTemplate.Type.PinkLizard), null, null);
+
+            //centi
+
+            On.CentipedeGraphics.ctor += recolorCentis;
         }
 
+        private static void recolorCentis(On.CentipedeGraphics.orig_ctor orig, CentipedeGraphics self, PhysicalObject ow)
+        {
+            orig(self, ow);
+            if (self.centipede.Red)
+            {
+                self.hue += URand.Range(0.2f, 0.3f);
+            }
+            
+        }
+
+        #region golden lizard
+
+        private static void increaseFinSize(On.LizardCosmetics.TailFin.orig_ctor orig, LizardCosmetics.TailFin self, LizardGraphics lGraphics, int startSprite)
+        {
+            orig(self, lGraphics, startSprite);
+            self.sizeRangeMin *= 1.1f;
+            self.sizeRangeMax *= 1.35f;
+            self.colored = true;
+            self.numberOfSprites = ((!self.colored) ? self.bumps : (self.bumps * 2)) * 2;
+        }
+
+        private static void recolorLiz(On.Lizard.orig_ctor orig, Lizard self, AbstractCreature abstractCreature, World world)
+        {
+            orig(self, abstractCreature, world);
+            if (self.Template.type == CreatureTemplate.Type.RedLizard)
+            {
+                URand.seed = abstractCreature.ID.number;
+                self.effectColor = Color.yellow.RandDev(new Color(0.125f, 0.09f, 0.08f));
+            }
+        }
+
+        private static void recolorTailFins(On.LizardCosmetics.TailFin.orig_DrawSprites orig, LizardCosmetics.TailFin self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
+        {
+            orig(self, sLeaser, rCam, timeStacker, camPos);
+            float amountFadedBy = default, incrementAdded;
+            if (self.lGraphics.lizard.Template.type == CreatureTemplate.Type.RedLizard)
+            {
+                incrementAdded = 1f / (self.bumps * 2);
+                for (int i = 0; i < 2; i++)
+                {
+                    int num = i * ((!self.colored) ? self.bumps : (self.bumps * 2));
+                    for (int j = self.startSprite; j < self.startSprite + self.bumps; j++)
+                    {
+                        float f = Mathf.Lerp(0.05f, self.spineLength / self.lGraphics.BodyAndTailLength, Mathf.InverseLerp(self.startSprite, self.startSprite + self.bumps - 1, j));
+                        sLeaser.sprites[j + num].color = self.lGraphics.BodyColor(f);
+                        if (self.colored)
+                        {
+                            amountFadedBy += incrementAdded;
+                            sLeaser.sprites[j + self.bumps + num].color = Color.Lerp(self.lGraphics.effectColor, new Color(1f, 0f, 0f), amountFadedBy);
+                        }
+
+                    }
+                }
+            }
+        }
         private static void IL_changeLizTemplate(ILContext il)
         {
 #warning changes needed in case of separation from reds
@@ -147,7 +209,7 @@ namespace WaspPile.Remnant
                     lizardBreedParams.headGraphics = new int[5];
                     lizardBreedParams.framesBetweenLookFocusChange = 20;
                     lizardBreedParams.tamingDifficulty = 9f;
-                    #endregion
+                    #endregion 
                 });
                 c.Emit(Br, brl);
                 Debug.LogWarning("GOLDLIZTEMPLATE: CONN PATCH INSERTED");
@@ -181,7 +243,6 @@ namespace WaspPile.Remnant
                 Debug.LogWarning("GOLDLIZTEMPLATE: FAILED TO APPLY EXIT MODIFICATION");
             }
         }
-
         private static void IL_makeLizGraphic(ILContext il)
         {
             var mynum = il.Body.Variables[11];
@@ -227,45 +288,17 @@ namespace WaspPile.Remnant
             }
         }
 
-        private static void makeLiz(On.Lizard.orig_ctor orig, Lizard self, AbstractCreature abstractCreature, World world)
-        {
-            orig(self, abstractCreature, world);
-            if (self.Template.type == CreatureTemplate.Type.RedLizard)
-            {
-                URand.seed = abstractCreature.ID.number;
-                self.effectColor = Color.yellow.RandDev(new Color(0.2f, 0.09f, 0.18f));
-            }
-        }
-
-        private static void recolorTailFins(On.LizardCosmetics.TailFin.orig_DrawSprites orig, LizardCosmetics.TailFin self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
-        {
-            orig(self, sLeaser, rCam, timeStacker, camPos);
-            float amountFadedBy = default, incrementAdded;
-            if (self.lGraphics.lizard.Template.type == CreatureTemplate.Type.RedLizard)
-            {
-                incrementAdded = 1f / (self.bumps * 2);
-                for (int i = 0; i < 2; i++)
-                {
-                    int num = i * ((!self.colored) ? self.bumps : (self.bumps * 2));
-                    for (int j = self.startSprite; j < self.startSprite + self.bumps; j++)
-                    {
-                        float f = Mathf.Lerp(0.05f, self.spineLength / self.lGraphics.BodyAndTailLength, Mathf.InverseLerp(self.startSprite, self.startSprite + self.bumps - 1, j));
-                        sLeaser.sprites[j + num].color = self.lGraphics.BodyColor(f);
-                        if (self.colored)
-                        {
-                            amountFadedBy += incrementAdded;
-                            sLeaser.sprites[j + self.bumps + num].color = Color.Lerp(self.lGraphics.effectColor, new Color(1f, 0f, 0f), amountFadedBy);
-                        }
-
-                    }
-                }
-            }
-        }
+        #endregion golden lizard
 
         internal static void CRIT_Disable()
         {
-            On.Lizard.ctor -= makeLiz;
-            On.LizardCosmetics.TailFin.DrawSprites -= recolorTailFins;   
+            //liz
+            On.Lizard.ctor -= recolorLiz;
+            On.LizardCosmetics.TailFin.DrawSprites -= recolorTailFins;
+
+            //centi
+
+            On.CentipedeGraphics.ctor -= recolorCentis;
         }
     }
 }
