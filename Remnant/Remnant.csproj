@@ -117,6 +117,7 @@
     <Compile Include="RemnantConfig.cs" />
     <Compile Include="RemnantUtils.cs" />
     <Compile Include="UAD\CyclePrompt.cs" />
+    <Compile Include="UAD\EtherLeech.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Resources.resx">

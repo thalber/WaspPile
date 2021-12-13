@@ -35,20 +35,47 @@ namespace WaspPile.Remnant
             On.LizardCosmetics.TailFin.DrawSprites += recolorTailFins;
             On.LizardCosmetics.TailFin.ctor += increaseFinSize;
 
-            manualHooks.Add(new ILHook(typeof(LizardGraphics).GetConstructor(new[] { typeof(PhysicalObject) }), IL_makeLizGraphic));
-            manualHooks.Add(new ILHook(typeof(LizardBreeds).GetMethod(nameof(LizardBreeds.BreedTemplate), allContextsStatic), IL_changeLizTemplate));
-            
-            foreach(var t in new[] { CRIT_CT_GOLDLIZ, CRIT_CT_GOLDCENTI })
+            manualHooks.Add(new ILHook(rsh_getctor<LizardGraphics>(typeof(PhysicalObject)), IL_makeLizGraphic));
+
+            foreach (var t in new[] { CRIT_CT_GOLDLIZ, CRIT_CT_GOLDCENTI })
             {
-                var cgold = GetTemp(t);
+                var cgold = GetCreatureTemplate(t);
                 cgold.baseDamageResistance *= CRIT_GOLDEN_RESIST_MODIFIER;
             }
-            var gliz = GetTemp(CRIT_CT_GOLDLIZ);
-            //StaticWorld.creatureTemplates[(int)CRIT_CT_GOLDLIZ] = LizardBreeds.BreedTemplate(CRIT_CT_GOLDLIZ, gliz.ancestor, GetTemp(CreatureTemplate.Type.PinkLizard), null, null);
-
+            var goldbreed = GetCreatureTemplate(CRIT_CT_GOLDLIZ).breedParameters as LizardBreedParams;
+            goldbreed.toughness = 300f;
+            goldbreed.bodySizeFac = 1.5f;
+            goldbreed.limbSize = 1.75f;
+            goldbreed.standardColor = HSL2RGB(0.13f, 1, 0.63f);
+            goldbreed.tailSegments = 19;
+            goldbreed.headSize = 1.5f;
+            goldbreed.tamingDifficulty = 9f;
             //centi
-
             On.CentipedeGraphics.ctor += recolorCentis;
+            manualHooks.Add(new ILHook(rsh_getctor<Centipede>(), resizeCenti));
+        }
+
+        private static void resizeCenti(ILContext il)
+        {
+            var c = new ILCursor(il);
+            if (c.TryGotoNext(MoveType.After, xx => xx.MatchCall<PhysicalObject>("set_bodyChunks")))
+            {
+                Debug.LogWarning("CENTI RESIZE: FOUND INSERTION POINT");
+                c.Emit(Ldarg_0);
+                c.Emit(Ldarg_0);
+                c.Emit(Ldfld, typeof(PhysicalObject).GetField(pbfiname(nameof(PhysicalObject.bodyChunks)), allContextsInstance));
+                //c.Emit(ldfl)
+                c.EmitDelegate<Action<Centipede, BodyChunk[]>>((cb, body) 
+                    => { if (!cb.Red) return;
+                    Array.Resize(ref body, body.Length + 5);
+                    cb.bodyChunks = body;
+                    Debug.Log($"CENTI RESIZE: new bodychunk count is {cb.bodyChunks.Length}");
+                });
+            }
+            else
+            {
+                Debug.LogWarning("CENTI RESIZE: failed to find insertion point!");
+            }
         }
 
         private static void recolorCentis(On.CentipedeGraphics.orig_ctor orig, CentipedeGraphics self, PhysicalObject ow)
@@ -56,9 +83,9 @@ namespace WaspPile.Remnant
             orig(self, ow);
             if (self.centipede.Red)
             {
-                self.hue += URand.Range(0.2f, 0.3f);
+                self.saturation = 1f;
+                self.hue = 0.13f;
             }
-            
         }
 
         #region golden lizard
@@ -71,17 +98,15 @@ namespace WaspPile.Remnant
             self.colored = true;
             self.numberOfSprites = ((!self.colored) ? self.bumps : (self.bumps * 2)) * 2;
         }
-
         private static void recolorLiz(On.Lizard.orig_ctor orig, Lizard self, AbstractCreature abstractCreature, World world)
         {
             orig(self, abstractCreature, world);
-            if (self.Template.type == CreatureTemplate.Type.RedLizard)
+            if (self.Template.type == CRIT_CT_GOLDLIZ)
             {
                 URand.seed = abstractCreature.ID.number;
                 self.effectColor = Color.yellow.RandDev(new Color(0.125f, 0.09f, 0.08f));
             }
         }
-
         private static void recolorTailFins(On.LizardCosmetics.TailFin.orig_DrawSprites orig, LizardCosmetics.TailFin self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
         {
             orig(self, sLeaser, rCam, timeStacker, camPos);
@@ -133,83 +158,13 @@ namespace WaspPile.Remnant
                 c.EmitDelegate<Action<LizardBreedParams, List<TileTypeResistance>, List<TileConnectionResistance>>>
                     ((lizardBreedParams, list, list2) =>
                 {
-                    #region megapaste;
-                    lizardBreedParams.terrainSpeeds[1] = new LizardBreedParams.SpeedMultiplier(1f, 1f, 1f, 1f);
-                    list.Add(new TileTypeResistance(AItile.Accessibility.Floor, 1f, PathCost.Legality.Allowed));
-                    lizardBreedParams.terrainSpeeds[2] = new LizardBreedParams.SpeedMultiplier(1f, 1f, 0.9f, 1f);
-                    list.Add(new TileTypeResistance(AItile.Accessibility.Corridor, 1f, PathCost.Legality.Allowed));
-                    lizardBreedParams.terrainSpeeds[3] = new LizardBreedParams.SpeedMultiplier(0.9f, 1f, 0.6f, 1f);
-                    list.Add(new TileTypeResistance(AItile.Accessibility.Climb, 1f, PathCost.Legality.Allowed));
-                    list2.Add(new TileConnectionResistance(MovementConnection.MovementType.DropToClimb, 4f, PathCost.Legality.Allowed));
-                    lizardBreedParams.biteDelay = 2;
-                    lizardBreedParams.biteInFront = 20f;
-                    lizardBreedParams.biteRadBonus = 25f;
-                    lizardBreedParams.biteHomingSpeed = 4.7f;
-                    lizardBreedParams.biteChance = 1f;
-                    lizardBreedParams.attemptBiteRadius = 120f;
-                    lizardBreedParams.getFreeBiteChance = 1f;
-                    lizardBreedParams.biteDamage = 4f;
-                    lizardBreedParams.biteDamageChance = 1f;
                     lizardBreedParams.toughness = 300f;
-                    lizardBreedParams.stunToughness = 3f;
-                    lizardBreedParams.regainFootingCounter = 1;
-                    lizardBreedParams.baseSpeed = 5f;
-                    lizardBreedParams.bodyMass = 3.1f;
                     lizardBreedParams.bodySizeFac = 1.5f;
-                    lizardBreedParams.floorLeverage = 6f;
-                    lizardBreedParams.maxMusclePower = 9f;
-                    lizardBreedParams.wiggleSpeed = 0.5f;
-                    lizardBreedParams.wiggleDelay = 15;
-                    lizardBreedParams.bodyStiffnes = 0.3f;
-                    lizardBreedParams.swimSpeed = 1.9f;
-                    lizardBreedParams.idleCounterSubtractWhenCloseToIdlePos = 10;
-                    lizardBreedParams.danger = 0.8f;
-                    lizardBreedParams.aggressionCurveExponent = 0.7f;
-                    lizardBreedParams.headShieldAngle = 100f;
-                    lizardBreedParams.canExitLounge = false;
-                    lizardBreedParams.canExitLoungeWarmUp = true;
-                    lizardBreedParams.findLoungeDirection = 0.5f;
-                    lizardBreedParams.loungeDistance = 100f;
-                    lizardBreedParams.preLoungeCrouch = 25;
-                    lizardBreedParams.preLoungeCrouchMovement = -0.2f;
-                    lizardBreedParams.loungeSpeed = 1.9f;
-                    lizardBreedParams.loungeMaximumFrames = 20;
-                    lizardBreedParams.loungePropulsionFrames = 10;
-                    lizardBreedParams.loungeJumpyness = 0.5f;
-                    lizardBreedParams.loungeDelay = 90;
-                    lizardBreedParams.riskOfDoubleLoungeDelay = 0.1f;
-                    lizardBreedParams.postLoungeStun = 20;
-                    lizardBreedParams.loungeTendensy = 0.05f;
-                    lizardBreedParams.perfectVisionAngle = Mathf.Lerp(1f, -1f, 0.444444448f);
-                    lizardBreedParams.periferalVisionAngle = Mathf.Lerp(1f, -1f, 0.7777778f);
-                    lizardBreedParams.biteDominance = 1f;
                     lizardBreedParams.limbSize = 1.75f;
-                    lizardBreedParams.stepLength = 0.8f;
-                    lizardBreedParams.liftFeet = 0.3f;
-                    lizardBreedParams.feetDown = 0.5f;
-                    lizardBreedParams.noGripSpeed = 0.25f;
-                    lizardBreedParams.limbSpeed = 9f;
-                    lizardBreedParams.limbQuickness = 0.8f;
-                    lizardBreedParams.limbGripDelay = 1;
-                    lizardBreedParams.smoothenLegMovement = true;
-                    lizardBreedParams.legPairDisplacement = 0.2f;
                     lizardBreedParams.standardColor = Custom.HSL2RGB(0.13f, 1, 0.63f);
-                    lizardBreedParams.walkBob = 3f;
                     lizardBreedParams.tailSegments = 19;
-                    lizardBreedParams.tailStiffness = 200f;
-                    lizardBreedParams.tailStiffnessDecline = 0.3f;
-                    lizardBreedParams.tailLengthFactor = 1.9f;
-                    lizardBreedParams.tailColorationStart = 0.3f;
-                    lizardBreedParams.tailColorationExponent = 2f;
                     lizardBreedParams.headSize = 1.5f;
-                    lizardBreedParams.neckStiffness = 0.2f;
-                    lizardBreedParams.jawOpenAngle = 140f;
-                    lizardBreedParams.jawOpenLowerJawFac = 0.6666667f;
-                    lizardBreedParams.jawOpenMoveJawsApart = 23f;
-                    lizardBreedParams.headGraphics = new int[5];
-                    lizardBreedParams.framesBetweenLookFocusChange = 20;
                     lizardBreedParams.tamingDifficulty = 9f;
-                    #endregion 
                 });
                 c.Emit(Br, brl);
                 Debug.LogWarning("GOLDLIZTEMPLATE: CONN PATCH INSERTED");

@@ -269,6 +269,7 @@ namespace WaspPile.Remnant
         private static bool extraPunch(Func<Weapon, SharedPhysics.CollisionResult, bool, bool> orig, 
             Weapon self, SharedPhysics.CollisionResult result, bool eu)
         {
+            //TODO: improve impact, smoke hit to separate uad?
             var res = orig(self, result, eu);
             if (poweredWeapons.TryGetValue(self.GetHashCode(), out var wf) && result.chunk != null)
             {
@@ -337,13 +338,14 @@ namespace WaspPile.Remnant
         private static void EchomodeExtendRoll(On.Player.orig_MovementUpdate orig, 
             Player self, bool eu)
         {
+            //TODO: infinite slides
             orig(self, eu);
             if (!fieldsByPlayerHash.TryGetValue(self.GetHashCode(), out var mf)) return;
             //arbitrary threshold but works so far
             if (mf.echoActive && self.rollCounter > 30) self.rollCounter = 30;
-            //if (mf.echoActive) self.stopRollingCounter = 0;
+            if (mf.echoActive && self.slideCounter > 5) self.slideCounter = 5;
         }
-        
+
         private static void EchomodePreventDamage(On.Creature.orig_Violence orig, 
             Creature self, BodyChunk source, Vector2? directionAndMomentum, BodyChunk hitChunk, 
             PhysicalObject.Appendage.Pos hitAppendage, Creature.DamageType type, float damage, float stunBonus)

@@ -12,9 +12,14 @@
 +cycle limit?
 +one sitting option
 ?face sprites (make a new set? mildly tedious)
--arena compat
+?arena compat
 
 Lizards:
-	?register breed template changes
+	+register breed template changes
 	+replace lizgraph cosmetics init
-	-enlarge tail pieces
+	+enlarge tail pieces
+
+Centipedes:
+	-Coloring (what the fuck is an hsl)
+	-dangles
+	anything else?

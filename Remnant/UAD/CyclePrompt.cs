@@ -10,6 +10,7 @@ namespace WaspPile.Remnant.UAD
         public override void Update(bool eu)
         {
             base.Update(eu);
+            if (room?.game?.IsArenaSession ?? true) { this.Destroy(); return; }
             string message = $"Remaining cycles: {RemnantConfig.martyrCycles.Value - room.game?.rainWorld.progression.currentSaveState.cycleNumber}";
             room.game?.cameras[0].hud.textPrompt.AddMessage(message, 15, 400, false, false);
             Destroy();
