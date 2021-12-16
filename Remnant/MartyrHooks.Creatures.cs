@@ -27,6 +27,42 @@ namespace WaspPile.Remnant
         internal const float CRIT_GOLDEN_RESIST_MODIFIER = 2f;
         internal static CreatureTemplate.Type CRIT_CT_GOLDLIZ => CreatureTemplate.Type.RedLizard;
         internal static CreatureTemplate.Type CRIT_CT_GOLDCENTI => CreatureTemplate.Type.RedCentipede;
+        internal class CentiGrafFields
+        {
+            internal CentiGrafFields(CentipedeGraphics cg)
+            {
+                //_ow = new WeakReference(cg);
+                owner = cg;
+                danglerCount = cg.owner.bodyChunks.Length - 2;
+                danglers = new Dangler[danglerCount];
+                for (int i = 0; i < danglerCount; i++)
+                {
+                    danglers[i] = new Dangler(cg, i, 6, 5f, 5f);
+                }
+            }
+            internal readonly CentipedeGraphics owner;
+            internal int bStartSprite;
+            internal Dangler[] danglers;
+            internal int danglerCount;
+            internal Vector2 ConPos(int ind, float ts)
+            {
+                //TODO: better attachment points
+                var res = default(Vector2);
+                var c0 = owner.owner.bodyChunks[ind + 1];
+                res = Vector2.Lerp(c0.lastPos, c0.pos, ts);
+                return res;
+            }
+            internal Dangler.DanglerProps Props (int ind) 
+                => new Dangler.DanglerProps() 
+                { gravity = -0.02f, 
+                    airFriction = 0.9f, 
+                    waterGravity = 0.03f, 
+                    elasticity = 0.1f, 
+                    waterFriction = 0.4f, 
+                    weightSymmetryTendency = 0.5f
+                };
+        }
+        internal static readonly AttachedField<CentipedeGraphics, CentiGrafFields> centiFieldsByHash = new AttachedField<CentipedeGraphics, CentiGrafFields>();
 
         internal static void CRIT_Enable()
         {
@@ -35,26 +71,123 @@ namespace WaspPile.Remnant
             On.LizardCosmetics.TailFin.DrawSprites += recolorTailFins;
             On.LizardCosmetics.TailFin.ctor += increaseFinSize;
 
-            manualHooks.Add(new ILHook(rsh_getctor<LizardGraphics>(typeof(PhysicalObject)), IL_makeLizGraphic));
+            manualHooks.Add(new ILHook(ctorof<LizardGraphics>(typeof(PhysicalObject)), IL_makeLizGraphic));
 
             foreach (var t in new[] { CRIT_CT_GOLDLIZ, CRIT_CT_GOLDCENTI })
             {
                 var cgold = GetCreatureTemplate(t);
                 cgold.baseDamageResistance *= CRIT_GOLDEN_RESIST_MODIFIER;
             }
-            var goldbreed = GetCreatureTemplate(CRIT_CT_GOLDLIZ).breedParameters as LizardBreedParams;
-            goldbreed.toughness = 300f;
-            goldbreed.bodySizeFac = 1.5f;
-            goldbreed.limbSize = 1.75f;
-            goldbreed.standardColor = HSL2RGB(0.13f, 1, 0.63f);
-            goldbreed.tailSegments = 19;
-            goldbreed.headSize = 1.5f;
-            goldbreed.tamingDifficulty = 9f;
+            var glizdbreed = GetCreatureTemplate(CRIT_CT_GOLDLIZ).breedParameters as LizardBreedParams;
+            glizdbreed.toughness = 300f;
+            glizdbreed.bodySizeFac = 1.5f;
+            glizdbreed.limbSize = 1.75f;
+            glizdbreed.standardColor = HSL2RGB(0.13f, 1, 0.63f);
+            glizdbreed.tailSegments = 19;
+            glizdbreed.headSize = 1.5f;
+            glizdbreed.tamingDifficulty = 9f;
             //centi
-            On.CentipedeGraphics.ctor += recolorCentis;
-            manualHooks.Add(new ILHook(rsh_getctor<Centipede>(), resizeCenti));
+            On.CentipedeGraphics.ctor += recolorAndRegCentiG;
+            On.CentipedeGraphics.InitiateSprites += CentiG_makesprites;
+            On.CentipedeGraphics.AddToContainer += CentiG_ATC;
+            On.CentipedeGraphics.DrawSprites += CentiG_Draw;
+            On.CentipedeGraphics.ApplyPalette += CentiG_APal;
+            On.CentipedeGraphics.Update += CentiG_Update;
+
+            manualHooks.Add(new ILHook(ctorof<Centipede>(typeof(AbstractCreature), typeof(World)), resizeCenti));
+            manualHooks.Add(new Hook(methodof<Dangler>("ConPos"), methodof(typeof(MartyrHooks), nameof(EDA_conpos), allContextsStatic)));
+            manualHooks.Add(new Hook(methodof<Dangler>("get_Props"), methodof(typeof(MartyrHooks), nameof(EDA_props), allContextsStatic)));
         }
 
+        #region golden centi
+        private static void CentiG_APal(On.CentipedeGraphics.orig_ApplyPalette orig, CentipedeGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
+        {
+            orig(self, sLeaser, rCam, palette);
+            if (centiFieldsByHash.TryGet(self, out var cf))
+            {
+                for (int i = 0; i < cf.danglerCount; i++)
+                {
+                    sLeaser.sprites[i + cf.bStartSprite].color = self.ShellColor;
+                }
+            }
+        }
+
+        private static void CentiG_Update(On.CentipedeGraphics.orig_Update orig, CentipedeGraphics self)
+        {
+            orig(self);
+            if (centiFieldsByHash.TryGet(self, out var cf))
+            {
+                foreach (var d in cf.danglers) d.Update();
+            }
+        }
+
+        private static void CentiG_Draw(On.CentipedeGraphics.orig_DrawSprites orig, CentipedeGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
+        {
+            
+            orig(self, sLeaser, rCam, timeStacker, camPos);
+            if (self.owner.room != rCam.room)
+            {
+                sLeaser.CleanSpritesAndRemove();
+                return;
+            }
+            else if (centiFieldsByHash.TryGet(self, out var cf))
+            {
+                foreach (var d in cf.danglers) d.DrawSprite(cf.bStartSprite + d.danglerNum, sLeaser, rCam, timeStacker, camPos);
+            }
+            
+        }
+        private static void CentiG_ATC(On.CentipedeGraphics.orig_AddToContainer orig, CentipedeGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, FContainer newContatiner)
+        {
+            orig(self, sLeaser, rCam, newContatiner);
+            if (CENTI_SIN_LOCK || !centiFieldsByHash.TryGet(self, out var cf)) return;
+            else
+            {
+                for (int i = 0; i < cf.danglerCount; i++)
+                {
+                    rCam.ReturnFContainer("Items").AddChild(sLeaser.sprites[i + cf.bStartSprite]);
+                }
+            }
+        }
+        internal static bool CENTI_SIN_LOCK = false;
+        private static void CentiG_makesprites(On.CentipedeGraphics.orig_InitiateSprites orig, CentipedeGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
+        {
+            CENTI_SIN_LOCK = true;
+            orig(self, sLeaser, rCam);
+            CENTI_SIN_LOCK = false;
+            if (centiFieldsByHash.TryGet(self, out var cf))
+            {
+                foreach (var s in sLeaser.sprites) s.RemoveFromContainer();
+                cf.bStartSprite = sLeaser.sprites.Length;
+                Array.Resize(ref sLeaser.sprites, sLeaser.sprites.Length + cf.danglerCount);
+                for (int i = 0; i < cf.danglerCount; i++)
+                {
+                    cf.danglers[i].InitSprite(sLeaser, i + cf.bStartSprite);
+                    sLeaser.sprites[i + cf.bStartSprite].shader = CRW.Shaders["TentaclePlant"];
+                    sLeaser.sprites[i + cf.bStartSprite].element = Futile.atlasManager.GetElementWithName("Futile_White");
+                    cf.danglers[i].Reset();
+                }
+                self.AddToContainer(sLeaser, rCam, null);
+            }
+        }
+
+        private static Dangler.DanglerProps EDA_props(Func<Dangler, Dangler.DanglerProps> orig, Dangler self)
+        {
+            if (self.gModule is CentipedeGraphics cg 
+                && centiFieldsByHash.TryGet(cg, out var cf))
+            {
+                return cf.Props(self.danglerNum);
+            }
+            return orig(self);
+        }
+        private static Vector2 EDA_conpos(Func<Dangler, float, Vector2> orig, Dangler self, float timeStacker)
+        {
+            if (self.gModule is CentipedeGraphics cg
+                && centiFieldsByHash.TryGet(cg, out var cf))
+            {
+                return cf.ConPos(self.danglerNum, timeStacker);
+            }
+            return (orig(self, timeStacker));
+        }
         private static void resizeCenti(ILContext il)
         {
             var c = new ILCursor(il);
@@ -78,16 +211,17 @@ namespace WaspPile.Remnant
             }
         }
 
-        private static void recolorCentis(On.CentipedeGraphics.orig_ctor orig, CentipedeGraphics self, PhysicalObject ow)
+        private static void recolorAndRegCentiG(On.CentipedeGraphics.orig_ctor orig, CentipedeGraphics self, PhysicalObject ow)
         {
             orig(self, ow);
             if (self.centipede.Red)
             {
                 self.saturation = 1f;
                 self.hue = 0.13f;
+                centiFieldsByHash.Set(self, new CentiGrafFields(self));
             }
         }
-
+        #endregion golden centi
         #region golden lizard
 
         private static void increaseFinSize(On.LizardCosmetics.TailFin.orig_ctor orig, LizardCosmetics.TailFin self, LizardGraphics lGraphics, int startSprite)
@@ -181,7 +315,6 @@ namespace WaspPile.Remnant
                 {
                     if (ct.type == CRIT_CT_GOLDLIZ)
                     {
-                        //TODO: check practical effects
                         ct.waterPathingResistance = 2f;
                         ct.doPreBakedPathing = false;
                         ct.preBakedPathingAncestor = pink;
@@ -253,7 +386,14 @@ namespace WaspPile.Remnant
 
             //centi
 
-            On.CentipedeGraphics.ctor -= recolorCentis;
+            On.CentipedeGraphics.ctor -= recolorAndRegCentiG;
+            On.CentipedeGraphics.InitiateSprites -= CentiG_makesprites;
+            On.CentipedeGraphics.AddToContainer -= CentiG_ATC;
+            On.CentipedeGraphics.DrawSprites -= CentiG_Draw;
+            On.CentipedeGraphics.ApplyPalette -= CentiG_APal;
+            On.CentipedeGraphics.Update -= CentiG_Update;
+
+            On.CentipedeGraphics.ctor -= recolorAndRegCentiG;
         }
     }
 }

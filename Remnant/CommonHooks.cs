@@ -4,12 +4,24 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using System.IO;
+using Mono.Cecil.Cil;
+using MonoMod.Cil;
+using MonoMod.RuntimeDetour;
+using System.Reflection;
+
+using static RWCustom.Custom;
+using static UnityEngine.Mathf;
+using static WaspPile.Remnant.RemnantUtils;
+using static Mono.Cecil.Cil.OpCodes;
+
+using URand = UnityEngine.Random;
 
 namespace WaspPile.Remnant
 {
     public static class CommonHooks
     {
-        public static void Enable()
+        internal static readonly List<IDetour> manualHooks = new List<IDetour>();
+        internal static void Enable()
         {
             On.ScavengerAI.CollectScore_PhysicalObject_bool += ScavAI_PearlCost;
 
@@ -20,6 +32,7 @@ namespace WaspPile.Remnant
             On.RainWorldGame.Update += ApplyHitFrames;
         }
 
+
         internal static int freeze = 0;
         private static void ApplyHitFrames(On.RainWorldGame.orig_Update orig, RainWorldGame self)
         {
@@ -27,14 +40,13 @@ namespace WaspPile.Remnant
             orig(self);
         }
 
+        #region martyr pearl
         private static int ScavAI_PearlCost(On.ScavengerAI.orig_CollectScore_PhysicalObject_bool orig, ScavengerAI self, PhysicalObject obj, bool weaponFiltered)
         {
             //make sure they don't steal
             if (obj is DataPearl p && IsEchoPearl(p)) return 0;
             return orig(self, obj, weaponFiltered);
         }
-
-        #region martyr pearl
 
         private static bool IsEchoPearl(DataPearl instance)
         {
@@ -51,8 +63,10 @@ namespace WaspPile.Remnant
             {
                 foreach (var s in sLeaser.sprites) s.RemoveFromContainer();
                 Array.Resize(ref sLeaser.sprites, sLeaser.sprites.Length + 1);
-                var halo = new FSprite("Futile_White");
-                halo.shader = self.room.game.rainWorld.Shaders["GhostDistortion"];
+                var halo = new FSprite("Futile_White")
+                {
+                    shader = self.room.game.rainWorld.Shaders["GhostDistortion"]
+                };
                 sLeaser.sprites[sLeaser.sprites.Length - 1] = halo;
                 self.AddToContainer(sLeaser, rCam, null);
             }
@@ -80,7 +94,7 @@ namespace WaspPile.Remnant
         }
         #endregion
 
-        public static void Disable()
+        internal static void Disable()
         {
             On.ScavengerAI.CollectScore_PhysicalObject_bool -= ScavAI_PearlCost;
 
@@ -89,6 +103,8 @@ namespace WaspPile.Remnant
             On.DataPearl.AddToContainer -= Pearl_ATC;
 
             On.RainWorldGame.Update -= ApplyHitFrames;
+            foreach (var hk in manualHooks) hk.Undo();
+            manualHooks.Clear();
         }
     }
 }

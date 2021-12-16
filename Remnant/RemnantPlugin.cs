@@ -13,6 +13,7 @@ using static WaspPile.Remnant.RemnantConfig;
 
 namespace WaspPile.Remnant
 {
+
     [BepInPlugin("EchoWorld.Remnant", "Remnant", "0.0.1")]
     public class RemnantPlugin : BaseUnityPlugin
     {

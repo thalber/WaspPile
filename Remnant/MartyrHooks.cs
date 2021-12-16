@@ -20,7 +20,6 @@ namespace WaspPile.Remnant
     public static partial class MartyrHooks 
     {
         //TODO: stats are pretty arbitrary, reach agreement
-
         internal const float ECHOMODE_DAMAGE_BONUS = 1.7f;
         internal const float ECHOMODE_THROWFORCE_BONUS = 1.4f;
         internal const float ECHOMODE_RUNSPEED_BONUS = 1.4f;
@@ -92,8 +91,8 @@ namespace WaspPile.Remnant
             self.airInLungs = 1f;
         }
         
-        internal static readonly Dictionary<int, MartyrFields> fieldsByPlayerHash = new Dictionary<int, MartyrFields>();
         internal static readonly List<IDetour> manualHooks = new List<IDetour>();
+        internal static readonly Dictionary<int, MartyrFields> playerFieldsByHash = new Dictionary<int, MartyrFields>();
         internal static readonly Dictionary<int, WeaponFields> poweredWeapons = new Dictionary<int, WeaponFields>();
 
         public static void Enable()
@@ -156,7 +155,7 @@ namespace WaspPile.Remnant
             PlayerGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, FContainer newContatiner)
         {
             orig(self, sLeaser, rCam, newContatiner);
-            if (!fieldsByPlayerHash.TryGetValue(self.player.GetHashCode(), out var mf) || mf.bubbleSpriteIndex == -1 || PLAYER_SIN_LOCK) return;
+            if (!playerFieldsByHash.TryGetValue(self.player.GetHashCode(), out var mf) || mf.bubbleSpriteIndex == -1 || PLAYER_SIN_LOCK) return;
             try
             {
                 Console.WriteLine($"martyr addtocont: bubble indecks {mf.bubbleSpriteIndex} sleaser.s length {sLeaser.sprites.Length}");
@@ -171,7 +170,7 @@ namespace WaspPile.Remnant
             PlayerGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
         {
             orig(self, sLeaser, rCam, timeStacker, camPos);
-            if (self.owner.slatedForDeletetion || self.owner.room != rCam.room || !fieldsByPlayerHash.TryGetValue(self.player.GetHashCode(), out var mf)) return;
+            if (self.owner.slatedForDeletetion || self.owner.room != rCam.room || !playerFieldsByHash.TryGetValue(self.player.GetHashCode(), out var mf)) return;
             var npos = Vector2.Lerp(self.head.lastPos, self.head.pos, timeStacker);
             
             //martyr bubble
@@ -217,20 +216,22 @@ namespace WaspPile.Remnant
             PLAYER_SIN_LOCK = true;
             orig(self, sLeaser, rCam);
             PLAYER_SIN_LOCK = false;
-            if (!fieldsByPlayerHash.TryGetValue(self.player.GetHashCode(), out var mf)) return;
+            if (!playerFieldsByHash.TryGetValue(self.player.GetHashCode(), out var mf)) return;
             foreach (var sprite in sLeaser.sprites) sprite.RemoveFromContainer();
             Array.Resize(ref sLeaser.sprites, sLeaser.sprites.Length + 1);
             mf.bubbleSpriteIndex = sLeaser.sprites.Length - 1;
             Console.WriteLine($"martyr bubble sprite: {mf.bubbleSpriteIndex}");
-            sLeaser.sprites[mf.bubbleSpriteIndex] = new FSprite(Futile.atlasManager.GetElementWithName("Futile_White"));
-            sLeaser.sprites[mf.bubbleSpriteIndex].shader = self.player.room.game.rainWorld.Shaders["GhostDistortion"];
+            sLeaser.sprites[mf.bubbleSpriteIndex] = new FSprite(Futile.atlasManager.GetElementWithName("Futile_White"))
+            {
+                shader = self.player.room.game.rainWorld.Shaders["GhostDistortion"]
+            };
             self.AddToContainer(sLeaser, rCam, null);
         }
 
         private static void Player_APal(On.PlayerGraphics.orig_ApplyPalette orig, PlayerGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
         {
             orig(self, sLeaser, rCam, palette);
-            if (fieldsByPlayerHash.TryGetValue(self.player.GetHashCode(), out var mf))
+            if (playerFieldsByHash.TryGetValue(self.player.GetHashCode(), out var mf))
             {
                 mf.palBlack = palette.blackColor;
             }
@@ -340,7 +341,7 @@ namespace WaspPile.Remnant
         {
             //TODO: infinite slides
             orig(self, eu);
-            if (!fieldsByPlayerHash.TryGetValue(self.GetHashCode(), out var mf)) return;
+            if (!playerFieldsByHash.TryGetValue(self.GetHashCode(), out var mf)) return;
             //arbitrary threshold but works so far
             if (mf.echoActive && self.rollCounter > 30) self.rollCounter = 30;
             if (mf.echoActive && self.slideCounter > 5) self.slideCounter = 5;
@@ -351,7 +352,7 @@ namespace WaspPile.Remnant
             PhysicalObject.Appendage.Pos hitAppendage, Creature.DamageType type, float damage, float stunBonus)
         {
             if (self is Player m
-                && fieldsByPlayerHash.TryGetValue(m.GetHashCode(), out var mf)
+                && playerFieldsByHash.TryGetValue(m.GetHashCode(), out var mf)
                 && mf.echoActive
                 && source?.owner is Spear) damage = 0f; 
             orig(self, source, directionAndMomentum, hitChunk, hitAppendage, type, damage, stunBonus);
@@ -361,7 +362,7 @@ namespace WaspPile.Remnant
             Weapon self, Creature thrownBy, Vector2 thrownPos, Vector2? firstFrameTraceFromPos, IntVector2 throwDir, float frc, bool eu)
         {
             orig(self, thrownBy, thrownPos, firstFrameTraceFromPos, throwDir, frc, eu);
-            if (thrownBy is Player m && fieldsByPlayerHash.TryGetValue(m.GetHashCode(), out var mf) && mf.echoActive)
+            if (thrownBy is Player m && playerFieldsByHash.TryGetValue(m.GetHashCode(), out var mf) && mf.echoActive)
             {
                 poweredWeapons.Add(self.GetHashCode(), new WeaponFields(mf.palBlack, self.room));
                 foreach (var c in self.bodyChunks) c.vel *= ECHOMODE_THROWFORCE_BONUS;
@@ -373,7 +374,7 @@ namespace WaspPile.Remnant
         private static bool EchomodeDeflection(On.Creature.orig_SpearStick orig, 
             Creature self, Weapon source, float dmg, BodyChunk chunk, PhysicalObject.Appendage.Pos appPos, Vector2 direction)
         {
-            if (self is Player m && fieldsByPlayerHash.TryGetValue(m.GetHashCode(), out var mf))
+            if (self is Player m && playerFieldsByHash.TryGetValue(m.GetHashCode(), out var mf))
             {
                 if (mf.echoActive) return false;
             }
@@ -390,7 +391,7 @@ namespace WaspPile.Remnant
         private static void RunAbilityCycle(On.Player.orig_Update orig, 
             Player self, bool eu)
         {
-            if (!fieldsByPlayerHash.TryGetValue(self.GetHashCode(), out var mf)) goto skipNotMine;
+            if (!playerFieldsByHash.TryGetValue(self.GetHashCode(), out var mf)) goto skipNotMine;
             //basic recharge/cooldown and activation
             mf.lastKeyDown = mf.keyDown;
             mf.keyDown = Input.GetKeyDown(RemnantConfig.GetKeyForPlayer(self.room.game.Players.IndexOf(self.abstractCreature)));
@@ -438,7 +439,7 @@ namespace WaspPile.Remnant
             Player self, AbstractCreature abstractCreature, World world)
         {
             orig(self, abstractCreature, world);
-            fieldsByPlayerHash.Add(self.GetHashCode(), new MartyrFields()
+            playerFieldsByHash.Add(self.GetHashCode(), new MartyrFields()
             {
                 maxEchoReserve = 520f,
                 echoReserve = 520f,
@@ -459,8 +460,9 @@ namespace WaspPile.Remnant
             RainWorldGame self, ProcessManager manager)
         {
             orig(self, manager);
-            fieldsByPlayerHash.Clear();
+            playerFieldsByHash.Clear();
             poweredWeapons.Clear();
+            centiFieldsByHash.Clear();
         }
         #endregion
 
