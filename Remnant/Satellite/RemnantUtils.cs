@@ -42,19 +42,15 @@ namespace WaspPile.Remnant
         /// <returns></returns>
         internal static MethodInfo methodof(Type t, string mname, BindingFlags context = allContextsStatic)
             => t.GetMethod(mname, context);
-        /// <summary>
-        /// the forbidden methodof: checks stack trace to get calling type's method. defaults to <see cref="allContextsStatic"/>
-        /// </summary>
-        /// <param name="mname"></param>
-        /// <param name="context"></param>
-        /// <returns></returns>
-        internal static MethodInfo methodof_c(string mname, BindingFlags context = allContextsStatic)
-        {
-            //go crazy go stupid
-            var c = new System.Diagnostics.StackTrace(Thread.CurrentThread, false);
-            var caller = c.GetFrames()[1];
-            return caller.GetMethod().DeclaringType.GetMethod(mname, context);
-        }
+        //bruh it literally dies on unimono
+        //internal static MethodInfo methodof_c(string mname, BindingFlags context = allContextsStatic)
+        //{
+        //    //go crazy go stupid
+        //    var c = new System.Diagnostics.StackTrace(Thread.CurrentThread, false);
+        //    var caller = c.GetFrames()[1];
+        //    return caller.GetMethod().DeclaringType.GetMethod(mname, context);
+        //}
+        internal static MethodInfo methodofdel<Tm>(Tm m) where Tm : Delegate => m.Method;
         /// <summary>
         /// gets constructorinfo from T. no static ctors by default.
         /// </summary>
@@ -66,7 +62,7 @@ namespace WaspPile.Remnant
             => typeof(T).GetConstructor(context, null, pms, null);
         internal static ConstructorInfo ctorof<T>(params Type[] pms) 
             => typeof(T).GetConstructor(pms);
-
+        
         internal static void dump(this ILContext il, string rf)
         {
             var oname = il.Method.FullName.SkipWhile(c => Path.GetInvalidPathChars().Contains(c));
@@ -112,6 +108,8 @@ namespace WaspPile.Remnant
         internal static string combinePath(params string[] parts) => parts.Aggregate(Path.Combine);
         internal static RainWorld CRW => UnityEngine.Object.FindObjectOfType<RainWorld>();
         internal static CreatureTemplate GetCreatureTemplate(CreatureTemplate.Type t) => StaticWorld.creatureTemplates[(int)t];
+        internal static Dictionary<string, string> CurrentMiscSaveData(string name) => SlugBase.SaveManager.GetCharacterData(name, CRW.options.saveSlot);
+        internal static SlugBase.SaveManager.SlugBaseSaveSummary CurrentSaveSummary(string name) => SlugBase.SaveManager.GetSaveSummary(CRW, name, CRW.options.saveSlot);
         #endregion
     }
 }

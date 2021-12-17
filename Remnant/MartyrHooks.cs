@@ -6,12 +6,15 @@ using System.IO;
 using RWCustom;
 using UnityEngine;
 using MonoMod.RuntimeDetour;
+using Mono.Cecil.Cil;
+using MonoMod.Cil;
 using System.Reflection;
 using WaspPile.Remnant.UAD;
 
 using static RWCustom.Custom;
 using static UnityEngine.Mathf;
 using static WaspPile.Remnant.RemnantUtils;
+using static Mono.Cecil.Cil.OpCodes;
 
 using URand = UnityEngine.Random;
 
@@ -79,8 +82,8 @@ namespace WaspPile.Remnant
             Console.WriteLine($"cd: {mf.cooldown}");
             mf.echoActive = false;
             self.room.PlaySound(SoundID.Spear_Bounce_Off_Wall, self.firstChunk.pos, 1.0f, 0.5f);
-            self.lungsExhausted = true;
-            self.airInLungs = fullDeplete ? 0f : 0.2f;
+            self.lungsExhausted |= fullDeplete;
+            self.airInLungs = fullDeplete ? 0f : Lerp(mf.echoReserve / mf.maxEchoReserve, 1f, 0.1f);
             
         }
         public static void powerUp(this Player self, ref MartyrFields mf)
@@ -133,11 +136,19 @@ namespace WaspPile.Remnant
             On.PlayerGraphics.DrawSprites += Player_Draw;
             //misc
             On.Player.ctor += PromptCycleWarning;
-
+            On.PlayerSessionRecord.AddEat += goldCure;
+            //manualHooks.Add(new ILHook(methodof<Player>("UpdateBodyMode"), extendSlides));
             CRIT_Enable();
         }
 
-
+        private static void goldCure(On.PlayerSessionRecord.orig_AddEat orig, PlayerSessionRecord self, PhysicalObject eatenObject)
+        {
+            orig(self, eatenObject);
+            if (eatenObject is Creature c && c.IsGolden())
+            {
+                MartyrChar.ApplyRemedy("SACRED FLESH");
+            }
+        }
 
         #region misc
 
@@ -179,7 +190,7 @@ namespace WaspPile.Remnant
             //bubble.alpha = Lerp(mf.lastFade, mf.fade, timeStacker);
             bubble.element = Futile.atlasManager.GetElementWithName("Futile_White");
             var cf = Lerp(mf.lastFade, mf.fade, timeStacker);
-            bubble.scale = Lerp(13f, 16f, cf);
+            bubble.scale = Lerp(7f, 10f, cf);
             bubble.isVisible = URand.value < cf;
             
             //ability body color fade
@@ -197,7 +208,7 @@ namespace WaspPile.Remnant
                 face.element = Futile.atlasManager.GetElementWithName(
                 HUD.KarmaMeter.KarmaSymbolSprite(
                     true, new IntVector2(Min(9, (int)(mf.echoReserve / mf.maxEchoReserve * 10)), 9)));
-                face.scale = 0.25f;
+                face.scale = 0.35f;
                 face.x = Round(face.x);
                 face.y = Round(face.y);
             }
@@ -238,6 +249,28 @@ namespace WaspPile.Remnant
         }
         #endregion
         #region ability
+        private static void extendSlides(ILContext il)
+        {
+            var c = new ILCursor(il);
+            c.GotoNext(MoveType.After, 
+                xx => xx.MatchLdarg(0),
+                xx => xx.MatchLdfld<Player>("slideCounter"),
+                xx => xx.MatchLdcI4(0),
+                xx => xx.MatchBle(out var jmp));
+                //xx => xx.MatchNeg(),
+                //xx => xx.MatchBeq(out var exit),
+                //xx => xx.MatchLdarg(0),
+                //xx => xx.MatchLdcI4(0),
+                //xx => xx.MatchStfld<Player>("slideCounter"),
+                //xx => xx.Match(Ldarg_0));
+            c.Emit(Ldarg_0);
+            c.EmitDelegate<Action<Player>>(xx => 
+            { if (playerFieldsByHash.TryGetValue(xx.GetHashCode(), out var mf) && xx.animation == Player.AnimationIndex.BellySlide) 
+                    xx.slideCounter = Min(xx.slideCounter, 9); 
+                Console.WriteLine(xx.slideCounter);
+            });
+            Debug.LogWarning("PLAYERSLIDES");
+        }
 
         private static void wallbang(Action<Weapon> orig,
             Weapon self)
@@ -320,7 +353,7 @@ namespace WaspPile.Remnant
                     hit = true;
                 }
 
-                for (int i = hit ? URand.Range(5, 8) : URand.Range(2, 3); i > 0; i--)
+                for (int i = hit ? URand.Range(5, 8) : URand.Range(1, 2); i > 0; i--)
                 {
                     Vector2 ppos = hit ? self.firstChunk.pos + RNV() * 10 : V2RandLerp(self.firstChunk.lastPos, self.firstChunk.pos);
                     Vector2 pvel = PerpendicularVector(self.firstChunk.lastLastPos - self.firstChunk.pos) *  RandSign();
@@ -330,7 +363,7 @@ namespace WaspPile.Remnant
                         vel: hit? pvel : RNV() * URand.Range(10f, 15f), 
                         lifeTime: 9);
                     part.colorFadeTime = 12;
-                    part.effectColor = RainWorld.GoldRGB;
+                    part.effectColor = MartyrChar.baseBodyCol;
                     self.room.AddObject(part);
                     //TODO: finalize particle spawning
                 }
@@ -339,12 +372,9 @@ namespace WaspPile.Remnant
         private static void EchomodeExtendRoll(On.Player.orig_MovementUpdate orig, 
             Player self, bool eu)
         {
-            //TODO: infinite slides
             orig(self, eu);
             if (!playerFieldsByHash.TryGetValue(self.GetHashCode(), out var mf)) return;
-            //arbitrary threshold but works so far
-            if (mf.echoActive && self.rollCounter > 30) self.rollCounter = 30;
-            if (mf.echoActive && self.slideCounter > 5) self.slideCounter = 5;
+            if (mf.echoActive && self.rollCounter > 10) self.rollCounter = 10;
         }
 
         private static void EchomodePreventDamage(On.Creature.orig_Violence orig, 
@@ -399,6 +429,7 @@ namespace WaspPile.Remnant
             if (toggleRequested) Console.WriteLine("Martyr toggle req");
             if (mf.echoActive)
             {
+                self.airInLungs = 1f;
                 mf.echoReserve -= 1f;
                 if (mf.echoReserve < 0 || toggleRequested)
                 {
@@ -429,7 +460,7 @@ namespace WaspPile.Remnant
             mf.fade = Custom.LerpAndTick(mf.fade, mf.echoActive ? 1f : 0f, 0.08f, 0.04f);
             mf.lastBCol = mf.bCol;
             mf.lastECol = mf.eCol;
-            mf.bCol = Color.Lerp(MartyrChar.deplBodyCol, MartyrChar.baseBodyCol, mf.echoReserve / mf.maxEchoReserve);
+            mf.bCol = Color.Lerp(MartyrChar.deplBodyCol, MartyrChar.baseBodyCol, self.airInLungs);
             mf.eCol = Color.Lerp(MartyrChar.deplEyeCol, MartyrChar.baseEyeCol, mf.echoReserve / mf.maxEchoReserve);
             skipNotMine:
             orig(self, eu);
@@ -460,9 +491,7 @@ namespace WaspPile.Remnant
             RainWorldGame self, ProcessManager manager)
         {
             orig(self, manager);
-            playerFieldsByHash.Clear();
-            poweredWeapons.Clear();
-            centiFieldsByHash.Clear();
+            FieldCleanup();
         }
         #endregion
 
@@ -491,6 +520,13 @@ namespace WaspPile.Remnant
             foreach (var h in manualHooks) { h.Undo(); }
             manualHooks.Clear();
             System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(typeof(StaticWorld).TypeHandle);
+        }
+
+        internal static void FieldCleanup()
+        {
+            centiFields.Clear();
+            playerFieldsByHash.Clear();
+            poweredWeapons.Clear();
         }
 
         private static readonly Type mhk_t = typeof(MartyrHooks);

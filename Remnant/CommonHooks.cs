@@ -16,6 +16,8 @@ using static Mono.Cecil.Cil.OpCodes;
 
 using URand = UnityEngine.Random;
 
+#warning martyr pearl is completely untested
+
 namespace WaspPile.Remnant
 {
     public static class CommonHooks

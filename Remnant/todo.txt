@@ -18,8 +18,9 @@ Lizards:
 	+register breed template changes
 	+replace lizgraph cosmetics init
 	+enlarge tail pieces
+	-golden spit
 
 Centipedes:
-	-Coloring (what the fuck is an hsl)
-	-dangles
+	+Coloring (what the fuck is an hsl)
+	+dangles
 	anything else?
