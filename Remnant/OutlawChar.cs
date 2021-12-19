@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using SlugBase;
 
+using static UnityEngine.Debug;
+
 namespace WaspPile.Remnant
 {
     public class OutlawChar : SlugBaseCharacter
@@ -37,6 +39,27 @@ namespace WaspPile.Remnant
         {
             OutlawHooks.Enable();
             CommonHooks.Enable();
+        }
+        public override CustomSaveState CreateNewSave(PlayerProgression progression)
+        {
+            return new OutlawSaveState(progression, this);
+        }
+        public class OutlawSaveState : CustomSaveState
+        {
+            public OutlawSaveState(PlayerProgression progression, SlugBaseCharacter character) : base(progression, character)
+            {
+                
+            }
+            public override void LoadPermanent(Dictionary<string, string> data)
+            {
+                base.LoadPermanent(data);
+                LogWarning("<><><><>" + data.ContainsKey("bruh1"));
+            }
+            public override void SavePermanent(Dictionary<string, string> data, bool asDeath, bool asQuit)
+            {
+                base.SavePermanent(data, asDeath, asQuit);
+                if (!asDeath) data.Add("bruh1", "bruh2");
+            }
         }
     }
 }

@@ -6,7 +6,7 @@
 ?waterbounce(crude but origo seems same)
 +ac/deac sounds
 +soft fade? replaced with flicker
-+em: infinite rolls
++em: infinite rolls and slides
 +import art 
 ?testing
 +cycle limit?
@@ -18,7 +18,7 @@ Lizards:
 	+register breed template changes
 	+replace lizgraph cosmetics init
 	+enlarge tail pieces
-	-golden spit
+	+golden spit
 
 Centipedes:
 	+Coloring (what the fuck is an hsl)

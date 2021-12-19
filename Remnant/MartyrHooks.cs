@@ -10,6 +10,7 @@ using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using System.Reflection;
 using WaspPile.Remnant.UAD;
+using SlugBase;
 
 using static RWCustom.Custom;
 using static UnityEngine.Mathf;
@@ -136,18 +137,37 @@ namespace WaspPile.Remnant
             On.PlayerGraphics.DrawSprites += Player_Draw;
             //misc
             On.Player.ctor += PromptCycleWarning;
-            On.PlayerSessionRecord.AddEat += goldCure;
+            manualHooks.Add(new ILHook(methodof<Player>("EatMeatUpdate"), IL_GoldCure));
+            On.SlugcatStats.SlugcatFoodMeter += slugFoodMeter;
+            On.Player.Die += regdeath;
+            //manualHooks.Add(new Hook(methodof<SlugcatStats>("SlugcatFoodMeter"), methodof(mhk_t, nameof(getFoodMeter))));
             //manualHooks.Add(new ILHook(methodof<Player>("UpdateBodyMode"), extendSlides));
             CRIT_Enable();
         }
 
-        private static void goldCure(On.PlayerSessionRecord.orig_AddEat orig, PlayerSessionRecord self, PhysicalObject eatenObject)
+        private static void regdeath(On.Player.orig_Die orig, Player self)
         {
-            orig(self, eatenObject);
-            if (eatenObject is Creature c && c.IsGolden())
+            orig(self);
+            if (self.TryGetSave<MartyrChar.MartyrSave>(out var css))
             {
-                MartyrChar.ApplyRemedy("SACRED FLESH");
+                css.RemedyCache = false;
             }
+        }
+
+        private static IntVector2 slugFoodMeter(On.SlugcatStats.orig_SlugcatFoodMeter orig, int slugcatNum) => new IntVector2(9, 7);
+        private static void IL_GoldCure(ILContext il)
+        {
+            var c = new ILCursor(il);
+            c.GotoNext(MoveType.After,
+                xx => xx.MatchCall<Player>("AddFood"));
+            c.Emit(Ldarg_0);
+            c.EmitDelegate<Action<Player>>(p => {
+                if (p.grasps[0]?.grabbed is Creature cr 
+                && cr.IsGolden() 
+                && p.TryGetSave<MartyrChar.MartyrSave>(out var css))
+                {
+                    css.RemedyCache = true;
+                }});
         }
 
         #region misc
@@ -483,7 +503,11 @@ namespace WaspPile.Remnant
                 bubbleSpriteIndex = -1,
                 bCol = MartyrChar.baseBodyCol,
                 lastBCol = MartyrChar.baseBodyCol
-            }) ;
+            });
+            if (self.TryGetSave<MartyrChar.MartyrSave>(out var css)){
+                self.SetMalnourished(!css.RemedyCache);
+            }
+            //self.SetMalnourished();
             //if (self.room.game.IsStorySession) self.redsIllness = new RedsIllness(self, Abs(RedsIllness.RedsCycles(false) - self.abstractCreature.world.game.GetStorySession.saveState.cycleNumber));
         }
         
@@ -492,6 +516,10 @@ namespace WaspPile.Remnant
         {
             orig(self, manager);
             FieldCleanup();
+            if (self.TryGetSave<MartyrChar.MartyrSave>(out var css))
+            {
+                
+            }
         }
         #endregion
 
@@ -502,6 +530,7 @@ namespace WaspPile.Remnant
             On.RainWorldGame.ctor -= GameStarts;
             On.Player.ctor -= RegisterFieldset;
             On.Player.Update -= RunAbilityCycle;
+            On.Player.Die -= regdeath;
 
             On.Weapon.Update -= flightVfx;
             //On.Player.ThrownSpear -= EchomodeDamageBonus;
@@ -516,6 +545,7 @@ namespace WaspPile.Remnant
             On.PlayerGraphics.ApplyPalette -= Player_APal;
 
             On.Player.ctor -= PromptCycleWarning;
+            On.SlugcatStats.SlugcatFoodMeter -= slugFoodMeter;
 
             foreach (var h in manualHooks) { h.Undo(); }
             manualHooks.Clear();

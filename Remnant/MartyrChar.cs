@@ -36,18 +36,18 @@ namespace WaspPile.Remnant
         public override Color? SlugcatColor() => baseBodyCol;
         public override Color? SlugcatEyeColor() => baseEyeCol;
         public override bool HasGuideOverseer => false;
+        public override bool HasDreams => false;
 
         public override void GetFoodMeter(out int maxFood, out int foodToSleep)
         {
-            maxFood = 9; 
-            var data = GetSaveSummary(CRW);
-            foodToSleep = data?.CustomData?.ContainsKey(ALLEVKEY) ?? false ? 7 : 9;
+            maxFood = 9;
+            foodToSleep = 9;
         }
-        protected override void GetStats(SlugcatStats stats)
-        {
-            base.GetStats(stats);
-        }
-        public override bool CanEatMeat(Player player, Creature creature) => true;
+        //protected override void GetStats(SlugcatStats stats)
+        //{
+        //    base.GetStats(stats);
+        //}
+        public override bool CanEatMeat(Player player, Creature creature) => !(creature is IPlayerEdible);
 
         //TODO: start room, karma cap, starvation
         //public override string StartRoom => STARTROOM;
@@ -63,9 +63,6 @@ namespace WaspPile.Remnant
         }
         public override void StartNewGame(Room room)
         {
-            var meta = CurrentMiscSaveData(CHARNAME);
-            meta.TryRemoveKey(PERMADEATHKEY);
-            meta.TryRemoveKey(ALLEVKEY);
             base.StartNewGame(room);
         }
 
@@ -106,13 +103,17 @@ namespace WaspPile.Remnant
             }
             catch { return false; }
         }
-        public static bool RemedySaved => (CurrentSaveSummary(CHARNAME)?.CustomData as MartyrSave)?.RemedyCache ?? false;
-        public static void ApplyRemedy(string source = "UNSPECIFIED")
-        { CurrentSaveSummary(CHARNAME)?.CustomData.SetKey(ALLEVKEY, source); 
-            Console.WriteLine($"THE SLOG DIMINISHES; SOURCE: {source}"); }
-        public static void RemoveRemedy()
-        { CurrentSaveSummary(CHARNAME).CustomData.TryRemoveKey(ALLEVKEY);
-            Console.WriteLine("NO CURE IS FOREVER"); }
+        //public bool RemedySaved => GetSaveSummary(CRW).CustomPersistentData.ContainsKey(ALLEVKEY);
+        //public void ApplyRemedy(string source = "UNSPECIFIED")
+        //{
+        //    GetSaveSummary(CRW).CustomPersistentData.SetKey(ALLEVKEY, source);
+        //    Console.WriteLine($"THE SLOG DIMINISHES; SOURCE: {source}");
+        //}
+        //public void RemoveRemedy()
+        //{
+        //    GetSaveSummary(CRW).CustomPersistentData.TryRemoveKey(ALLEVKEY);
+        //    Console.WriteLine("NO CURE IS FOREVER");
+        //}
 
         public override CustomSaveState CreateNewSave(PlayerProgression progression)
         {
@@ -146,19 +147,27 @@ namespace WaspPile.Remnant
                     var meta = CurrentMiscSaveData(CHARNAME);
                     var deathmark = "ACTOR DESYNC";
                     meta.SetKey(PERMADEATHKEY, deathmark);
-                    UnityEngine.Object.FindObjectOfType<RainWorld>().processManager.RequestMainProcessSwitch(ProcessManager.ProcessID.MainMenu);
+                    CRW.processManager.RequestMainProcessSwitch(ProcessManager.ProcessID.MainMenu);
                     Debug.Log($"REMNANT DISRUPTED: {deathmark}");
                 }
-                if (asDeath) { data.TryRemoveKey(ALLEVKEY); }
+                if (RemedyCache && !asDeath) { data.SetKey(ALLEVKEY, "ON"); Debug.LogWarning("REMEDY RETAINED"); }
+                else { data.SetKey(ALLEVKEY, "OFF"); Debug.LogWarning("SAVED AS DEATH, REMEDY REMOVED"); }
+                //else if (RemedyCache) data.SetKey(ALLEVKEY, "UNSPECIFIED");
                 base.SavePermanent(data, asDeath, asQuit);
             }
             public override void LoadPermanent(Dictionary<string, string> data)
             {
                 MartyrHooks.FieldCleanup();
-                RemedyCache = data.TryGetValue(ALLEVKEY, out var r);
+                RemedyCache = data[ALLEVKEY] == "ON";
+                Debug.LogWarning("LOADPERM RUN");
                 base.LoadPermanent(data);
             }
-            internal bool RemedyCache;
+            private bool rc;
+
+            internal bool RemedyCache {
+                get { Debug.LogWarning("REMEDY CACHED: " + rc); return rc; } 
+                set { rc = value; Debug.LogWarning("REMEDY CACHE SET TO: " + value); } 
+            }
         }
     }
 }

@@ -23,6 +23,7 @@ namespace WaspPile.Remnant
             if (registered) goto skipReg;
 
             SlugBase.PlayerManager.RegisterCharacter(new MartyrChar());
+            //SlugBase.PlayerManager.RegisterCharacter(new OutlawChar());
             for (int i = 0; i < abilityBinds.Length; i++)
             {
                 if (abilityBinds[i] == null) abilityBinds[i] = Config.Bind("Martyr", $"Ability hotkey for P{i + 1}", UnityEngine.KeyCode.LeftAlt, $"Martyr's ability keybind for player {i + 1}");
