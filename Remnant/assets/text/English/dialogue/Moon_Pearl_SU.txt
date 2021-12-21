@@ -1,0 +1,3 @@
+Gatobabosa
+this is line 1 <LINE>this is line 2
+60 : 60 : short string with long wait

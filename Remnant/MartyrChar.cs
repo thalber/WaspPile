@@ -10,7 +10,7 @@ using System.Reflection;
 
 
 using static RWCustom.Custom;
-using static WaspPile.Remnant.RemnantUtils;
+using static WaspPile.Remnant.Satellite.RemnantUtils;
 
 namespace WaspPile.Remnant
 {
@@ -23,13 +23,13 @@ namespace WaspPile.Remnant
         public static readonly Color baseBodyCol = HSL2RGB(0.583f, 0.3583f, 0.225f);//HSL2RGB(0.5835f, 0.15f, 0.45f + 0.15f);
         public static readonly Color deplBodyCol = HSL2RGB(0.5835f, 0.15f, 0.6f);
         public static readonly Color baseEyeCol = Color.yellow;
-        public static readonly Color deplEyeCol = new Color(0.7f, 0f, 0f);
+        public static readonly Color deplEyeCol = new(0.7f, 0f, 0f);
 
         public MartyrChar() : base(CHARNAME, FormatVersion.V1, 2) {
-            instance = this;
+            //instance = this;
 
         }
-        public static MartyrChar instance;
+        //public static MartyrChar instance;
 
         public override string Description => "REMNANT OF A MIND IS MATERIALIZED\nWEAKNESS IS BRIDGE TO STRENGTH\nINSERTION IS VIOLATION";
         //proper colors
@@ -71,7 +71,7 @@ namespace WaspPile.Remnant
             if (sceneName == "SelectMenu" && MartyrIsDead(CRW.options.saveSlot)) sceneName = "SelectMenuDisrupt";
             return base.BuildScene(sceneName);
         }
-        public override Stream GetResource(params string[] path)
+        internal static Stream GetRes(params string[] path)
         {
             var patchedPath = new string[path.Length];
             for (int i = path.Length - 1; i > -1; i--) patchedPath[i] = path[i];
@@ -82,12 +82,13 @@ namespace WaspPile.Remnant
 
             var tryret = Assembly.GetExecutingAssembly().GetManifestResourceStream(oresname);
             if (tryret != null) Console.WriteLine($"BUILDING SCENE FROM ER: {oresname}");
-            return tryret ?? base.GetResource(path);
+            return tryret;
         }
+        public override Stream GetResource(params string[] path) => GetRes(path) ?? base.GetResource();
         public override SelectMenuAccessibility GetSelectMenuState(SlugcatSelectMenu menu)
         {
             var meta = CurrentMiscSaveData(CHARNAME);
-            if (meta.TryGetValue(PERMADEATHKEY, out var reason))
+            if (meta.TryGetValue(PERMADEATHKEY, out _))
             {
                 return SelectMenuAccessibility.MustRestart;
             }
@@ -98,7 +99,7 @@ namespace WaspPile.Remnant
         {
             try
             {
-                var meta = CurrentMiscSaveData(CHARNAME);
+                var meta = SaveManager.GetCharacterData(CHARNAME, saveslot);
                 return meta.ContainsKey(PERMADEATHKEY);
             }
             catch { return false; }

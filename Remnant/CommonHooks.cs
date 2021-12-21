@@ -11,7 +11,7 @@ using System.Reflection;
 
 using static RWCustom.Custom;
 using static UnityEngine.Mathf;
-using static WaspPile.Remnant.RemnantUtils;
+using static WaspPile.Remnant.Satellite.RemnantUtils;
 using static Mono.Cecil.Cil.OpCodes;
 
 using URand = UnityEngine.Random;
@@ -22,7 +22,7 @@ namespace WaspPile.Remnant
 {
     public static class CommonHooks
     {
-        internal static readonly List<IDetour> manualHooks = new List<IDetour>();
+        internal static readonly List<IDetour> manualHooks = new();
         internal static void Enable()
         {
             On.ScavengerAI.CollectScore_PhysicalObject_bool += ScavAI_PearlCost;
@@ -33,7 +33,6 @@ namespace WaspPile.Remnant
             On.DataPearl.AddToContainer += Pearl_ATC;
             On.RainWorldGame.Update += ApplyHitFrames;
         }
-
 
         internal static int freeze = 0;
         private static void ApplyHitFrames(On.RainWorldGame.orig_Update orig, RainWorldGame self)

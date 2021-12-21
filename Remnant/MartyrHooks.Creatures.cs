@@ -15,7 +15,7 @@ using WaspPile.Remnant.UAD;
 
 using static RWCustom.Custom;
 using static UnityEngine.Mathf;
-using static WaspPile.Remnant.RemnantUtils;
+using static WaspPile.Remnant.Satellite.RemnantUtils;
 using static Mono.Cecil.Cil.OpCodes;
 
 using URand = UnityEngine.Random;
@@ -47,14 +47,13 @@ namespace WaspPile.Remnant
             internal int danglerCount;
             internal Vector2 ConPos(int ind, float ts)
             {
-                //TODO: better attachment points
-                var res = default(Vector2);
                 var c0 = owner.owner.bodyChunks[ind + 1];
-                res = Vector2.Lerp(c0.lastPos, c0.pos, ts);
+                //TODO: better attachment points
+                Vector2 res = Vector2.Lerp(c0.lastPos, c0.pos, ts);
                 return res;
             }
             internal Dangler.DanglerProps Props(int ind)
-                => new Dangler.DanglerProps()
+                => new()
                 { gravity = -0.02f,
                     airFriction = 0.9f,
                     waterGravity = 0.03f,
@@ -63,8 +62,7 @@ namespace WaspPile.Remnant
                     weightSymmetryTendency = 0.5f
                 };
         }
-        internal static readonly AttachedField<CentipedeGraphics, CentiGrafFields> centiFields 
-            = new AttachedField<CentipedeGraphics, CentiGrafFields>();
+        internal static readonly AttachedField<CentipedeGraphics, CentiGrafFields> centiFields = new();
 
         internal static void CRIT_Enable()
         {
@@ -333,7 +331,7 @@ namespace WaspPile.Remnant
         private static void Liz_IL_changeTemplate(ILContext il)
         {
 #warning changes needed in case of separation from reds
-            bool li1(Instruction xx) => xx.MatchLdcR4(1);
+            static bool li1(Instruction xx) => xx.MatchLdcR4(1);
             var c = new ILCursor(il);
             //find the end of big break
             c.GotoNext(MoveType.Before, xx => xx.MatchLdarg(0),

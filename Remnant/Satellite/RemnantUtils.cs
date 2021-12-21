@@ -8,12 +8,13 @@ using MonoMod.Cil;
 using Mono.Cecil.Cil;
 using System.IO;
 using System.Threading;
+using RWCustom;
 
 using static UnityEngine.Mathf;
 
 using URand = UnityEngine.Random;
 
-namespace WaspPile.Remnant
+namespace WaspPile.Remnant.Satellite
 {
     internal static class RemnantUtils
     {
@@ -63,12 +64,12 @@ namespace WaspPile.Remnant
         internal static ConstructorInfo ctorof<T>(params Type[] pms) 
             => typeof(T).GetConstructor(pms);
         
-        internal static void dump(this ILContext il, string rf)
+        internal static void dump(this ILContext il, string rf, string nameOverride = default)
         {
             var oname = il.Method.FullName.SkipWhile(c => Path.GetInvalidPathChars().Contains(c));
             var sb = new StringBuilder();
             foreach (var c in oname) sb.Append(c);
-            File.WriteAllText(Path.Combine(rf, sb.ToString()), il.ToString());
+            File.WriteAllText(Path.Combine(rf, nameOverride ?? sb.ToString()), il.ToString());
         }
         internal static Instruction CurrentInstruction(this ILCursor c) => c.Instrs[c.Index];
         #endregion
@@ -83,12 +84,18 @@ namespace WaspPile.Remnant
             if (dict.ContainsKey(key)) dict.Remove(key);
         }
         internal static bool IndexInRange(this object[] arr, int index) => index > -1 && index < arr.Length;
+        internal static T RandomOrDefault<T>(this T[] arr)
+        {
+            var res = default(T);
+            if (arr.Length > 0) return arr[URand.Range(0, arr.Length)];
+            return res;
+        }
         #endregion
         #region randomization extensions
         internal static float RandSign() => URand.value > 0.5f ? -1f : 1f;
         internal static Vector2 V2RandLerp(Vector2 a, Vector2 b) => Vector2.Lerp(a, b, URand.value);
         internal static float NextFloat01(this System.Random r) => (float)(r.NextDouble() / double.MaxValue);
-        internal static Color Clamped(this Color bcol) => new Color(Clamp01(bcol.r), Clamp01(bcol.g), Clamp01(bcol.b));
+        internal static Color Clamped(this Color bcol) => new(Clamp01(bcol.r), Clamp01(bcol.g), Clamp01(bcol.b));
         internal static Color RandDev(this Color bcol, Color dbound, bool clamped = true)
         {
             Color res = default;

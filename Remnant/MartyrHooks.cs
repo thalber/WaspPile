@@ -14,7 +14,7 @@ using SlugBase;
 
 using static RWCustom.Custom;
 using static UnityEngine.Mathf;
-using static WaspPile.Remnant.RemnantUtils;
+using static WaspPile.Remnant.Satellite.RemnantUtils;
 using static Mono.Cecil.Cil.OpCodes;
 
 using URand = UnityEngine.Random;
@@ -59,7 +59,7 @@ namespace WaspPile.Remnant
             public float baseBuoyancy;
             public float baseRunSpeed;
             public float baseWaterFric;
-            public Color palBlack = new Color(0.1f, 0.1f, 0.1f);
+            public Color palBlack = new(0.1f, 0.1f, 0.1f);
         }
         //same for martyr spears
         public class WeaponFields
@@ -95,9 +95,9 @@ namespace WaspPile.Remnant
             self.airInLungs = 1f;
         }
         
-        internal static readonly List<IDetour> manualHooks = new List<IDetour>();
-        internal static readonly Dictionary<int, MartyrFields> playerFieldsByHash = new Dictionary<int, MartyrFields>();
-        internal static readonly Dictionary<int, WeaponFields> poweredWeapons = new Dictionary<int, WeaponFields>();
+        internal static readonly List<IDetour> manualHooks = new();
+        internal static readonly Dictionary<int, MartyrFields> playerFieldsByHash = new();
+        internal static readonly Dictionary<int, WeaponFields> poweredWeapons = new();
 
         public static void Enable()
         {
@@ -143,6 +143,7 @@ namespace WaspPile.Remnant
             //manualHooks.Add(new Hook(methodof<SlugcatStats>("SlugcatFoodMeter"), methodof(mhk_t, nameof(getFoodMeter))));
             //manualHooks.Add(new ILHook(methodof<Player>("UpdateBodyMode"), extendSlides));
             CRIT_Enable();
+            CONVO_Enable();
         }
 
         private static void regdeath(On.Player.orig_Die orig, Player self)
@@ -154,7 +155,7 @@ namespace WaspPile.Remnant
             }
         }
 
-        private static IntVector2 slugFoodMeter(On.SlugcatStats.orig_SlugcatFoodMeter orig, int slugcatNum) => new IntVector2(9, 7);
+        private static IntVector2 slugFoodMeter(On.SlugcatStats.orig_SlugcatFoodMeter orig, int slugcatNum) => new(9, 7);
         private static void IL_GoldCure(ILContext il)
         {
             var c = new ILCursor(il);
@@ -296,7 +297,7 @@ namespace WaspPile.Remnant
             Weapon self)
         {
             orig(self);
-            if (poweredWeapons.TryGetValue(self.GetHashCode(), out var wf))
+            if (poweredWeapons.TryGetValue(self.GetHashCode(), out _))
             {
                 self.room.AddObject(new Explosion(self.room,
                         sourceObject: self,
@@ -325,7 +326,7 @@ namespace WaspPile.Remnant
         {
             //TODO: improve impact, smoke hit to separate uad?
             var res = orig(self, result, eu);
-            if (poweredWeapons.TryGetValue(self.GetHashCode(), out var wf) && result.chunk != null)
+            if (poweredWeapons.TryGetValue(self.GetHashCode(), out _) && result.chunk != null)
             {
                 self.room.AddObject(new Explosion(self.room,
                         sourceObject: self,
@@ -392,6 +393,8 @@ namespace WaspPile.Remnant
         private static void EchomodeExtendRoll(On.Player.orig_MovementUpdate orig, 
             Player self, bool eu)
         {
+#warning breaks whiplashes
+#warning having a bat on a stick makes it impossible to hit anything
             orig(self, eu);
             if (!playerFieldsByHash.TryGetValue(self.GetHashCode(), out var mf)) return;
             if (mf.echoActive && self.rollCounter > 10) self.rollCounter = 10;
@@ -416,7 +419,7 @@ namespace WaspPile.Remnant
             {
                 poweredWeapons.Add(self.GetHashCode(), new WeaponFields(mf.palBlack, self.room));
                 foreach (var c in self.bodyChunks) c.vel *= ECHOMODE_THROWFORCE_BONUS;
-                if (!(self is Spear spear)) return;
+                if (self is not Spear spear) return;
                 spear.spearDamageBonus *= ECHOMODE_DAMAGE_BONUS;
             }
         }
@@ -516,7 +519,7 @@ namespace WaspPile.Remnant
         {
             orig(self, manager);
             FieldCleanup();
-            if (self.TryGetSave<MartyrChar.MartyrSave>(out var css))
+            if (self.TryGetSave<MartyrChar.MartyrSave>(out _))
             {
                 
             }
@@ -526,7 +529,7 @@ namespace WaspPile.Remnant
         public static void Disable()
         {
             CRIT_Disable();
-
+            CONVO_Disable();
             On.RainWorldGame.ctor -= GameStarts;
             On.Player.ctor -= RegisterFieldset;
             On.Player.Update -= RunAbilityCycle;
