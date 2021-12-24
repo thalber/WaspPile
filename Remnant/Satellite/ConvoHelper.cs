@@ -71,6 +71,7 @@ namespace WaspPile.Remnant.Satellite
             }
             foreach (var l in covres)
             {
+                if (l.Length == 0) continue;
                 var spl = Regex.Split(l, " : ");
                 switch (spl.Length)
                 {

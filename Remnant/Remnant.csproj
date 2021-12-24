@@ -170,6 +170,11 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="assets\text\English\dialogue\Moon_Pearl_SU.txt" />
+    <EmbeddedResource Include="assets\text\English\dialogue\Pebbles_White.txt" />
+    <EmbeddedResource Include="assets\text\English\dialogue\Ghost_CC.txt" />
+    <EmbeddedResource Include="assets\text\English\dialogue\Ghost_LF.txt" />
+    <EmbeddedResource Include="assets\text\English\dialogue\Ghost_SI.txt" />
+    <EmbeddedResource Include="assets\MultiplayerPortrait21.png" />
     <Content Include="todo.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

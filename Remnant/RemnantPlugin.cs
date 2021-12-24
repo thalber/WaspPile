@@ -36,7 +36,7 @@ namespace WaspPile.Remnant
             try
             {
                 var resnames = Assembly.GetExecutingAssembly().GetManifestResourceNames();
-                File.WriteAllLines(Path.Combine(RWCustom.Custom.RootFolderDirectory(), "kek.txt"), resnames);
+                File.WriteAllLines(Path.Combine(RWCustom.Custom.RootFolderDirectory(), "resnames.txt"), resnames);
             }
             catch { }
 

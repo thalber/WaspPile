@@ -16,6 +16,7 @@ using static RWCustom.Custom;
 using static UnityEngine.Mathf;
 using static WaspPile.Remnant.Satellite.RemnantUtils;
 using static Mono.Cecil.Cil.OpCodes;
+using static UnityEngine.Debug;
 
 using URand = UnityEngine.Random;
 
@@ -108,7 +109,9 @@ namespace WaspPile.Remnant
 
             //em
             //On.Player.ThrownSpear += EchomodeDamageBonus;
-            On.Player.MovementUpdate += EchomodeExtendRoll;
+            //On.Player.MovementUpdate += EchomodeExtendRoll;
+            //IL.Player.MovementUpdate += EchomodeExtendMoves;
+            On.Player.UpdateAnimation += EchomodeExtendRoll;
             On.Creature.SpearStick += EchomodeDeflection;
             On.Weapon.Thrown += EchomodeVelBonus;
             On.Creature.Violence += EchomodePreventDamage;
@@ -146,6 +149,10 @@ namespace WaspPile.Remnant
             CONVO_Enable();
         }
 
+
+
+        #region misc
+
         private static void regdeath(On.Player.orig_Die orig, Player self)
         {
             orig(self);
@@ -170,9 +177,6 @@ namespace WaspPile.Remnant
                     css.RemedyCache = true;
                 }});
         }
-
-        #region misc
-
         private static void PromptCycleWarning(On.Player.orig_ctor orig, Player self, AbstractCreature abstractCreature, World world)
         {
             orig(self, abstractCreature, world);
@@ -270,28 +274,6 @@ namespace WaspPile.Remnant
         }
         #endregion
         #region ability
-        private static void extendSlides(ILContext il)
-        {
-            var c = new ILCursor(il);
-            c.GotoNext(MoveType.After, 
-                xx => xx.MatchLdarg(0),
-                xx => xx.MatchLdfld<Player>("slideCounter"),
-                xx => xx.MatchLdcI4(0),
-                xx => xx.MatchBle(out var jmp));
-                //xx => xx.MatchNeg(),
-                //xx => xx.MatchBeq(out var exit),
-                //xx => xx.MatchLdarg(0),
-                //xx => xx.MatchLdcI4(0),
-                //xx => xx.MatchStfld<Player>("slideCounter"),
-                //xx => xx.Match(Ldarg_0));
-            c.Emit(Ldarg_0);
-            c.EmitDelegate<Action<Player>>(xx => 
-            { if (playerFieldsByHash.TryGetValue(xx.GetHashCode(), out var mf) && xx.animation == Player.AnimationIndex.BellySlide) 
-                    xx.slideCounter = Min(xx.slideCounter, 9); 
-                Console.WriteLine(xx.slideCounter);
-            });
-            Debug.LogWarning("PLAYERSLIDES");
-        }
 
         private static void wallbang(Action<Weapon> orig,
             Weapon self)
@@ -390,14 +372,37 @@ namespace WaspPile.Remnant
                 }
             }
         }
-        private static void EchomodeExtendRoll(On.Player.orig_MovementUpdate orig, 
-            Player self, bool eu)
+        private static void EchomodeExtendMoves_IL(ILContext il)
+        {
+            var c = new ILCursor(il);
+            c.GotoNext(MoveType.After, xx => xx.MatchStfld<Player>("rollCounter"));
+            c.Emit(Ldarg_0);
+            c.EmitDelegate<Action<Player>>(pl => { 
+                if (playerFieldsByHash.TryGetValue(pl.GetHashCode(), out var mf) && mf.echoActive)
+                {
+                    int boundary = default;
+                    switch (pl.animation)
+                    {
+                        case Player.AnimationIndex.BellySlide: boundary = 28; break;
+                        case Player.AnimationIndex.Roll: boundary = 40; break;
+                    };
+                    pl.rollCounter = Min(pl.rollCounter, boundary);
+                }
+            });
+        }
+        private static void EchomodeExtendRoll(On.Player.orig_UpdateAnimation orig, 
+            Player self)
         {
 #warning breaks whiplashes
-#warning having a bat on a stick makes it impossible to hit anything
-            orig(self, eu);
+            orig(self);
             if (!playerFieldsByHash.TryGetValue(self.GetHashCode(), out var mf)) return;
-            if (mf.echoActive && self.rollCounter > 10) self.rollCounter = 10;
+            int bound = default;
+            switch (self.animation)
+            {
+                case Player.AnimationIndex.BellySlide: bound = 10; break;
+                case Player.AnimationIndex.Roll: bound = 40; break;
+            }
+            self.rollCounter = Min(self.rollCounter, bound);
         }
 
         private static void EchomodePreventDamage(On.Creature.orig_Violence orig, 
@@ -540,7 +545,8 @@ namespace WaspPile.Remnant
             On.Creature.SpearStick -= EchomodeDeflection;
             On.Weapon.Thrown -= EchomodeVelBonus;
             On.Creature.Violence -= EchomodePreventDamage;
-            On.Player.MovementUpdate -= EchomodeExtendRoll;
+            //On.Player.MovementUpdate -= EchomodeExtendRoll;
+            //IL.Player.MovementUpdate -= EchomodeExtendMoves;
 
             On.PlayerGraphics.InitiateSprites -= Player_MakeSprites;
             On.PlayerGraphics.AddToContainer -= Player_ATC;

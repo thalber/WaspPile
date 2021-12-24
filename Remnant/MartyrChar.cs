@@ -20,9 +20,9 @@ namespace WaspPile.Remnant
         public const string PERMADEATHKEY = "DISRUPT";
         public const string ALLEVKEY = "REMEDY";
         public const string STARTROOM = "HI_C04";
-        public static readonly Color baseBodyCol = HSL2RGB(0.583f, 0.3583f, 0.225f);//HSL2RGB(0.5835f, 0.15f, 0.45f + 0.15f);
+        public static readonly Color baseBodyCol = HSL2RGB(0.583f, 0.3583f, 0.225f);
         public static readonly Color deplBodyCol = HSL2RGB(0.5835f, 0.15f, 0.6f);
-        public static readonly Color baseEyeCol = Color.yellow;
+        public static readonly Color baseEyeCol = HSL2RGB(0.125f, 0.979f, 0.795f);
         public static readonly Color deplEyeCol = new(0.7f, 0f, 0f);
 
         public MartyrChar() : base(CHARNAME, FormatVersion.V1, 2) {
@@ -159,7 +159,9 @@ namespace WaspPile.Remnant
             public override void LoadPermanent(Dictionary<string, string> data)
             {
                 MartyrHooks.FieldCleanup();
-                RemedyCache = data[ALLEVKEY] == "ON";
+                //RemedyCache = data[ALLEVKEY] == "ON";
+                data.TryGetValue(ALLEVKEY, out var res);
+                RemedyCache = res == "ON";
                 Debug.LogWarning("LOADPERM RUN");
                 base.LoadPermanent(data);
             }

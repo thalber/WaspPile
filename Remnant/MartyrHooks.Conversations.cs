@@ -30,15 +30,9 @@ namespace WaspPile.Remnant
         {
             var clang = CRW.inGameTranslator.currentLanguage;
             var ovres = ConvoOverrideExists(convo.id, clang);
-            Log("MARTYR COMMS: "
-                + (!ovres ? "No convo override found" : "Overriding convo")
-                + convo.id.ToString());
-            if (ovres)
-            {
-                if (convo.id.ToString().Contains("Moon_Pearl_") && convo is MoonConvo mc) mc.PearlIntro();
-                return convo.TryEnqueuePatchedEvents(clang);
-            }
-            return false;
+            Log("MARTYR COMMS: trying to override " + convo.id.ToString());
+            if (convo.id.ToString().Contains("Moon_Pearl_") && convo is MoonConvo mc) mc.PearlIntro();
+            return convo.TryEnqueuePatchedEvents(clang);
         }
 
         public static void CONVO_Enable()
