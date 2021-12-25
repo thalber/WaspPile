@@ -52,7 +52,7 @@ namespace WaspPile.Remnant
         private static bool IsEchoPearl(DataPearl instance)
         {
             //TODO: add better pearltype detection
-            return instance.AbstractPearl.dataPearlType.ToString().Contains("MARTYR");
+            return instance.AbstractPearl.dataPearlType.ToString().Contains("MARTYR_MESSAGE");
         }
         private static bool PEARL_SIN_LOCK;
         private static void Pearl_MakeSprites(On.DataPearl.orig_InitiateSprites orig, DataPearl self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
@@ -66,7 +66,8 @@ namespace WaspPile.Remnant
                 Array.Resize(ref sLeaser.sprites, sLeaser.sprites.Length + 1);
                 var halo = new FSprite("Futile_White")
                 {
-                    shader = self.room.game.rainWorld.Shaders["GhostDistortion"]
+                    shader = self.room.game.rainWorld.Shaders["GhostDistortion"],
+                    scale = 3f
                 };
                 sLeaser.sprites[sLeaser.sprites.Length - 1] = halo;
                 self.AddToContainer(sLeaser, rCam, null);

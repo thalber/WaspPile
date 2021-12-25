@@ -19,7 +19,7 @@ namespace WaspPile.Remnant
         public const string CHARNAME = "Martyr";
         public const string PERMADEATHKEY = "DISRUPT";
         public const string ALLEVKEY = "REMEDY";
-        public const string STARTROOM = "HI_C04";
+        public const string STARTROOM = "SB_MARTYR1";
         public static readonly Color baseBodyCol = HSL2RGB(0.583f, 0.3583f, 0.225f);
         public static readonly Color deplBodyCol = HSL2RGB(0.5835f, 0.15f, 0.6f);
         public static readonly Color baseEyeCol = HSL2RGB(0.125f, 0.979f, 0.795f);
@@ -43,14 +43,30 @@ namespace WaspPile.Remnant
             maxFood = 9;
             foodToSleep = 9;
         }
-        //protected override void GetStats(SlugcatStats stats)
-        //{
-        //    base.GetStats(stats);
-        //}
+        protected override void GetStats(SlugcatStats stats)
+        {
+            base.GetStats(stats);
+            stats.runspeedFac = 1.2f;
+            stats.bodyWeightFac = 1.12f;
+            stats.generalVisibilityBonus = 0.1f;
+            stats.visualStealthInSneakMode = 0.3f;
+            stats.loudnessFac = 1.35f;
+            stats.throwingSkill = 2;
+            stats.poleClimbSpeedFac = 1.25f;
+            stats.corridorClimbSpeedFac = 1.2f;
+            if (stats.malnourished)
+            {
+                stats.bodyWeightFac = 0.9f;
+                stats.runspeedFac = 0.875f;
+                stats.throwingSkill = 0;
+                stats.poleClimbSpeedFac = 0.8f;
+                stats.corridorClimbSpeedFac = 0.86f;
+            }
+        }
         public override bool CanEatMeat(Player player, Creature creature) => !(creature is IPlayerEdible);
 
         //TODO: start room, karma cap, starvation
-        //public override string StartRoom => STARTROOM;
+        public override string StartRoom => STARTROOM;
         protected override void Disable()
         {
             MartyrHooks.Disable();
@@ -66,7 +82,7 @@ namespace WaspPile.Remnant
             base.StartNewGame(room);
             if (room.game.IsStorySession) room.game.GetStorySession.saveState.miscWorldSaveData.SLOracleState.neuronsLeft = 0;
         }
-
+        public override bool HasSlideshow(string slideshowName) => false;
         public override CustomScene BuildScene(string sceneName)
         {
             if (sceneName == "SelectMenu" && MartyrIsDead(CRW.options.saveSlot)) sceneName = "SelectMenuDisrupt";
@@ -80,7 +96,6 @@ namespace WaspPile.Remnant
             if (path[path.Length - 2] == "SelectMenuDisrupt" && path.Last() != "scene.json")
                 patchedPath[path.Length - 2] = "SelectMenu";
             string oresname = "WaspPile.Remnant.assets." + string.Join(".", patchedPath);
-
             var tryret = Assembly.GetExecutingAssembly().GetManifestResourceStream(oresname);
             if (tryret != null) Console.WriteLine($"BUILDING SCENE FROM ER: {oresname}");
             return tryret;

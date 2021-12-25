@@ -25,9 +25,9 @@ namespace WaspPile.Remnant
     public static partial class MartyrHooks 
     {
         //TODO: stats are pretty arbitrary, reach agreement
-        internal const float ECHOMODE_DAMAGE_BONUS = 1.7f;
+        internal const float ECHOMODE_DAMAGE_BONUS = 30f;
         internal const float ECHOMODE_THROWFORCE_BONUS = 1.4f;
-        internal const float ECHOMODE_RUNSPEED_BONUS = 1.4f;
+        internal const float ECHOMODE_RUNSPEED_BONUS = 1.7f;
         internal const float ECHOMODE_DEPLETE_COOLDOWN = 270f;
         internal const float ECHOMODE_BUOYANCY_BONUS = 8f;
         internal const float ECHOMODE_WATERFRIC_BONUS = 1.1f;
@@ -86,9 +86,9 @@ namespace WaspPile.Remnant
             Console.WriteLine($"cd: {mf.cooldown}");
             mf.echoActive = false;
             self.room.PlaySound(SoundID.Spear_Bounce_Off_Wall, self.firstChunk.pos, 1.0f, 0.5f);
-            self.lungsExhausted |= fullDeplete;
-            self.AerobicIncrease(fullDeplete ? 0.9f : Lerp((1 - mf.echoReserve / mf.maxEchoReserve), 0f, 0.2f)) ;
-            //self.airInLungs = fullDeplete ? 0f : Lerp(mf.echoReserve / mf.maxEchoReserve, 1f, 0.1f);
+            self.lungsExhausted = true;
+            //self.AerobicIncrease(fullDeplete ? 0.9f : Lerp((1 - mf.echoReserve / mf.maxEchoReserve), 0f, 0.2f)) ;
+            self.airInLungs = fullDeplete ? 0f : Lerp(mf.echoReserve / mf.maxEchoReserve, 1f, 0.1f);
             
         }
         public static void powerUp(this Player self, ref MartyrFields mf)
