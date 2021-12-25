@@ -64,6 +64,7 @@ namespace WaspPile.Remnant
         public override void StartNewGame(Room room)
         {
             base.StartNewGame(room);
+            if (room.game.IsStorySession) room.game.GetStorySession.saveState.miscWorldSaveData.SLOracleState.neuronsLeft = 0;
         }
 
         public override CustomScene BuildScene(string sceneName)

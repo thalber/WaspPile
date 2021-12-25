@@ -75,6 +75,8 @@ namespace WaspPile.Remnant
             public bool disableNextFrame = false;
         }
 
+        internal const int ECHOMODE_RCB_SLIDE = 8;
+        internal const int ECHOMODE_RCB_ROLL = 14;
         public static void powerDown(this Player self, ref MartyrFields mf, bool fullDeplete = false)
         {
             Console.WriteLine("Martyr ability down");
@@ -85,7 +87,8 @@ namespace WaspPile.Remnant
             mf.echoActive = false;
             self.room.PlaySound(SoundID.Spear_Bounce_Off_Wall, self.firstChunk.pos, 1.0f, 0.5f);
             self.lungsExhausted |= fullDeplete;
-            self.airInLungs = fullDeplete ? 0f : Lerp(mf.echoReserve / mf.maxEchoReserve, 1f, 0.1f);
+            self.AerobicIncrease(fullDeplete ? 0.9f : Lerp((1 - mf.echoReserve / mf.maxEchoReserve), 0f, 0.2f)) ;
+            //self.airInLungs = fullDeplete ? 0f : Lerp(mf.echoReserve / mf.maxEchoReserve, 1f, 0.1f);
             
         }
         public static void powerUp(this Player self, ref MartyrFields mf)
@@ -110,8 +113,9 @@ namespace WaspPile.Remnant
             //em
             //On.Player.ThrownSpear += EchomodeDamageBonus;
             //On.Player.MovementUpdate += EchomodeExtendRoll;
-            //IL.Player.MovementUpdate += EchomodeExtendMoves;
-            On.Player.UpdateAnimation += EchomodeExtendRoll;
+            IL.Player.MovementUpdate += IL_EchomodeClampRollc;
+            //IL.Player.UpdateAnimation += IL_EchomodeEnsureWhiplash;
+            //On.Player.UpdateAnimation += EchomodeExtendRoll;
             On.Creature.SpearStick += EchomodeDeflection;
             On.Weapon.Thrown += EchomodeVelBonus;
             On.Creature.Violence += EchomodePreventDamage;
@@ -148,6 +152,7 @@ namespace WaspPile.Remnant
             CRIT_Enable();
             CONVO_Enable();
         }
+
 
 
 
@@ -372,7 +377,21 @@ namespace WaspPile.Remnant
                 }
             }
         }
-        private static void EchomodeExtendMoves_IL(ILContext il)
+        //private static void IL_EchomodeEnsureWhiplash(ILContext il)
+        //{
+        //    var c = new ILCursor(il);
+        //    c.GotoNext(MoveType.After, xx => xx.MatchLdarg(0), xx => xx.MatchLdcI4(1), xx => xx.MatchStfld<Player>("whiplashJump"));
+        //    c.Emit(Ldarg_0);
+        //    c.EmitDelegate<Action<Player>>(pl =>
+        //    {
+        //        if (playerFieldsByHash.TryGetValue(playerFieldsByHash.GetHashCode(), out var mf)
+        //        && mf.echoActive
+        //        && pl.rollCounter > 5
+        //        && pl.rollDirection == -pl.input[0].x)
+        //            pl.whiplashJump = true;
+        //    });
+        //}
+        private static void IL_EchomodeClampRollc(ILContext il)
         {
             var c = new ILCursor(il);
             c.GotoNext(MoveType.After, xx => xx.MatchStfld<Player>("rollCounter"));
@@ -383,8 +402,8 @@ namespace WaspPile.Remnant
                     int boundary = default;
                     switch (pl.animation)
                     {
-                        case Player.AnimationIndex.BellySlide: boundary = 28; break;
-                        case Player.AnimationIndex.Roll: boundary = 40; break;
+                        case Player.AnimationIndex.BellySlide: boundary = ECHOMODE_RCB_SLIDE; break;
+                        case Player.AnimationIndex.Roll: boundary = ECHOMODE_RCB_ROLL; break;
                     };
                     pl.rollCounter = Min(pl.rollCounter, boundary);
                 }
@@ -400,7 +419,7 @@ namespace WaspPile.Remnant
             switch (self.animation)
             {
                 case Player.AnimationIndex.BellySlide: bound = 10; break;
-                case Player.AnimationIndex.Roll: bound = 40; break;
+                case Player.AnimationIndex.Roll: bound = 20; break;
             }
             self.rollCounter = Min(self.rollCounter, bound);
         }
@@ -546,7 +565,7 @@ namespace WaspPile.Remnant
             On.Weapon.Thrown -= EchomodeVelBonus;
             On.Creature.Violence -= EchomodePreventDamage;
             //On.Player.MovementUpdate -= EchomodeExtendRoll;
-            //IL.Player.MovementUpdate -= EchomodeExtendMoves;
+            IL.Player.MovementUpdate -= IL_EchomodeClampRollc;
 
             On.PlayerGraphics.InitiateSprites -= Player_MakeSprites;
             On.PlayerGraphics.AddToContainer -= Player_ATC;
