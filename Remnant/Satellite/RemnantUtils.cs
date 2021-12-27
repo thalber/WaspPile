@@ -117,6 +117,7 @@ namespace WaspPile.Remnant.Satellite
         internal static CreatureTemplate GetCreatureTemplate(CreatureTemplate.Type t) => StaticWorld.creatureTemplates[(int)t];
         internal static Dictionary<string, string> CurrentMiscSaveData(string name) => SlugBase.SaveManager.GetCharacterData(name, CRW.options.saveSlot);
         internal static SlugBase.SaveManager.SlugBaseSaveSummary CurrentSaveSummary(string name) => SlugBase.SaveManager.GetSaveSummary(CRW, name, CRW.options.saveSlot);
+        internal static Vector2 MiddleOfRoom(this Room rm) => new((float)rm.PixelWidth * 0.5f, (float)rm.PixelHeight * 0.5f);
         #endregion
     }
 }

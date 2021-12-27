@@ -40,7 +40,18 @@ namespace WaspPile.Remnant
             IL.SLOracleBehaviorHasMark.MoonConversation.AddEvents += IL_SLOB_OverrideConvos;
             IL.GhostConversation.AddEvents += IL_Echo_OverrideConvos;
             IL.SSOracleBehavior.PebblesConversation.AddEvents += IL_SSOB_OverrideConvos;
+            IL.SSOracleBehavior.NewAction += insertPebblesSequence;
         }
+
+        private static void insertPebblesSequence(ILContext il)
+        {
+            ILCursor c = new(il);
+            c.GotoNext(MoveType.Before, xx=> xx.MatchNewobj<SSOracleBehavior.SSOracleMeetWhite>());
+            c.Remove();
+            c.Emit(Newobj, ctorof<Satellite.MeetMartyrSubroutine>(typeof(SSOracleBehavior)));
+            il.dump(RootFolderDirectory(), "ssob_newentry");
+        }
+
         //TODO: candidate for moving into commonHooks
         private static void IL_SSOB_OverrideConvos(ILContext il)
         {
@@ -90,6 +101,7 @@ namespace WaspPile.Remnant
             IL.SLOracleBehaviorHasMark.MoonConversation.AddEvents -= IL_SLOB_OverrideConvos;
             IL.GhostConversation.AddEvents -= IL_Echo_OverrideConvos;
             IL.SSOracleBehavior.PebblesConversation.AddEvents -= IL_SSOB_OverrideConvos;
+            IL.SSOracleBehavior.NewAction -= insertPebblesSequence;
         }
     }
 }

@@ -118,6 +118,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RemnantConfig.cs" />
     <Compile Include="Satellite\ConvoHelper.cs" />
+    <Compile Include="Satellite\EnumExt_Remnant.cs" />
+    <Compile Include="Satellite\MeetMartyrSubroutine.cs" />
     <Compile Include="Satellite\RemnantUtils.cs" />
     <Compile Include="UAD\CyclePrompt.cs" />
   </ItemGroup>

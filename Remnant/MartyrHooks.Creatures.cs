@@ -24,7 +24,7 @@ namespace WaspPile.Remnant
 {
     public static partial class MartyrHooks
     {
-        internal const float CRIT_GOLDEN_RESIST_MODIFIER = 2f;
+        internal const float CRIT_GOLDEN_RESIST_MODIFIER = 25f;
         internal static CreatureTemplate.Type CRIT_CT_GOLDLIZ => CreatureTemplate.Type.RedLizard;
         internal static CreatureTemplate.Type CRIT_CT_GOLDCENTI => CreatureTemplate.Type.RedCentipede;
         internal static bool IsGolden(this Creature c) => c.Template.type == CRIT_CT_GOLDCENTI || c.Template.type == CRIT_CT_GOLDLIZ;
@@ -229,7 +229,6 @@ namespace WaspPile.Remnant
             if (self.Red) self.size *= 0.1f;
             orig(self);
             self.size = oldsize;
-
         }
         private static void Centi_resize(ILContext il)
         {
@@ -243,7 +242,7 @@ namespace WaspPile.Remnant
                 //c.Emit(ldfl)
                 c.EmitDelegate<Action<Centipede, BodyChunk[]>>((cb, body)
                     => { if (!cb.Red) return;
-                        Array.Resize(ref body, body.Length + 5);
+                        Array.Resize(ref body, body.Length + 7);
                         cb.bodyChunks = body;
                         Debug.Log($"CENTI RESIZE: new bodychunk count is {cb.bodyChunks.Length}");
                     });

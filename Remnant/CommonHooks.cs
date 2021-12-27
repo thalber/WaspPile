@@ -49,11 +49,8 @@ namespace WaspPile.Remnant
             return orig(self, obj, weaponFiltered);
         }
 
-        private static bool IsEchoPearl(DataPearl instance)
-        {
-            //TODO: add better pearltype detection
-            return instance.AbstractPearl.dataPearlType.ToString().Contains("MARTYR_MESSAGE");
-        }
+        internal static bool IsEchoPearl(this DataPearl instance) => instance.AbstractPearl.IsEchoPearl();
+        internal static bool IsEchoPearl(this DataPearl.AbstractDataPearl instance) => instance.dataPearlType.ToString().Contains("MARTYR_MESSAGE");
         private static bool PEARL_SIN_LOCK;
         private static void Pearl_MakeSprites(On.DataPearl.orig_InitiateSprites orig, DataPearl self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
         {

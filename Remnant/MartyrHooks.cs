@@ -109,6 +109,7 @@ namespace WaspPile.Remnant
             On.RainWorldGame.ctor += GameStarts;
             On.Player.ctor += RegisterFieldset;
             On.Player.Update += RunAbilityCycle;
+            On.Player.Grabability += triSpearWield;
 
             //em
             //On.Player.ThrownSpear += EchomodeDamageBonus;
@@ -151,6 +152,12 @@ namespace WaspPile.Remnant
             //manualHooks.Add(new ILHook(methodof<Player>("UpdateBodyMode"), extendSlides));
             CRIT_Enable();
             CONVO_Enable();
+        }
+
+        private static int triSpearWield(On.Player.orig_Grabability orig, Player self, PhysicalObject obj)
+        {
+            if (obj is Spear) return (int)Player.ObjectGrabability.OneHand;
+            return orig(self, obj);
         }
 
 
@@ -558,6 +565,8 @@ namespace WaspPile.Remnant
             On.Player.ctor -= RegisterFieldset;
             On.Player.Update -= RunAbilityCycle;
             On.Player.Die -= regdeath;
+            On.Player.Grabability -= triSpearWield;
+
 
             On.Weapon.Update -= flightVfx;
             //On.Player.ThrownSpear -= EchomodeDamageBonus;

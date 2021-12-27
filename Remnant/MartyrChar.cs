@@ -64,6 +64,7 @@ namespace WaspPile.Remnant
             }
         }
         public override bool CanEatMeat(Player player, Creature creature) => !(creature is IPlayerEdible);
+        public override bool QuarterFood => true;
 
         //TODO: start room, karma cap, starvation
         public override string StartRoom => STARTROOM;
@@ -80,7 +81,13 @@ namespace WaspPile.Remnant
         public override void StartNewGame(Room room)
         {
             base.StartNewGame(room);
-            if (room.game.IsStorySession) room.game.GetStorySession.saveState.miscWorldSaveData.SLOracleState.neuronsLeft = 0;
+            if (room.game.IsStorySession) {
+                var ss = room.game.GetStorySession.saveState;
+                ss.miscWorldSaveData.SLOracleState.neuronsLeft = 0;
+                //??...
+                ss.deathPersistentSaveData.theMark = true;
+            }
+            
         }
         public override bool HasSlideshow(string slideshowName) => false;
         public override CustomScene BuildScene(string sceneName)
@@ -131,7 +138,6 @@ namespace WaspPile.Remnant
         //    GetSaveSummary(CRW).CustomPersistentData.TryRemoveKey(ALLEVKEY);
         //    Console.WriteLine("NO CURE IS FOREVER");
         //}
-
         public override CustomSaveState CreateNewSave(PlayerProgression progression)
         {
             var res = new MartyrSave(progression, this);
