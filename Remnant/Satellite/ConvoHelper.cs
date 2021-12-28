@@ -16,6 +16,7 @@ using RocksConvo = SSOracleBehavior.PebblesConversation;
 
 namespace WaspPile.Remnant.Satellite
 {
+#warning karma specevent does not work with fp
     internal static class ConvoHelper
     {
         internal static bool TryEnqueuePatchedEvents(this Conversation c, InGameTranslator.LanguageID lang)

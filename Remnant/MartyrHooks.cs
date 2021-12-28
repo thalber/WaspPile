@@ -178,8 +178,9 @@ namespace WaspPile.Remnant
         private static void IL_GoldCure(ILContext il)
         {
             var c = new ILCursor(il);
+            il.dump(RootFolderDirectory(), "whatever.txt");
             c.GotoNext(MoveType.After,
-                xx => xx.MatchCall<Player>("AddFood"));
+                xx => xx.MatchCallOrCallvirt<Player>("AddFood"));
             c.Emit(Ldarg_0);
             c.EmitDelegate<Action<Player>>(p => {
                 if (p.grasps[0]?.grabbed is Creature cr 

@@ -83,13 +83,13 @@ namespace WaspPile.Remnant
             c.GotoNext(MoveType.Before,
                 xx => xx.MatchBr(out var whatever),
                 xx => xx.Match(Ldarg_0),
-                xx => xx.MatchCall<MoonConvo>("get_State"));
+                xx => xx.MatchCallOrCallvirt<MoonConvo>("get_State"));
             var exit = c.CurrentInstruction();
             c.Index = 0;
             c.GotoNext(MoveType.After,
                 xx => xx.MatchBox<int>(),
-                xx => xx.MatchCall<string>("Concat"),
-                xx => xx.MatchCall<Debug>("Log"));
+                xx => xx.MatchCallOrCallvirt<string>("Concat"),
+                xx => xx.MatchCallOrCallvirt<Debug>("Log"));
             c.Emit(Ldarg_0);
             c.EmitDelegate<Func<Conversation, bool>>(ProcessDialogue);
             c.Emit(Brtrue, exit);

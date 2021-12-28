@@ -233,7 +233,7 @@ namespace WaspPile.Remnant
         private static void Centi_resize(ILContext il)
         {
             var c = new ILCursor(il);
-            if (c.TryGotoNext(MoveType.After, xx => xx.MatchCall<PhysicalObject>("set_bodyChunks")))
+            if (c.TryGotoNext(MoveType.After, xx => xx.MatchCallOrCallvirt<PhysicalObject>("set_bodyChunks")))
             {
                 Debug.LogWarning("CENTI RESIZE: FOUND INSERTION POINT");
                 c.Emit(Ldarg_0);
@@ -400,7 +400,7 @@ namespace WaspPile.Remnant
             c.GotoNext(ins0 => ins0.MatchLdarg(0),
                     ins1 => ins1.MatchLdarg(0),
                     ins2 => ins2.MatchLdfld(nameof(LizardGraphics), nameof(LizardGraphics.lizard)),
-                    ins3 => ins3.MatchCallvirt<Creature>("get_mainBodyChunk"));
+                    ins3 => ins3.MatchCallOrCallvirt<Creature>("get_mainBodyChunk"));
             var exitl = c.DefineLabel();
             var ex2 = c.Instrs[c.Index];
             Console.WriteLine($"exit defined");
