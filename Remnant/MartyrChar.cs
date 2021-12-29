@@ -24,6 +24,7 @@ namespace WaspPile.Remnant
         public static readonly Color deplBodyCol = HSL2RGB(0.5835f, 0.15f, 0.6f);
         public static readonly Color baseEyeCol = HSL2RGB(0.125f, 0.979f, 0.795f);
         public static readonly Color deplEyeCol = new(0.7f, 0f, 0f);
+        public static readonly Color echoGold = HSL2RGB(0.13f, 1, 0.63f);
 
         public MartyrChar() : base(CHARNAME, FormatVersion.V1, 2) {
             //instance = this;
@@ -31,7 +32,9 @@ namespace WaspPile.Remnant
         }
         //public static MartyrChar instance;
 
-        public override string Description => "REMNANT OF A MIND IS MATERIALIZED\nWEAKNESS IS BRIDGE TO STRENGTH\nINSERTION IS VIOLATION";
+        public override string Description => RemnantPlugin.DoTrolling 
+            ? "REMNANT OF A MIND IS MATERIALIZED\nWEAKNESS IS BRIDGE TO STRENGTH\nINSERTION IS VIOLATION"
+            : "The remnant of a mind, materialized, weakened in the physical plane but retaining\nabilities of the Void. In a state outside the Cycle itself, your journey will only last as long as you do.";
         //proper colors
         public override Color? SlugcatColor() => baseBodyCol;
         public override Color? SlugcatEyeColor() => baseEyeCol;
@@ -67,7 +70,6 @@ namespace WaspPile.Remnant
         public override bool QuarterFood => true;
 
         //TODO: start room, karma cap, starvation
-        public override string StartRoom => STARTROOM;
         protected override void Disable()
         {
             MartyrHooks.Disable();
@@ -78,6 +80,9 @@ namespace WaspPile.Remnant
             MartyrHooks.Enable();
             CommonHooks.Enable();
         }
+
+        public override string DisplayName => RemnantPlugin.DoTrolling ? "Martyr" : "The Martyr"; 
+        public override string StartRoom => STARTROOM;
         public override void StartNewGame(Room room)
         {
             base.StartNewGame(room);

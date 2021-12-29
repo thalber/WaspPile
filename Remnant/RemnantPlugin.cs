@@ -41,10 +41,8 @@ namespace WaspPile.Remnant
             catch { }
 
         }
-        
-
+        internal static bool DoTrolling => File.Exists(Path.Combine(RWCustom.Custom.RootFolderDirectory(), "gatobabosa.txt"));
         bool registered = false;
     }
-
 
 }
