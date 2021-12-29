@@ -17,6 +17,7 @@ using static RWCustom.Custom;
 using static UnityEngine.Mathf;
 using static WaspPile.Remnant.Satellite.RemnantUtils;
 using static Mono.Cecil.Cil.OpCodes;
+using static UnityEngine.Debug;
 
 using URand = UnityEngine.Random;
 
@@ -107,37 +108,54 @@ namespace WaspPile.Remnant
             On.BigSpider.Spit += shotgunBlast;
             On.DartMaggot.Shoot += RegSpitMultiplication;
             On.BigSpider.ctor += makeSpitter;
-            On.BigSpiderGraphics.ctor += recolorSpitters;
-            On.BigSpiderGraphics.DrawSprites += Spider_Draw;
-            IL.BigSpiderAI.SpiderSpitModule.Update += slowReload;
-            IL.BigSpiderGraphics.ApplyPalette += Spider_removeDarkness;
+            //On.BigSpiderGraphics.ctor += recolorSpitters;
+            On.BigSpiderGraphics.DrawSprites += SpiderG_Draw;
+            IL.BigSpiderAI.SpiderSpitModule.Update += Spider_slowReload;
+            IL.BigSpiderGraphics.ApplyPalette += SpiderG_removeDarkness;
+            IL.BigSpiderGraphics.ctor += SpiderG_RecolorAndFluff;
         }
 
-        private static void Spider_removeDarkness(ILContext il)
+
+        #region spider
+        private static void SpiderG_RecolorAndFluff(ILContext il)
+        {
+            ILCursor c = new(il);
+            c.GotoNext(MoveType.After, xx => xx.MatchStfld<BigSpiderGraphics>("scales"));
+            c.Emit(Ldarg_0).EmitDelegate<Action<BigSpiderGraphics>>(spg =>
+            {
+                if (spg.bug.IsGolden())
+                {
+                    Array.Resize(ref spg.scales, spg.scales.Length + 14);
+                    LogWarning("Extra fluff added! " + spg.scales.Length);
+                }
+            });
+            c.GotoNext(MoveType.Before, xx => xx.MatchRet());
+            c.Emit(Ldarg_0).EmitDelegate<Action<BigSpiderGraphics>>(spg => spg.yellowCol = spg.bug.IsGolden() ? spg.yellowCol : MartyrChar.echoGold);
+        }
+
+        private static void SpiderG_removeDarkness(ILContext il)
         {
             ILCursor c = new(il);
             c.GotoNext(MoveType.Before, xx => xx.MatchRet());
             c.GotoPrev(MoveType.Before,
-                xx => xx.MatchLdarg(0),
+                //xx => xx.MatchLdarg(0),
                 xx => xx.MatchLdfld<BigSpiderGraphics>("darkness"),
                 xx => xx.MatchSub(),
                 xx => xx.MatchMul()) ;
-            c.RemoveRange(2).Emit(Ldc_R4, 0f);
-            il.dump(RootFolderDirectory(), "spider_applypalette");
+            c.Remove().EmitDelegate<Func<BigSpiderGraphics, float>>(spg => spg.bug.IsGolden() ? 0.1f : spg.darkness);
+            il.dump(RootFolderDirectory(), "spider_applypalette.txt");
         }
-
-        #region spider
-        private static void Spider_Draw(On.BigSpiderGraphics.orig_DrawSprites orig, BigSpiderGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
+        private static void SpiderG_Draw(On.BigSpiderGraphics.orig_DrawSprites orig, BigSpiderGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
         {
             //if (self.bug.IsGolden()) self.darkness = 0f;
             orig(self, sLeaser, rCam, timeStacker, camPos);
         }
-        private static void recolorSpitters(On.BigSpiderGraphics.orig_ctor orig, BigSpiderGraphics self, PhysicalObject ow)
-        {
-            orig(self, ow);
-            if (self.bug.IsGolden()) self.yellowCol = MartyrChar.echoGold;
-        }
-        private static void slowReload(ILContext il)
+        //private static void recolorSpitters(On.BigSpiderGraphics.orig_ctor orig, BigSpiderGraphics self, PhysicalObject ow)
+        //{
+        //    orig(self, ow);
+        //    if (self.bug.IsGolden()) self.yellowCol = MartyrChar.echoGold;
+        //}
+        private static void Spider_slowReload(ILContext il)
         {
             ILCursor c = new(il);
             c.GotoNext(MoveType.After,
@@ -181,12 +199,13 @@ namespace WaspPile.Remnant
                     
                 }
                 for (int i = 0; i < URand.Range(2, 3); i++) {
-                    Smoke.FireSmoke.FireSmokeParticle blast = new();
-                    blast.lifeTime = 10f;
-                    blast.effectColor = MartyrChar.echoGold;
-                    blast.colorFadeTime = 5;
-                    self.room.AddObject(blast);
-                    blast.Reset(null, bcen, RotateAroundOrigo(bdir, URand.Range(-15f, 15f)), 14f);
+                    Smoke.FireSmoke.FireSmokeParticle exhaust = new();
+                    float dev = 3f + (float)i * 3f;
+                    exhaust.Reset(null, bcen, RotateAroundOrigo(bdir, URand.Range(-dev, dev)), 14f);
+                    exhaust.lifeTime = 14f;
+                    exhaust.effectColor = (i is 0) ? Color.white : MartyrChar.echoGold;
+                    exhaust.colorFadeTime = 5;
+                    self.room.AddObject(exhaust);
                 }
  
             }
@@ -201,6 +220,7 @@ namespace WaspPile.Remnant
             {
                 self.yellowCol = MartyrChar.echoGold;
             }
+            
         }
         #endregion spider
         #region golden centi
@@ -343,7 +363,7 @@ namespace WaspPile.Remnant
             var c = new ILCursor(il);
             if (c.TryGotoNext(MoveType.After, xx => xx.MatchCallOrCallvirt<PhysicalObject>("set_bodyChunks")))
             {
-                Debug.LogWarning("CENTI RESIZE: FOUND INSERTION POINT");
+                LogWarning("CENTI RESIZE: FOUND INSERTION POINT");
                 c.Emit(Ldarg_0);
                 c.Emit(Ldarg_0);
                 c.Emit(Ldfld, typeof(PhysicalObject).GetField(pbfiname(nameof(PhysicalObject.bodyChunks)), allContextsInstance));
@@ -352,12 +372,12 @@ namespace WaspPile.Remnant
                     => { if (!cb.Red) return;
                         Array.Resize(ref body, body.Length + 7);
                         cb.bodyChunks = body;
-                        Debug.Log($"CENTI RESIZE: new bodychunk count is {cb.bodyChunks.Length}");
+                        Log($"CENTI RESIZE: new bodychunk count is {cb.bodyChunks.Length}");
                     });
             }
             else
             {
-                Debug.LogWarning("CENTI RESIZE: failed to find insertion point!");
+                LogWarning("CENTI RESIZE: failed to find insertion point!");
             }
         }
         private static Color Centi_ShortCutColor(Func<Centipede, Color> orig, Centipede self) 
@@ -471,11 +491,11 @@ namespace WaspPile.Remnant
                     lizardBreedParams.tamingDifficulty = 9f;
                 });
                 c.Emit(Br, brl);
-                Debug.LogWarning("GOLDLIZTEMPLATE: CONN PATCH INSERTED");
+                LogWarning("GOLDLIZTEMPLATE: CONN PATCH INSERTED");
             }
             else
             {
-                Debug.LogWarning("GOLDLIZTEMPLATE: FAILED TO FIND INSERTION POINT!");
+                LogWarning("GOLDLIZTEMPLATE: FAILED TO FIND INSERTION POINT!");
             }
 
             if (c.TryGotoNext(MoveType.Before, xx => xx.MatchRet()))
@@ -494,11 +514,11 @@ namespace WaspPile.Remnant
                     }
                     return ct;
                 });
-                Debug.LogWarning("GOLDLIZTEMPLATE: EXIT MOD APPLIED");
+                LogWarning("GOLDLIZTEMPLATE: EXIT MOD APPLIED");
             }
             else
             {
-                Debug.LogWarning("GOLDLIZTEMPLATE: FAILED TO APPLY EXIT MODIFICATION");
+                LogWarning("GOLDLIZTEMPLATE: FAILED TO APPLY EXIT MODIFICATION");
             }
         }
         private static void Liz_IL_makeGraphic(ILContext il)
@@ -585,10 +605,11 @@ namespace WaspPile.Remnant
             On.BigSpider.Spit -= shotgunBlast;
             On.DartMaggot.Shoot -= RegSpitMultiplication;
             On.BigSpider.ctor -= makeSpitter;
-            IL.BigSpiderAI.SpiderSpitModule.Update -= slowReload;
-            On.BigSpiderGraphics.ctor -= recolorSpitters;
-            On.BigSpiderGraphics.DrawSprites -= Spider_Draw;
-            IL.BigSpiderGraphics.ApplyPalette -= Spider_removeDarkness;
+            IL.BigSpiderAI.SpiderSpitModule.Update -= Spider_slowReload;
+            //On.BigSpiderGraphics.ctor -= recolorSpitters;
+            On.BigSpiderGraphics.DrawSprites -= SpiderG_Draw;
+            IL.BigSpiderGraphics.ApplyPalette -= SpiderG_removeDarkness;
+            IL.BigSpiderGraphics.ctor -= SpiderG_RecolorAndFluff;
         }
     }
 }

@@ -92,6 +92,7 @@ namespace WaspPile.Remnant
                 //??...
                 ss.deathPersistentSaveData.theMark = true;
             }
+            CurrentMiscSaveData(CHARNAME).TryRemoveKey(PERMADEATHKEY);
             
         }
         public override bool HasSlideshow(string slideshowName) => false;
@@ -162,7 +163,7 @@ namespace WaspPile.Remnant
                     var meta = CurrentMiscSaveData(CHARNAME);
                     var deathmark = "VESSEL EXPIRATION";
                     meta.SetKey(PERMADEATHKEY, deathmark);
-                    CRW.processManager.RequestMainProcessSwitch(ProcessManager.ProcessID.MainMenu);
+                    CRW.processManager.RequestMainProcessSwitch(ProcessManager.ProcessID.Statistics);
                     Debug.Log($"REMNANT DISRUPTED: {deathmark}");
                 }
             }

@@ -158,10 +158,6 @@ namespace WaspPile.Remnant
             CONVO_Enable();
         }
 
-
-
-
-
         #region misc
 
         private static void regdeath(On.Player.orig_Die orig, Player self)
@@ -377,7 +373,7 @@ namespace WaspPile.Remnant
                 {
                     Vector2 ppos = hit ? self.firstChunk.pos + RNV() * 10 : V2RandLerp(self.firstChunk.lastPos, self.firstChunk.pos);
                     Vector2 pvel = PerpendicularVector(self.firstChunk.lastLastPos - self.firstChunk.pos) *  RandSign();
-                    var part = new Smoke.FireSmoke.FireSmokeParticle();
+                    Smoke.FireSmoke.FireSmokeParticle part = new ();
                     part.Reset(wf.fss, 
                         pos: hit? ppos : ppos + pvel * 5f, 
                         vel: hit? pvel : RNV() * URand.Range(10f, 15f), 
@@ -480,22 +476,14 @@ namespace WaspPile.Remnant
         private static void regstats(On.Player.orig_SetMalnourished orig, Player self, bool m)
         {
             orig(self, m);
-            playerFieldsByHash.SetKey(self.GetHashCode(), new MartyrFields()
+            if (playerFieldsByHash.TryGetValue(self.GetHashCode(), out var mf))
             {
-                maxEchoReserve = 520f,
-                echoReserve = 520f,
-                rechargeRate = 0.8f,
-                baseBuoyancy = self.buoyancy,
-                baseRunSpeed = self.slugcatStats.runspeedFac,
-                baseScootSpeed = self.slugcatStats.corridorClimbSpeedFac,
-                basePoleSpeed = self.slugcatStats.poleClimbSpeedFac,
-                baseWaterFric = self.waterFriction,
-                echoActive = false,
-                fade = 0f,
-                bubbleSpriteIndex = -1,
-                bCol = MartyrChar.baseBodyCol,
-                lastBCol = MartyrChar.baseBodyCol
-            });
+                mf.baseBuoyancy = self.buoyancy;
+                mf.baseRunSpeed = self.slugcatStats.runspeedFac;
+                mf.baseScootSpeed = self.slugcatStats.corridorClimbSpeedFac;
+                mf.basePoleSpeed = self.slugcatStats.poleClimbSpeedFac;
+                mf.baseWaterFric = self.waterFriction;
+            }
         }
         private static void RunAbilityCycle(On.Player.orig_Update orig, 
             Player self, bool eu)
@@ -511,7 +499,7 @@ namespace WaspPile.Remnant
                 self.aerobicLevel = 0f;
                 self.airInLungs = 1f;
                 mf.echoReserve -= 1f;
-                if (mf.echoReserve < 0 || toggleRequested)
+                if (mf.echoReserve < 0 || toggleRequested || !self.Consious)
                 {
                     self.powerDown(ref mf, mf.echoReserve < 0);
                 }
@@ -555,9 +543,28 @@ namespace WaspPile.Remnant
         {
             orig(self, abstractCreature, world);
             self.spearOnBack = new Player.SpearOnBack(self);
+            bool remedy = false;
             if (self.TryGetSave<MartyrChar.MartyrSave>(out var css)){
-                self.SetMalnourished(!css.RemedyCache);
+                remedy |= css.RemedyCache;
             }
+            playerFieldsByHash.SetKey(self.GetHashCode(), new MartyrFields()
+            {
+                maxEchoReserve = 520f,
+                echoReserve = 520f,
+                rechargeRate = 0.8f,
+                baseBuoyancy = self.buoyancy,
+                baseRunSpeed = self.slugcatStats.runspeedFac,
+                baseScootSpeed = self.slugcatStats.corridorClimbSpeedFac,
+                basePoleSpeed = self.slugcatStats.poleClimbSpeedFac,
+                baseWaterFric = self.waterFriction,
+                echoActive = false,
+                fade = 0f,
+                bubbleSpriteIndex = -1,
+                bCol = MartyrChar.baseBodyCol,
+                lastBCol = MartyrChar.baseBodyCol
+            });
+            self.SetMalnourished(!remedy);
+
             //self.SetMalnourished();
             //if (self.room.game.IsStorySession) self.redsIllness = new RedsIllness(self, Abs(RedsIllness.RedsCycles(false) - self.abstractCreature.world.game.GetStorySession.saveState.cycleNumber));
         }
