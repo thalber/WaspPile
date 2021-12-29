@@ -106,20 +106,61 @@ namespace WaspPile.Remnant
             //spitters
             On.BigSpider.Spit += shotgunBlast;
             On.DartMaggot.Shoot += RegSpitMultiplication;
+            On.BigSpider.ctor += makeSpitter;
+            On.BigSpiderGraphics.ctor += recolorSpitters;
+            On.BigSpiderGraphics.DrawSprites += Spider_Draw;
+            IL.BigSpiderAI.SpiderSpitModule.Update += slowReload;
+            IL.BigSpiderGraphics.ApplyPalette += Spider_removeDarkness;
+        }
+
+        private static void Spider_removeDarkness(ILContext il)
+        {
+            ILCursor c = new(il);
+            c.GotoNext(MoveType.Before, xx => xx.MatchRet());
+            c.GotoPrev(MoveType.Before,
+                xx => xx.MatchLdarg(0),
+                xx => xx.MatchLdfld<BigSpiderGraphics>("darkness"),
+                xx => xx.MatchSub(),
+                xx => xx.MatchMul()) ;
+            c.RemoveRange(2).Emit(Ldc_R4, 0f);
+            il.dump(RootFolderDirectory(), "spider_applypalette");
+        }
+
+        #region spider
+        private static void Spider_Draw(On.BigSpiderGraphics.orig_DrawSprites orig, BigSpiderGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
+        {
+            //if (self.bug.IsGolden()) self.darkness = 0f;
+            orig(self, sLeaser, rCam, timeStacker, camPos);
+        }
+        private static void recolorSpitters(On.BigSpiderGraphics.orig_ctor orig, BigSpiderGraphics self, PhysicalObject ow)
+        {
+            orig(self, ow);
+            if (self.bug.IsGolden()) self.yellowCol = MartyrChar.echoGold;
+        }
+        private static void slowReload(ILContext il)
+        {
+            ILCursor c = new(il);
+            c.GotoNext(MoveType.After,
+                xx => xx.MatchLdarg(0),
+                xx => xx.MatchLdfld<BigSpiderAI.SpiderSpitModule>("fastAmmoRegen"),
+                xx => xx.MatchBrfalse(out _));
+            c.CurrentInstruction().Operand = 600f;
+            c.GotoNext(MoveType.Before, xx => xx.MatchLdcR4(1200f));
+            c.CurrentInstruction().Operand = 2400f;
         }
         private static BigSpider SpitterLock;
-        //private static (DartMaggot, Vector2, Vector2) MaggotToMultiply;
         private static DartMaggot MaggotToMultiply;
         private static void RegSpitMultiplication(On.DartMaggot.orig_Shoot orig, DartMaggot self, Vector2 pos, Vector2 dir, Creature shotBy)
         {
             orig(self, pos, dir, shotBy);
             if (shotBy == SpitterLock) MaggotToMultiply ??= self;
         }
-
         private static void shotgunBlast(On.BigSpider.orig_Spit orig, BigSpider self)
         {
             SpitterLock = self;
             orig(self);
+            var bcen = MaggotToMultiply.firstChunk.pos;
+            var bdir = MaggotToMultiply.needleDir;
             if (MaggotToMultiply != default)
             {
                 for (int i = 0; i < URand.Range(3, 5); i++)
@@ -134,16 +175,34 @@ namespace WaspPile.Remnant
                     apo.RealizeInRoom();
                     var rMaggot = apo.realizedObject as DartMaggot;
                     rMaggot.Shoot(
-                        MaggotToMultiply.firstChunk.pos + RNV() * 4.5f, 
-                        RotateAroundOrigo(MaggotToMultiply.needleDir, URand.Range(7f, 15f)), 
+                        bcen + RNV() * 2.5f, 
+                        RotateAroundOrigo(bdir, URand.Range(-7f, 7f)), 
                         SpitterLock);
                     
                 }
+                for (int i = 0; i < URand.Range(2, 3); i++) {
+                    Smoke.FireSmoke.FireSmokeParticle blast = new();
+                    blast.lifeTime = 10f;
+                    blast.effectColor = MartyrChar.echoGold;
+                    blast.colorFadeTime = 5;
+                    self.room.AddObject(blast);
+                    blast.Reset(null, bcen, RotateAroundOrigo(bdir, URand.Range(-15f, 15f)), 14f);
+                }
+ 
             }
             MaggotToMultiply = default;
             SpitterLock = default;
         }
 
+        private static void makeSpitter(On.BigSpider.orig_ctor orig, BigSpider self, AbstractCreature abstractCreature, World world)
+        {
+            orig(self, abstractCreature, world);
+            if (self.IsGolden())
+            {
+                self.yellowCol = MartyrChar.echoGold;
+            }
+        }
+        #endregion spider
         #region golden centi
         private static float Centi_EnlargeWhiskers(
             On.CentipedeGraphics.orig_WhiskerLength orig,
@@ -518,7 +577,18 @@ namespace WaspPile.Remnant
             On.CentipedeGraphics.ApplyPalette -= CentiG_APal;
             On.CentipedeGraphics.Update -= CentiG_Update;
             On.CentipedeGraphics.ctor -= Centi_recolorShellReg;
+            On.CentipedeGraphics.WhiskerLength -= Centi_EnlargeWhiskers;
             centiFields.Clear();
+
+            //spider
+
+            On.BigSpider.Spit -= shotgunBlast;
+            On.DartMaggot.Shoot -= RegSpitMultiplication;
+            On.BigSpider.ctor -= makeSpitter;
+            IL.BigSpiderAI.SpiderSpitModule.Update -= slowReload;
+            On.BigSpiderGraphics.ctor -= recolorSpitters;
+            On.BigSpiderGraphics.DrawSprites -= Spider_Draw;
+            IL.BigSpiderGraphics.ApplyPalette -= Spider_removeDarkness;
         }
     }
 }

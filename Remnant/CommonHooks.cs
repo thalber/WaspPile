@@ -29,7 +29,7 @@ namespace WaspPile.Remnant
             On.DataPearl.InitiateSprites += Pearl_MakeSprites;
             On.DataPearl.DrawSprites += Pearl_Draw;
             On.DataPearl.AddToContainer += Pearl_ATC;
-            On.RainWorldGame.Update += ApplyHitFrames;
+            //On.RainWorldGame.Update += ApplyHitFrames;
         }
 
         internal static int freeze = 0;
