@@ -95,6 +95,7 @@ namespace WaspPile.Remnant
             On.CentipedeGraphics.DrawSprites += CentiG_Draw;
             On.CentipedeGraphics.ApplyPalette += CentiG_APal;
             On.CentipedeGraphics.Update += CentiG_Update;
+            On.CentipedeGraphics.WhiskerLength += Centi_EnlargeWhiskers;
             manualHooks.Add(new Hook(methodof<CentipedeAI>("Update"), methodof(mhk_t, nameof(CentiAI_Update))));
             manualHooks.Add(new Hook(methodof<Centipede>("ShortCutColor"), methodof(mhk_t, nameof(Centi_ShortCutColor))));
             manualHooks.Add(new ILHook(ctorof<Centipede>(typeof(AbstractCreature), typeof(World)), Centi_resize));
@@ -104,7 +105,17 @@ namespace WaspPile.Remnant
         }
 
 
+
         #region golden centi
+        private static float Centi_EnlargeWhiskers(
+            On.CentipedeGraphics.orig_WhiskerLength orig,
+            CentipedeGraphics self,
+            int part)
+        {
+            var res = orig(self, part);
+            if (self.centipede.IsGolden()) res *= 1.35f;
+            return res;
+        }
         private static void CentiG_APal(
             On.CentipedeGraphics.orig_ApplyPalette orig,
             CentipedeGraphics self,
@@ -417,14 +428,17 @@ namespace WaspPile.Remnant
                 c.Emit(Ldloc_S, mynum);
                 c.EmitDelegate<Func<LizardGraphics, int, int>>((self, spr) =>
                 {
-                    spr = self.AddCosmetic(spr, new LizardCosmetics.SpineSpikes(self, spr));
-                    spr = self.AddCosmetic(spr, new LizardCosmetics.TailFin(self, spr));
-                    spr = self.AddCosmetic(spr, new LizardCosmetics.LongShoulderScales(self, spr));
-                    spr = self.AddCosmetic(spr, new LizardCosmetics.SpineSpikes(self, spr));
-                    spr = self.AddCosmetic(spr, new LizardCosmetics.TailGeckoScales(self, spr));
-                    spr = self.AddCosmetic(spr, new LizardCosmetics.JumpRings(self, spr));
-                    spr = self.AddCosmetic(spr, new LizardCosmetics.ShortBodyScales(self, spr));
-                    Debug.Log("GOLDLIZ cosmetics applied.");
+                    if (self.lizard.IsGolden())
+                    {
+                        spr = self.AddCosmetic(spr, new LizardCosmetics.SpineSpikes(self, spr));
+                        spr = self.AddCosmetic(spr, new LizardCosmetics.TailFin(self, spr));
+                        spr = self.AddCosmetic(spr, new LizardCosmetics.LongShoulderScales(self, spr));
+                        spr = self.AddCosmetic(spr, new LizardCosmetics.SpineSpikes(self, spr));
+                        spr = self.AddCosmetic(spr, new LizardCosmetics.TailGeckoScales(self, spr));
+                        spr = self.AddCosmetic(spr, new LizardCosmetics.JumpRings(self, spr));
+                        spr = self.AddCosmetic(spr, new LizardCosmetics.ShortBodyScales(self, spr));
+                        Debug.Log("GOLDLIZ cosmetics applied.");
+                    }
                     return spr;
                 });
                 c.Emit(Stloc_S, mynum);

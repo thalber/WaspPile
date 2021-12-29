@@ -58,12 +58,12 @@ namespace WaspPile.Remnant
             {
                 stats.bodyWeightFac = 0.9f;
                 stats.runspeedFac = 0.875f;
-                stats.throwingSkill = 0;
+                //stats.throwingSkill = 0;
                 stats.poleClimbSpeedFac = 0.8f;
                 stats.corridorClimbSpeedFac = 0.86f;
             }
         }
-        public override bool CanEatMeat(Player player, Creature creature) => !(creature is IPlayerEdible);
+        public override bool CanEatMeat(Player player, Creature creature) => (creature is Centipede || creature is not IPlayerEdible);
         public override bool QuarterFood => true;
 
         //TODO: start room, karma cap, starvation
@@ -117,7 +117,6 @@ namespace WaspPile.Remnant
             }
             return SelectMenuAccessibility.Available;
         }
-
         public static bool MartyrIsDead(int saveslot)
         {
             try

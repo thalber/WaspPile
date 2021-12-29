@@ -28,6 +28,7 @@ namespace WaspPile.Remnant
         internal const float ECHOMODE_DAMAGE_BONUS = 30f;
         internal const float ECHOMODE_THROWFORCE_BONUS = 1.4f;
         internal const float ECHOMODE_RUNSPEED_BONUS = 1.7f;
+        internal const float ECHOMODE_CRAWLSPEED_BONUS = 1.4f;
         internal const float ECHOMODE_DEPLETE_COOLDOWN = 270f;
         internal const float ECHOMODE_BUOYANCY_BONUS = 8f;
         internal const float ECHOMODE_WATERFRIC_BONUS = 1.1f;
@@ -59,6 +60,8 @@ namespace WaspPile.Remnant
             public int bubbleSpriteIndex;
             public float baseBuoyancy;
             public float baseRunSpeed;
+            public float baseScootSpeed;
+            public float basePoleSpeed;
             public float baseWaterFric;
             public Color palBlack = new(0.1f, 0.1f, 0.1f);
         }
@@ -86,8 +89,8 @@ namespace WaspPile.Remnant
             Console.WriteLine($"cd: {mf.cooldown}");
             mf.echoActive = false;
             self.room.PlaySound(SoundID.Spear_Bounce_Off_Wall, self.firstChunk.pos, 1.0f, 0.5f);
-            self.lungsExhausted = true;
-            //self.AerobicIncrease(fullDeplete ? 0.9f : Lerp((1 - mf.echoReserve / mf.maxEchoReserve), 0f, 0.2f)) ;
+            self.lungsExhausted |= mf.echoReserve / mf.maxEchoReserve < 0.35f;
+            self.AerobicIncrease(fullDeplete ? 0.9f : Lerp((1 - mf.echoReserve / mf.maxEchoReserve), 0f, 0.2f)) ;
             self.airInLungs = fullDeplete ? 0f : Lerp(mf.echoReserve / mf.maxEchoReserve, 1f, 0.1f);
             
         }
@@ -107,9 +110,10 @@ namespace WaspPile.Remnant
         {
             //lc
             On.RainWorldGame.ctor += GameStarts;
-            On.Player.ctor += RegisterFieldset;
+            On.Player.ctor += initFields;
             On.Player.Update += RunAbilityCycle;
             On.Player.Grabability += triSpearWield;
+            On.Player.SetMalnourished += regstats;
 
             //em
             //On.Player.ThrownSpear += EchomodeDamageBonus;
@@ -154,11 +158,6 @@ namespace WaspPile.Remnant
             CONVO_Enable();
         }
 
-        private static int triSpearWield(On.Player.orig_Grabability orig, Player self, PhysicalObject obj)
-        {
-            if (obj is Spear) return (int)Player.ObjectGrabability.OneHand;
-            return orig(self, obj);
-        }
 
 
 
@@ -288,6 +287,11 @@ namespace WaspPile.Remnant
         #endregion
         #region ability
 
+        private static int triSpearWield(On.Player.orig_Grabability orig, Player self, PhysicalObject obj)
+        {
+            if (obj is Spear) return (int)Player.ObjectGrabability.OneHand;
+            return orig(self, obj);
+        }
         private static void wallbang(Action<Weapon> orig,
             Weapon self)
         {
@@ -473,6 +477,26 @@ namespace WaspPile.Remnant
         //}
         #endregion
         #region lifecycle
+        private static void regstats(On.Player.orig_SetMalnourished orig, Player self, bool m)
+        {
+            orig(self, m);
+            playerFieldsByHash.SetKey(self.GetHashCode(), new MartyrFields()
+            {
+                maxEchoReserve = 520f,
+                echoReserve = 520f,
+                rechargeRate = 0.8f,
+                baseBuoyancy = self.buoyancy,
+                baseRunSpeed = self.slugcatStats.runspeedFac,
+                baseScootSpeed = self.slugcatStats.corridorClimbSpeedFac,
+                basePoleSpeed = self.slugcatStats.poleClimbSpeedFac,
+                baseWaterFric = self.waterFriction,
+                echoActive = false,
+                fade = 0f,
+                bubbleSpriteIndex = -1,
+                bCol = MartyrChar.baseBodyCol,
+                lastBCol = MartyrChar.baseBodyCol
+            });
+        }
         private static void RunAbilityCycle(On.Player.orig_Update orig, 
             Player self, bool eu)
         {
@@ -484,6 +508,7 @@ namespace WaspPile.Remnant
             if (toggleRequested) Console.WriteLine("Martyr toggle req");
             if (mf.echoActive)
             {
+                self.aerobicLevel = 0f;
                 self.airInLungs = 1f;
                 mf.echoReserve -= 1f;
                 if (mf.echoReserve < 0 || toggleRequested)
@@ -509,43 +534,33 @@ namespace WaspPile.Remnant
             self.waterFriction = mf.echoActive 
                 ? mf.baseWaterFric * ECHOMODE_WATERFRIC_BONUS 
                 : mf.baseWaterFric;
-
+            self.slugcatStats.poleClimbSpeedFac = mf.echoActive
+                ? mf.basePoleSpeed * ECHOMODE_CRAWLSPEED_BONUS
+                : mf.basePoleSpeed;
+            self.slugcatStats.corridorClimbSpeedFac = mf.echoActive
+                ? mf.baseScootSpeed * ECHOMODE_CRAWLSPEED_BONUS
+                : mf.baseScootSpeed;
             //visuals
             mf.lastFade = mf.fade;
             mf.fade = Custom.LerpAndTick(mf.fade, mf.echoActive ? 1f : 0f, 0.08f, 0.04f);
             mf.lastBCol = mf.bCol;
             mf.lastECol = mf.eCol;
-            mf.bCol = Color.Lerp(MartyrChar.deplBodyCol, MartyrChar.baseBodyCol, self.airInLungs);
+            mf.bCol = Color.Lerp(MartyrChar.deplBodyCol, MartyrChar.baseBodyCol, 1 - self.aerobicLevel);
             mf.eCol = Color.Lerp(MartyrChar.deplEyeCol, MartyrChar.baseEyeCol, mf.echoReserve / mf.maxEchoReserve);
             skipNotMine:
             orig(self, eu);
         }
-        
-        private static void RegisterFieldset(On.Player.orig_ctor orig, 
+        private static void initFields(On.Player.orig_ctor orig, 
             Player self, AbstractCreature abstractCreature, World world)
         {
             orig(self, abstractCreature, world);
-            playerFieldsByHash.Add(self.GetHashCode(), new MartyrFields()
-            {
-                maxEchoReserve = 520f,
-                echoReserve = 520f,
-                rechargeRate = 0.8f,
-                baseBuoyancy = self.buoyancy,
-                baseRunSpeed = self.slugcatStats.runspeedFac,
-                baseWaterFric = self.waterFriction,
-                echoActive = false,
-                fade = 0f,
-                bubbleSpriteIndex = -1,
-                bCol = MartyrChar.baseBodyCol,
-                lastBCol = MartyrChar.baseBodyCol
-            });
+            self.spearOnBack = new Player.SpearOnBack(self);
             if (self.TryGetSave<MartyrChar.MartyrSave>(out var css)){
                 self.SetMalnourished(!css.RemedyCache);
             }
             //self.SetMalnourished();
             //if (self.room.game.IsStorySession) self.redsIllness = new RedsIllness(self, Abs(RedsIllness.RedsCycles(false) - self.abstractCreature.world.game.GetStorySession.saveState.cycleNumber));
         }
-        
         private static void GameStarts(On.RainWorldGame.orig_ctor orig, 
             RainWorldGame self, ProcessManager manager)
         {
@@ -563,11 +578,11 @@ namespace WaspPile.Remnant
             CRIT_Disable();
             CONVO_Disable();
             On.RainWorldGame.ctor -= GameStarts;
-            On.Player.ctor -= RegisterFieldset;
+            On.Player.ctor -= initFields;
             On.Player.Update -= RunAbilityCycle;
             On.Player.Die -= regdeath;
             On.Player.Grabability -= triSpearWield;
-
+            On.Player.SetMalnourished -= regstats;
 
             On.Weapon.Update -= flightVfx;
             //On.Player.ThrownSpear -= EchomodeDamageBonus;
