@@ -66,7 +66,8 @@ namespace WaspPile.Remnant.Satellite
                 {
                     searchForMessageCounter--;
                     //if (abs_message != null) goto regdone;
-#warning only works when object is in stomach? see and fix asap
+//#warning only works when object is in stomach? see and fix asap
+//Warp issue
                     foreach (var po in croom.updateList) if (po is DataPearl dp && dp.IsEchoPearl()) abs_message ??= dp.AbstractPearl;
                     if (guest != null)
                     {
@@ -90,10 +91,7 @@ namespace WaspPile.Remnant.Satellite
                         owner.InitateConversation(convoID, this);
                         owner.SetNewDestination(owner.oracle.room.MiddleOfRoom() + RNV() * 100f);
                         convo = owner.conversation;
-                        owner.restartConversationAfterCurrentDialoge = false;
                     }
-                    convoStarted = true;
-                    //LogWarning("MARK3");
                     owner.movementBehavior = SSOracleBehavior.MovementBehavior.Talk;
                     if (message != null)
                     {
@@ -108,7 +106,18 @@ namespace WaspPile.Remnant.Satellite
                         mch.vel = Vector2.ClampMagnitude(mch.vel, 21f);
                     }
                     //LogWarning("MARK5");
-                    if (convo.slatedForDeletion)
+                    if (owner.action is SSOracleBehavior.Action.General_GiveMark) return;
+                    var cev = convo.events.FirstOrDefault();
+                    if (cev is not null)
+                    {
+                        //if (cev is Conversation.SpecialEvent spec && spec.eventName == "karma")
+                        //{
+                        //    convo.events.RemoveAt(0);
+                        //    convo.paused = true;
+                        //    //owner.
+                        //}
+                    }
+                    else
                     {
                         //convo over
                         LogWarning("MARTYR MEETING OVER");

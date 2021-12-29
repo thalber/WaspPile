@@ -16,7 +16,8 @@ using RocksConvo = SSOracleBehavior.PebblesConversation;
 
 namespace WaspPile.Remnant.Satellite
 {
-#warning karma specevent does not work with fp
+//#warning karma specevent does not work with fp
+//fixed
     internal static class ConvoHelper
     {
         internal static bool TryEnqueuePatchedEvents(this Conversation c, InGameTranslator.LanguageID lang)
@@ -33,7 +34,6 @@ namespace WaspPile.Remnant.Satellite
         internal static IEnumerable<Conversation.DialogueEvent> ModifiedConvo(Conversation con,
             InGameTranslator.LanguageID lang)
         {
-#warning raw
             string subf = default, entryOverride = default;
             bool pickrandom = false;
             switch (con.id)
@@ -110,7 +110,7 @@ namespace WaspPile.Remnant.Satellite
             if (rs != null)
             {
                 BinaryReader br = new(rs);
-                return Encoding.UTF8.GetString(br.ReadBytes((int)rs.Length)).Split('\n');
+                return Regex.Split(Encoding.UTF8.GetString(br.ReadBytes((int)rs.Length)), Environment.NewLine);
             }
             LogWarning("requested resource is null!");
             return null;

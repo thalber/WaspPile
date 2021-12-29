@@ -104,7 +104,7 @@ namespace WaspPile.Remnant
                 patchedPath[path.Length - 2] = "SelectMenu";
             string oresname = "WaspPile.Remnant.assets." + string.Join(".", patchedPath);
             var tryret = Assembly.GetExecutingAssembly().GetManifestResourceStream(oresname);
-            if (tryret != null) Console.WriteLine($"BUILDING SCENE FROM ER: {oresname}");
+            if (tryret != null) Console.WriteLine($"LOADING ER: {oresname}");
             return tryret;
         }
         public override Stream GetResource(params string[] path) => GetRes(path) ?? base.GetResource();

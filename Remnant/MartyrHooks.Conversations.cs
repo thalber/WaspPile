@@ -29,7 +29,7 @@ namespace WaspPile.Remnant
         private static bool ProcessDialogue(this Conversation convo)
         {
             var clang = CRW.inGameTranslator.currentLanguage;
-            var ovres = ConvoOverrideExists(convo.id, clang);
+            //var ovres = ConvoOverrideExists(convo.id, clang);
             Log("MARTYR COMMS: trying to override " + convo.id.ToString());
             if (convo.id.ToString().Contains("Moon_Pearl_") && convo is MoonConvo mc) mc.PearlIntro();
             return convo.TryEnqueuePatchedEvents(clang);
@@ -41,6 +41,13 @@ namespace WaspPile.Remnant
             IL.GhostConversation.AddEvents += IL_Echo_OverrideConvos;
             IL.SSOracleBehavior.PebblesConversation.AddEvents += IL_SSOB_OverrideConvos;
             IL.SSOracleBehavior.NewAction += insertPebblesSequence;
+            //On.Conversation.SpecialEvent.Activate += speceventNotify5p;
+        }
+
+        private static void speceventNotify5p(On.Conversation.SpecialEvent.orig_Activate orig, Conversation.SpecialEvent self)
+        {
+            if (self.owner.interfaceOwner is SSOracleBehavior) self.eventName = "karma";
+            orig(self);
         }
 
         private static void insertPebblesSequence(ILContext il)
@@ -102,6 +109,7 @@ namespace WaspPile.Remnant
             IL.GhostConversation.AddEvents -= IL_Echo_OverrideConvos;
             IL.SSOracleBehavior.PebblesConversation.AddEvents -= IL_SSOB_OverrideConvos;
             IL.SSOracleBehavior.NewAction -= insertPebblesSequence;
+            //On.Conversation.SpecialEvent.Activate -= speceventNotify5p;
         }
     }
 }
