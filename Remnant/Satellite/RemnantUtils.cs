@@ -32,7 +32,7 @@ namespace WaspPile.Remnant.Satellite
         /// <param name="mname">methodname</param>
         /// <param name="context">binding flags, default private+public+instance</param>
         /// <returns></returns>
-        internal static MethodInfo methodof<T>(string mname, BindingFlags context = allContextsInstance) 
+        internal static MethodInfo methodof<T>(string mname, BindingFlags context = allContextsInstance)
             => typeof(T).GetMethod(mname, context);
         /// <summary>
         /// takes methodinfo from t, defaults to <see cref="allContextsStatic"/>
@@ -59,11 +59,11 @@ namespace WaspPile.Remnant.Satellite
         /// <param name="context"></param>
         /// <param name="pms"></param>
         /// <returns></returns>
-        internal static ConstructorInfo ctorof<T>(BindingFlags context = allContextsCtor, params Type[] pms) 
+        internal static ConstructorInfo ctorof<T>(BindingFlags context = allContextsCtor, params Type[] pms)
             => typeof(T).GetConstructor(context, null, pms, null);
-        internal static ConstructorInfo ctorof<T>(params Type[] pms) 
+        internal static ConstructorInfo ctorof<T>(params Type[] pms)
             => typeof(T).GetConstructor(pms);
-        
+
         internal static void dump(this ILContext il, string rf, string nameOverride = default)
         {
             var oname = il.Method.FullName.SkipWhile(c => Path.GetInvalidPathChars().Contains(c));
@@ -74,7 +74,8 @@ namespace WaspPile.Remnant.Satellite
         internal static Instruction CurrentInstruction(this ILCursor c) => c.Instrs[c.Index];
         #endregion
         #region collection extensions
-        internal static void SetKey<tKey, tValue>(this Dictionary<tKey, tValue> dict, tKey key, tValue val) {
+        internal static void SetKey<tKey, tValue>(this Dictionary<tKey, tValue> dict, tKey key, tValue val)
+        {
             if (dict == null) throw new ArgumentNullException();
             if (!dict.ContainsKey(key)) dict.Add(key, val);
             else dict[key] = val;
@@ -100,7 +101,7 @@ namespace WaspPile.Remnant.Satellite
         {
             Color res = default;
             for (int i = 0; i < 3; i++) res[i] = bcol[i] + dbound[i] * URand.Range(-1f, 1f);
-            return clamped? res.Clamped() : res;
+            return clamped ? res.Clamped() : res;
         }
         #endregion
         #region misc bs
@@ -118,6 +119,13 @@ namespace WaspPile.Remnant.Satellite
         internal static Dictionary<string, string> CurrentMiscSaveData(string name) => SlugBase.SaveManager.GetCharacterData(name, CRW.options.saveSlot);
         internal static SlugBase.SaveManager.SlugBaseSaveSummary CurrentSaveSummary(string name) => SlugBase.SaveManager.GetSaveSummary(CRW, name, CRW.options.saveSlot);
         internal static Vector2 MiddleOfRoom(this Room rm) => new((float)rm.PixelWidth * 0.5f, (float)rm.PixelHeight * 0.5f);
+        #endregion
+        #region vercrutch
+        //internal static void Deconstruct<t1, t2>(this ValueTuple<t1, t2> t, out t1 o1, out t2 o2)
+        //{
+        //    o1 = t.Item1;
+        //    o2 = t.Item2;
+        //}
         #endregion
     }
 }

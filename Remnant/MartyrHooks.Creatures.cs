@@ -27,7 +27,8 @@ namespace WaspPile.Remnant
         internal const float CRIT_GOLDEN_RESIST_MODIFIER = 25f;
         internal static CreatureTemplate.Type CRIT_CT_GOLDLIZ => CreatureTemplate.Type.RedLizard;
         internal static CreatureTemplate.Type CRIT_CT_GOLDCENTI => CreatureTemplate.Type.RedCentipede;
-        internal static bool IsGolden(this Creature c) => c.Template.type == CRIT_CT_GOLDCENTI || c.Template.type == CRIT_CT_GOLDLIZ;
+        internal static CreatureTemplate.Type CRIT_CT_GOLDSPITTER => CreatureTemplate.Type.SpitterSpider;
+        internal static bool IsGolden(this Creature c) => c.Template.type == CRIT_CT_GOLDCENTI || c.Template.type == CRIT_CT_GOLDLIZ || c.Template.type == CRIT_CT_GOLDSPITTER;
         internal class CentiGrafFields
         {
             internal CentiGrafFields(CentipedeGraphics cg)
@@ -67,11 +68,11 @@ namespace WaspPile.Remnant
         internal static void CRIT_Enable()
         {
             //templates
-            foreach (var t in new[] { CRIT_CT_GOLDLIZ, CRIT_CT_GOLDCENTI })
+            foreach (var t in new[] { CRIT_CT_GOLDLIZ, CRIT_CT_GOLDCENTI, CRIT_CT_GOLDSPITTER })
             {
                 var cgold = GetCreatureTemplate(t);
                 cgold.baseDamageResistance *= CRIT_GOLDEN_RESIST_MODIFIER;
-                cgold.shortcutColor = Color.yellow;
+                cgold.shortcutColor = MartyrChar.echoGold;
             }
             var glizdbreed = GetCreatureTemplate(CRIT_CT_GOLDLIZ).breedParameters as LizardBreedParams;
             glizdbreed.toughness = 300f;
@@ -102,9 +103,46 @@ namespace WaspPile.Remnant
             manualHooks.Add(new Hook(methodof<Dangler>("ConPos"), methodof(mhk_t, nameof(EDA_conpos))));
             manualHooks.Add(new Hook(methodof<Dangler>("get_Props"), methodof(mhk_t, nameof(EDA_props))));
             manualHooks.Add(new Hook(methodof<Centipede>("Crawl"), methodof(mhk_t, nameof(Centi_Crawl))));
+            //spitters
+            On.BigSpider.Spit += shotgunBlast;
+            On.DartMaggot.Shoot += RegSpitMultiplication;
+        }
+        private static BigSpider SpitterLock;
+        //private static (DartMaggot, Vector2, Vector2) MaggotToMultiply;
+        private static DartMaggot MaggotToMultiply;
+        private static void RegSpitMultiplication(On.DartMaggot.orig_Shoot orig, DartMaggot self, Vector2 pos, Vector2 dir, Creature shotBy)
+        {
+            orig(self, pos, dir, shotBy);
+            if (shotBy == SpitterLock) MaggotToMultiply ??= self;
         }
 
-
+        private static void shotgunBlast(On.BigSpider.orig_Spit orig, BigSpider self)
+        {
+            SpitterLock = self;
+            orig(self);
+            if (MaggotToMultiply != default)
+            {
+                for (int i = 0; i < URand.Range(3, 5); i++)
+                {
+                    AbstractPhysicalObject apo = new (
+                        self.room.world, 
+                        AbstractPhysicalObject.AbstractObjectType.DartMaggot, 
+                        null, 
+                        self.abstractCreature.pos, 
+                        self.room.game.GetNewID());
+                    self.room.abstractRoom.AddEntity(apo);
+                    apo.RealizeInRoom();
+                    var rMaggot = apo.realizedObject as DartMaggot;
+                    rMaggot.Shoot(
+                        MaggotToMultiply.firstChunk.pos + RNV() * 4.5f, 
+                        RotateAroundOrigo(MaggotToMultiply.needleDir, URand.Range(7f, 15f)), 
+                        SpitterLock);
+                    
+                }
+            }
+            MaggotToMultiply = default;
+            SpitterLock = default;
+        }
 
         #region golden centi
         private static float Centi_EnlargeWhiskers(

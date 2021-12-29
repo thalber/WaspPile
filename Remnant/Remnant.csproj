@@ -121,6 +121,7 @@
     <Compile Include="Satellite\EnumExt_Remnant.cs" />
     <Compile Include="Satellite\MeetMartyrSubroutine.cs" />
     <Compile Include="Satellite\RemnantUtils.cs" />
+    <Compile Include="Satellite\NFVerCrutches.cs" />
     <Compile Include="UAD\CyclePrompt.cs" />
   </ItemGroup>
   <ItemGroup>
