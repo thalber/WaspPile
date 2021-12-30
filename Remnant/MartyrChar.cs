@@ -135,7 +135,7 @@ namespace WaspPile.Remnant
             try
             {
                 var meta = SaveManager.GetCharacterData(CHARNAME, saveslot);
-                return meta.ContainsKey(PERMADEATHKEY);
+                return meta.ContainsKey(PERMADEATHKEY) & RemnantConfig.noQuits.Value;
             }
             catch { return false; }
         }

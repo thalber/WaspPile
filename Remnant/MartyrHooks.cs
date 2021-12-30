@@ -116,7 +116,7 @@ namespace WaspPile.Remnant
             On.Player.SetMalnourished += regstats;
 
             //em
-            //On.Player.ThrownSpear += EchomodeDamageBonus;
+            On.Player.ThrownSpear += EchomodeDamageBonusActual;
             //On.Player.MovementUpdate += EchomodeExtendRoll;
             IL.Player.MovementUpdate += IL_EchomodeClampRollc;
             //IL.Player.UpdateAnimation += IL_EchomodeEnsureWhiplash;
@@ -156,6 +156,15 @@ namespace WaspPile.Remnant
             //manualHooks.Add(new ILHook(methodof<Player>("UpdateBodyMode"), extendSlides));
             CRIT_Enable();
             CONVO_Enable();
+        }
+
+        private static void EchomodeDamageBonusActual(On.Player.orig_ThrownSpear orig, Player self, Spear spear)
+        {
+            orig(self, spear);
+            if (playerFieldsByHash.TryGetValue(self.GetHashCode(), out var mf) && mf.echoActive)
+            {
+                spear.spearDamageBonus *= ECHOMODE_DAMAGE_BONUS;
+            }
         }
 
         #region misc
@@ -591,6 +600,7 @@ namespace WaspPile.Remnant
             On.Player.Grabability -= triSpearWield;
             On.Player.SetMalnourished -= regstats;
 
+            On.Player.ThrownSpear -= EchomodeDamageBonusActual;
             On.Weapon.Update -= flightVfx;
             //On.Player.ThrownSpear -= EchomodeDamageBonus;
             On.Creature.SpearStick -= EchomodeDeflection;
