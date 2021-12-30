@@ -1,10 +1,11 @@
-﻿40 : 10 : They were wrong, weren't they.
-The overseers were persistent in following you. Yet I see nothing of value here.
+﻿40 : 10 : Finally here.
+The overseers were so insistant on informing me of your every move. Yet all that I see now is a meager ghost.
 Reports indicated you had a payload. Where is it?
 10 : 70 : ...
-Were they wrong? Did you lose it?
-And despite your unusual nature, you are as silent as the lowest of beasts.
+Were they wrong? Did you lose it? If images of you weren't so corrupt, I'd see for myself.
+And despite your unusual nature, you stare as blankly as the lowest of beasts.
 Why are you even here, specter?<LINE>Did you decide to take a stroll in this unstable shell out of sheer boredom?
+If I didn't know any better, I'd say you're mocking me. Just a cruel reminder of my abandoned work.
 So much effort and anticipation - all for nothing. Next time I will not bother.
-You may continue your tour as you wish.
+You may continue your tour as you wish. I don't care.
 Get out.
