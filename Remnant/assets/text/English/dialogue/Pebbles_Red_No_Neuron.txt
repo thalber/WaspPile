@@ -1,0 +1,10 @@
+﻿40 : 10 : They were wrong, weren't they.
+The overseers were persistent in following you. Yet I see nothing of value here.
+Reports indicated you had a payload. Where is it?
+10 : 70 : ...
+Were they wrong? Did you lose it?
+And despite your unusual nature, you are as silent as the lowest of beasts.
+Why are you even here, specter?<LINE>Did you decide to take a stroll in this unstable shell out of sheer boredom?
+So much effort and anticipation - all for nothing. Next time I will not bother.
+You may continue your tour as you wish.
+Get out.

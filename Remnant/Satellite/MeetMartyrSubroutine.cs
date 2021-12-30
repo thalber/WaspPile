@@ -91,6 +91,8 @@ namespace WaspPile.Remnant.Satellite
                         owner.InitateConversation(convoID, this);
                         owner.SetNewDestination(owner.oracle.room.MiddleOfRoom() + RNV() * 100f);
                         convo = owner.conversation;
+                        owner.restartConversationAfterCurrentDialoge = false;
+                        convoStarted = true;
                     }
                     owner.movementBehavior = SSOracleBehavior.MovementBehavior.Talk;
                     if (message != null)
@@ -126,7 +128,7 @@ namespace WaspPile.Remnant.Satellite
                             message.gravity = 1f;
                             abs_message = null;
                         }
-                        owner.NewAction(SSOracleBehavior.Action.ThrowOut_Polite_ThrowOut);
+                        owner.NewAction(convoID == Conversation.ID.Pebbles_Red_Green_Neuron ? SSOracleBehavior.Action.ThrowOut_Polite_ThrowOut : SSOracleBehavior.Action.ThrowOut_ThrowOut);
                     }
                 }
                 uerrc = 0;

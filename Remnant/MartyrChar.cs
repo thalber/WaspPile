@@ -36,7 +36,9 @@ namespace WaspPile.Remnant
             ? "REMNANT OF A MIND IS MATERIALIZED\nWEAKNESS IS BRIDGE TO STRENGTH\nINSERTION IS VIOLATION"
             : "The remnant of a mind, materialized, weakened in the physical plane but retaining\nabilities of the Void. In a state outside the Cycle itself, your journey will only last as long as you do.";
         //proper colors
+        [Obsolete]
         public override Color? SlugcatColor() => baseBodyCol;
+        [Obsolete]
         public override Color? SlugcatEyeColor() => baseEyeCol;
         public override bool HasGuideOverseer => false;
         public override bool HasDreams => false;
