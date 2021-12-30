@@ -171,7 +171,7 @@ namespace WaspPile.Remnant
                 xx => xx.MatchSub(),
                 xx => xx.MatchMul()) ;
             c.Remove().EmitDelegate<Func<BigSpiderGraphics, float>>(spg => spg.bug.IsGolden() ? 0.1f : spg.darkness);
-            il.dump(RootFolderDirectory(), "spider_applypalette.txt");
+            //il.dump(RootFolderDirectory(), "spider_applypalette.txt");
         }
         private static void SpiderG_Draw(On.BigSpiderGraphics.orig_DrawSprites orig, BigSpiderGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
         {
@@ -589,7 +589,7 @@ namespace WaspPile.Remnant
                 c.Emit(Stloc_S, mynum);
                 c.Emit(Br, ex2);
                 Console.WriteLine("GOLDLIZ: liz graphics ctor defiled successfully");
-                File.WriteAllText(Path.Combine(RootFolderDirectory(), "ild.txt"), il.ToString());
+                //File.WriteAllText(Path.Combine(RootFolderDirectory(), "ild.txt"), il.ToString());
             }
             else
             {

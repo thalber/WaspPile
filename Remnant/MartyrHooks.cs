@@ -173,7 +173,7 @@ namespace WaspPile.Remnant
         private static void IL_GoldCure(ILContext il)
         {
             var c = new ILCursor(il);
-            il.dump(RootFolderDirectory(), "whatever.txt");
+            //il.dump(RootFolderDirectory(), "whatever.txt");
             c.GotoNext(MoveType.After,
                 xx => xx.MatchCallOrCallvirt<Player>("AddFood"));
             c.Emit(Ldarg_0);

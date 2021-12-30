@@ -35,8 +35,8 @@ namespace WaspPile.Remnant
         skipReg:
             try
             {
-                var resnames = Assembly.GetExecutingAssembly().GetManifestResourceNames();
-                File.WriteAllLines(Path.Combine(RWCustom.Custom.RootFolderDirectory(), "resnames.txt"), resnames);
+                //var resnames = Assembly.GetExecutingAssembly().GetManifestResourceNames();
+                //File.WriteAllLines(Path.Combine(RWCustom.Custom.RootFolderDirectory(), "resnames.txt"), resnames);
             }
             catch { }
 

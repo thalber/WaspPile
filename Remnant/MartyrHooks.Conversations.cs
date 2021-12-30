@@ -56,7 +56,7 @@ namespace WaspPile.Remnant
             c.GotoNext(MoveType.Before, xx=> xx.MatchNewobj<SSOracleBehavior.SSOracleMeetWhite>());
             c.Remove();
             c.Emit(Newobj, ctorof<Satellite.MeetMartyrSubroutine>(typeof(SSOracleBehavior)));
-            il.dump(RootFolderDirectory(), "ssob_newentry");
+            //il.dump(RootFolderDirectory(), "ssob_newentry");
         }
 
         //TODO: candidate for moving into commonHooks
