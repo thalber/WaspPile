@@ -7,5 +7,7 @@
 		{"name":"Slugcat_Flat.png", "x":0, "y":240, "depth":10, "flatmode":true, "crisp":true}
 	],
 	"idledepths": [ 1.95, 1.80, 1.70 ],
-	"slugcatdepth": 0.9
+	"slugcatdepth": 0.9,
+	"markx": 730,
+	"marky": 678
 }

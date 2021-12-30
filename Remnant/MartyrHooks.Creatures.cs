@@ -107,6 +107,8 @@ namespace WaspPile.Remnant
             //spitters
             On.BigSpider.Spit += shotgunBlast;
             On.DartMaggot.Shoot += RegSpitMultiplication;
+            On.DartMaggot.ChangeMode += Darts_ReflectOffMartyr;
+            //IL.DartMaggot.ShotUpdate += Dart_ReflectOffGhosts;
             On.BigSpider.ctor += makeSpitter;
             //On.BigSpiderGraphics.ctor += recolorSpitters;
             On.BigSpiderGraphics.DrawSprites += SpiderG_Draw;
@@ -115,7 +117,33 @@ namespace WaspPile.Remnant
             IL.BigSpiderGraphics.ctor += SpiderG_RecolorAndFluff;
         }
 
+        //private static void Dart_ReflectOffGhosts(ILContext il)
+        //{
+        //    ILCursor c = new(il);
+        //    c.GotoNext(MoveType.Before,
+        //        xx => xx.MatchLdloca(6),
+        //        xx => xx.MatchLdfld<SharedPhysics.CollisionResult>("chunk"),
+        //        xx => xx.MatchBrfalse(out _));
+        //    //c.Emit(Ldarg_0);
+        //    c.Emit(Ldloca, il.Body.Variables[6]);
+        //    //c.EmitDelegate<Action<DartMaggot, SharedPhysics.CollisionResult>>((mag, cr) => {
+        //    //    if (cr.chunk?.owner is Player p && playerFieldsByHash.ContainsKey(p.GetHashCode())) cr.chunk = null;
+        //    //});
+        //    var br = c.CurrentInstruction();
+        //    c.EmitDelegate<Func<SharedPhysics.CollisionResult, bool>>(cr =>
+        //    cr.chunk?.owner is Player p
+        //    && playerFieldsByHash.TryGetValue(p.GetHashCode(), out var mf)
+        //    && mf.echoActive);
+        //}
 
+        private static void Darts_ReflectOffMartyr(On.DartMaggot.orig_ChangeMode orig, DartMaggot self, DartMaggot.Mode newMode)
+        {
+            if (newMode == DartMaggot.Mode.StuckInChunk
+                && self.stuckInChunk?.owner is Player p
+                && playerFieldsByHash.TryGetValue(p.GetHashCode(), out var mf)
+                && mf.echoActive) newMode = DartMaggot.Mode.Free;
+            orig(self, newMode);
+        }
         #region spider
         private static void SpiderG_RecolorAndFluff(ILContext il)
         {
@@ -190,13 +218,13 @@ namespace WaspPile.Remnant
                         self.abstractCreature.pos, 
                         self.room.game.GetNewID());
                     self.room.abstractRoom.AddEntity(apo);
+                    apo.destroyOnAbstraction = true;
                     apo.RealizeInRoom();
                     var rMaggot = apo.realizedObject as DartMaggot;
                     rMaggot.Shoot(
                         bcen + RNV() * 2.5f, 
                         RotateAroundOrigo(bdir, URand.Range(-7f, 7f)), 
                         SpitterLock);
-                    
                 }
                 for (int i = 0; i < URand.Range(2, 3); i++) {
                     Smoke.FireSmoke.FireSmokeParticle exhaust = new();
@@ -610,6 +638,8 @@ namespace WaspPile.Remnant
             On.BigSpiderGraphics.DrawSprites -= SpiderG_Draw;
             IL.BigSpiderGraphics.ApplyPalette -= SpiderG_removeDarkness;
             IL.BigSpiderGraphics.ctor -= SpiderG_RecolorAndFluff;
+            //IL.DartMaggot.ShotUpdate -= Dart_ReflectOffGhosts;
+            On.DartMaggot.ChangeMode -= Darts_ReflectOffMartyr;
         }
     }
 }

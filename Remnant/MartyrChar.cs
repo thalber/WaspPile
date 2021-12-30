@@ -103,6 +103,11 @@ namespace WaspPile.Remnant
         }
         internal static Stream GetRes(params string[] path)
         {
+            if (RemnantPlugin.DebugMode)
+            {
+                Debug.LogWarning("REMNANT in debug mode: skipping ER " + string.Join("/", path));
+                return null;
+            }
             var patchedPath = new string[path.Length];
             for (int i = path.Length - 1; i > -1; i--) patchedPath[i] = path[i];
             //kinda janky for having 2 overlapping scenes but whatevs
