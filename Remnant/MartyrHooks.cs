@@ -220,12 +220,12 @@ namespace WaspPile.Remnant
             if (!playerFieldsByHash.TryGetValue(self.player.GetHashCode(), out var mf) || mf.bubbleSpriteIndex == -1 || PLAYER_SIN_LOCK) return;
             try
             {
-                Console.WriteLine($"martyr addtocont: bubble indecks {mf.bubbleSpriteIndex} sleaser.s length {sLeaser.sprites.Length}");
+                if (RemnantPlugin.DebugMode) LogWarning($"martyr addtocont: bubble indecks {mf.bubbleSpriteIndex} sleaser.s length {sLeaser.sprites.Length}");
                 var bubble = sLeaser.sprites[mf.bubbleSpriteIndex];
                 bubble.RemoveFromContainer();
                 rCam.ReturnFContainer("HUD").AddChild(bubble);
             }
-            catch (IndexOutOfRangeException) { Console.WriteLine("Something went bad on martyr player.ATC"); }
+            catch (IndexOutOfRangeException) { LogWarning("Something went bad on martyr player.ATC"); }
         }
 
         private static void Player_Draw(On.PlayerGraphics.orig_DrawSprites orig, 
@@ -282,7 +282,7 @@ namespace WaspPile.Remnant
             foreach (var sprite in sLeaser.sprites) sprite.RemoveFromContainer();
             Array.Resize(ref sLeaser.sprites, sLeaser.sprites.Length + 1);
             mf.bubbleSpriteIndex = sLeaser.sprites.Length - 1;
-            Console.WriteLine($"martyr bubble sprite: {mf.bubbleSpriteIndex}");
+            if (RemnantPlugin.DebugMode) LogWarning($"martyr bubble sprite: {mf.bubbleSpriteIndex}");
             sLeaser.sprites[mf.bubbleSpriteIndex] = new FSprite(Futile.atlasManager.GetElementWithName("Futile_White"))
             {
                 shader = self.player.room.game.rainWorld.Shaders["GhostDistortion"]
@@ -370,7 +370,7 @@ namespace WaspPile.Remnant
                     lightColor: RainWorld.GoldRGB));
                 self.room.PlaySound(SoundID.Fire_Spear_Explode, self.firstChunk.pos, 1.1f, 3.7f);
                 self.room.ScreenMovement(self.firstChunk.pos, default, 1.4f);
-                Console.WriteLine("Smack!");
+                if (RemnantPlugin.DebugMode) Log("Smack!");
             }
             return res;
         }
@@ -519,7 +519,7 @@ namespace WaspPile.Remnant
             mf.lastKeyDown = mf.keyDown;
             mf.keyDown = Input.GetKey(RemnantConfig.GetKeyForPlayer(self.room.game.Players.IndexOf(self.abstractCreature)));
             bool toggleRequested = (mf.keyDown && !mf.lastKeyDown);
-            if (RemnantPlugin.DebugMode && toggleRequested) Console.WriteLine("Martyr toggle req");
+            if (RemnantPlugin.DebugMode && toggleRequested) LogWarning("Martyr toggle req");
             if (mf.echoActive)
             {
                 self.aerobicLevel = 0f;

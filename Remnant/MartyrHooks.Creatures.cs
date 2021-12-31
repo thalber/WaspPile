@@ -565,7 +565,7 @@ namespace WaspPile.Remnant
                     ins3 => ins3.MatchCallOrCallvirt<Creature>("get_mainBodyChunk"));
             var exitl = c.DefineLabel();
             var ex2 = c.Instrs[c.Index];
-            Console.WriteLine($"exit defined");
+            if (RemnantPlugin.DebugMode) LogWarning($"exit defined");
             c.Index = 0;
             int some = default;
             if (c.TryGotoNext(MoveType.Before,
@@ -594,12 +594,12 @@ namespace WaspPile.Remnant
                 });
                 c.Emit(Stloc_S, mynum);
                 c.Emit(Br, ex2);
-                Console.WriteLine("GOLDLIZ: liz graphics ctor defiled successfully");
+                if (RemnantPlugin.DebugMode) LogWarning("GOLDLIZ: liz graphics ctor defiled successfully");
                 //File.WriteAllText(Path.Combine(RootFolderDirectory(), "ild.txt"), il.ToString());
             }
             else
             {
-                Console.WriteLine("GOLDLIZ: FAILED TO FIND INSERTION POINT!");
+                if (RemnantPlugin.DebugMode) LogWarning("GOLDLIZ: FAILED TO FIND INSERTION POINT!");
             }
         }
         private static void Liz_RecolorSpit(

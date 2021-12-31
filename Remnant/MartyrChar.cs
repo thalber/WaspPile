@@ -104,19 +104,18 @@ namespace WaspPile.Remnant
         }
         internal static Stream GetRes(params string[] path)
         {
-            if (RemnantPlugin.DebugMode)
-            {
-                //Debug.LogWarning("REMNANT in debug mode: skipping ER " + string.Join("/", path));
-                //return null;
-            }
             var patchedPath = new string[path.Length];
-            for (int i = path.Length - 1; i > -1; i--) patchedPath[i] = path[i];
+            Array.Copy(path, patchedPath, path.Length);
             //kinda janky for having 2 overlapping scenes but whatevs
             if (path[path.Length - 2] == "SelectMenuDisrupt" && path.Last() != "scene.json")
                 patchedPath[path.Length - 2] = "SelectMenu";
             string oresname = "WaspPile.Remnant.assets." + string.Join(".", patchedPath);
+            if (RemnantPlugin.DebugRules.Contains("RESFILES"))
+            {
+
+            }
             var tryret = Assembly.GetExecutingAssembly().GetManifestResourceStream(oresname);
-            if (tryret != null) Console.WriteLine($"LOADING ER: {oresname}");
+            if (tryret != null && RemnantPlugin.DebugMode) Debug.LogWarning($"LOADING ER: {oresname}");
             return tryret;
         }
         public override Stream GetResource(params string[] path) => GetRes(path) ?? base.GetResource();
@@ -195,14 +194,14 @@ namespace WaspPile.Remnant
                 //RemedyCache = data[ALLEVKEY] == "ON";
                 data.TryGetValue(ALLEVKEY, out var res);
                 RemedyCache = res == "ON";
-                Debug.LogWarning("LOADPERM RUN");
+                if (RemnantPlugin.DebugMode) Debug.LogWarning("LOADPERM RUN");
                 base.LoadPermanent(data);
             }
             private bool rc;
 
             internal bool RemedyCache {
-                get { Debug.LogWarning("REMEDY CACHED: " + rc); return rc; } 
-                set { rc = value; Debug.LogWarning("REMEDY CACHE SET TO: " + value); } 
+                get { if (RemnantPlugin.DebugMode) Debug.LogWarning("REMEDY CACHED: " + rc); return rc; } 
+                set { rc = value; if (RemnantPlugin.DebugMode) Debug.LogWarning("REMEDY CACHE SET TO: " + value); } 
             }
         }
     }
