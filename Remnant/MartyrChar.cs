@@ -71,7 +71,6 @@ namespace WaspPile.Remnant
         public override bool CanEatMeat(Player player, Creature creature) => (creature is Centipede || creature is not IPlayerEdible);
         public override bool QuarterFood => true;
 
-        //TODO: start room, karma cap, starvation
         protected override void Disable()
         {
             MartyrHooks.Disable();
@@ -107,8 +106,8 @@ namespace WaspPile.Remnant
         {
             if (RemnantPlugin.DebugMode)
             {
-                Debug.LogWarning("REMNANT in debug mode: skipping ER " + string.Join("/", path));
-                return null;
+                //Debug.LogWarning("REMNANT in debug mode: skipping ER " + string.Join("/", path));
+                //return null;
             }
             var patchedPath = new string[path.Length];
             for (int i = path.Length - 1; i > -1; i--) patchedPath[i] = path[i];

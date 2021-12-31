@@ -74,6 +74,12 @@ namespace WaspPile.Remnant
                 var cgold = GetCreatureTemplate(t);
                 cgold.baseDamageResistance *= CRIT_GOLDEN_RESIST_MODIFIER;
                 cgold.shortcutColor = MartyrChar.echoGold;
+                if (RemnantPlugin.DebugMode)
+                {
+                    LogWarning($"MODIFIED CREATURE TEMPLATE: {t}");
+                    LogBunch(__arglist(cgold.baseDamageResistance));
+                    LogWarning("~~ __ ~~");
+                }
             }
             var glizdbreed = GetCreatureTemplate(CRIT_CT_GOLDLIZ).breedParameters as LizardBreedParams;
             glizdbreed.toughness = 300f;

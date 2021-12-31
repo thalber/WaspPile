@@ -13,12 +13,13 @@ using static RWCustom.Custom;
 using static UnityEngine.Mathf;
 using static WaspPile.Remnant.Satellite.RemnantUtils;
 using static Mono.Cecil.Cil.OpCodes;
+using static UnityEngine.Debug;
 
 using URand = UnityEngine.Random;
 
 namespace WaspPile.Remnant
 {
-    public static class CommonHooks
+    public static partial class CommonHooks
     {
         internal static readonly List<IDetour> manualHooks = new();
         internal static void Enable()
@@ -30,6 +31,24 @@ namespace WaspPile.Remnant
             On.DataPearl.DrawSprites += Pearl_Draw;
             On.DataPearl.AddToContainer += Pearl_ATC;
             //On.RainWorldGame.Update += ApplyHitFrames;
+            if (RemnantPlugin.DebugMode)
+            {
+                On.Creature.Violence += LogDamage;
+            }
+        }
+
+        private static void LogDamage(On.Creature.orig_Violence orig, Creature self, BodyChunk source, Vector2? directionAndMomentum, BodyChunk hitChunk, PhysicalObject.Appendage.Pos hitAppendage, Creature.DamageType type, float damage, float stunBonus)
+        {
+            orig(self,
+                source,
+                directionAndMomentum,
+                hitChunk,
+                hitAppendage,
+                type,
+                damage,
+                stunBonus);
+            LogWarning(
+                $"CREATURE {self.Template.type}, HIT BY {source?.owner.abstractPhysicalObject?.type} FOR {(damage, stunBonus)}, REMAINING HEALTH: {(self.State is HealthState hs ? hs.health : "N/A")}, ALIVE: {self.State.alive}");
         }
 
         internal static int freeze = 0;
@@ -100,6 +119,7 @@ namespace WaspPile.Remnant
             On.DataPearl.AddToContainer -= Pearl_ATC;
 
             On.RainWorldGame.Update -= ApplyHitFrames;
+            On.Creature.Violence -= LogDamage;
             foreach (var hk in manualHooks) hk.Undo();
             manualHooks.Clear();
         }

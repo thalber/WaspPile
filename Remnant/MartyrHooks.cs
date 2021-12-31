@@ -82,11 +82,15 @@ namespace WaspPile.Remnant
         internal const int ECHOMODE_RCB_ROLL = 14;
         public static void powerDown(this Player self, ref MartyrFields mf, bool fullDeplete = false)
         {
-            Console.WriteLine("Martyr ability down");
-            mf.cooldown = fullDeplete ? 
-                ECHOMODE_DEPLETE_COOLDOWN 
+            mf.cooldown = fullDeplete ?
+                ECHOMODE_DEPLETE_COOLDOWN
                 : ECHOMODE_DEPLETE_COOLDOWN * InverseLerp(mf.maxEchoReserve, 0f, mf.echoReserve) * 0.8f;
-            Console.WriteLine($"cd: {mf.cooldown}");
+            if (RemnantPlugin.DebugMode)
+            {
+                Console.WriteLine($"cd: {mf.cooldown}");
+                Console.WriteLine("Martyr ability down");
+            }
+            
             mf.echoActive = false;
             self.room.PlaySound(SoundID.Spear_Bounce_Off_Wall, self.firstChunk.pos, 1.0f, 0.5f);
             self.lungsExhausted |= mf.echoReserve / mf.maxEchoReserve < 0.35f;
@@ -96,10 +100,11 @@ namespace WaspPile.Remnant
         }
         public static void powerUp(this Player self, ref MartyrFields mf)
         {
-            Console.WriteLine($"Martyr ability up\nreserve: {mf.echoReserve}");
+            if (!self.Consious) return;
             mf.echoActive = true;
             self.room.PlaySound(SoundID.Rock_Hit_Creature, self.firstChunk.pos, 1.0f, 0.5f);
             self.airInLungs = 1f;
+            if (RemnantPlugin.DebugMode) Console.WriteLine($"Martyr ability up\nreserve: {mf.echoReserve}");
         }
         
         internal static readonly List<IDetour> manualHooks = new();
@@ -143,7 +148,6 @@ namespace WaspPile.Remnant
             }
             //id
             On.PlayerGraphics.ApplyPalette += Player_APal;
-
             On.PlayerGraphics.InitiateSprites += Player_MakeSprites;
             On.PlayerGraphics.AddToContainer += Player_ATC;
             On.PlayerGraphics.DrawSprites += Player_Draw;
@@ -152,19 +156,24 @@ namespace WaspPile.Remnant
             manualHooks.Add(new ILHook(methodof<Player>("EatMeatUpdate"), IL_GoldCure));
             On.SlugcatStats.SlugcatFoodMeter += slugFoodMeter;
             On.Player.Die += regdeath;
-            //manualHooks.Add(new Hook(methodof<SlugcatStats>("SlugcatFoodMeter"), methodof(mhk_t, nameof(getFoodMeter))));
-            //manualHooks.Add(new ILHook(methodof<Player>("UpdateBodyMode"), extendSlides));
+            //nvm it gets inlined :(
+            //manualHooks.Add(new Hook(methodof<SLOrcacleState>("get_neuronsLeft"), methodof(mhk_t, nameof(noNeurons))));
+            manualHooks.Add(new ILHook(methodof<Oracle>("SetUpSwarmers"), KillMoon));
             CRIT_Enable();
             CONVO_Enable();
         }
-
-        private static void EchomodeDamageBonusActual(On.Player.orig_ThrownSpear orig, Player self, Spear spear)
+        private static void KillMoon(ILContext il)
         {
-            orig(self, spear);
-            if (playerFieldsByHash.TryGetValue(self.GetHashCode(), out var mf) && mf.echoActive)
-            {
-                spear.spearDamageBonus *= ECHOMODE_DAMAGE_BONUS;
-            }
+            ILCursor c = new(il);
+            c.GotoNext(MoveType.After,
+                xx => xx.MatchCallOrCallvirt<MiscWorldSaveData>("get_SLOracleState"),
+                xx => xx.MatchCallOrCallvirt<SLOrcacleState>("get_neuronsLeft"),
+                xx => xx.MatchStfld<Oracle>("glowers"));
+            c.Emit(Ldarg_0).EmitDelegate<Action<Oracle>>(moon => {
+                moon.health = 0f;
+                moon.glowers = 0;
+                if (moon.room.game.session is StoryGameSession ss) ss.saveState.miscWorldSaveData.SLOracleState.neuronsLeft = 0;
+            });
         }
 
         #region misc
@@ -292,6 +301,14 @@ namespace WaspPile.Remnant
         #endregion
         #region ability
 
+        private static void EchomodeDamageBonusActual(On.Player.orig_ThrownSpear orig, Player self, Spear spear)
+        {
+            orig(self, spear);
+            if (playerFieldsByHash.TryGetValue(self.GetHashCode(), out var mf) && mf.echoActive)
+            {
+                spear.spearDamageBonus *= ECHOMODE_DAMAGE_BONUS;
+            }
+        }
         private static int triSpearWield(On.Player.orig_Grabability orig, Player self, PhysicalObject obj)
         {
             if (obj is Spear) return (int)Player.ObjectGrabability.OneHand;
@@ -311,7 +328,7 @@ namespace WaspPile.Remnant
                         force: URand.Range(7f, 10f),
                         damage: 0.01f,
                         stun: URand.Range(0.4f, 1.1f),
-                        deafen: 0.1f,
+                        deafen: 0f,
                         killTagHolder: self.thrownBy,
                         killTagHolderDmgFactor: 0.3f,
                         minStun: 0.01f,
@@ -340,7 +357,7 @@ namespace WaspPile.Remnant
                         force: URand.Range(4f, 8.5f),
                         damage: 0.09f,
                         stun: URand.Range(0.12f, 0.18f),
-                        deafen: 0.3f,
+                        deafen: 0f,
                         killTagHolder: self.thrownBy,
                         killTagHolderDmgFactor: 0.3f,
                         minStun: 0.02f,
@@ -500,9 +517,9 @@ namespace WaspPile.Remnant
             if (!playerFieldsByHash.TryGetValue(self.GetHashCode(), out var mf)) goto skipNotMine;
             //basic recharge/cooldown and activation
             mf.lastKeyDown = mf.keyDown;
-            mf.keyDown = Input.GetKeyDown(RemnantConfig.GetKeyForPlayer(self.room.game.Players.IndexOf(self.abstractCreature)));
+            mf.keyDown = Input.GetKey(RemnantConfig.GetKeyForPlayer(self.room.game.Players.IndexOf(self.abstractCreature)));
             bool toggleRequested = (mf.keyDown && !mf.lastKeyDown);
-            if (toggleRequested) Console.WriteLine("Martyr toggle req");
+            if (RemnantPlugin.DebugMode && toggleRequested) Console.WriteLine("Martyr toggle req");
             if (mf.echoActive)
             {
                 self.aerobicLevel = 0f;
@@ -619,7 +636,9 @@ namespace WaspPile.Remnant
 
             foreach (var h in manualHooks) { h.Undo(); }
             manualHooks.Clear();
-            System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(typeof(StaticWorld).TypeHandle);
+            //System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(typeof(StaticWorld).TypeHandle);
+            //maybe this will work?
+            typeof(StaticWorld).TypeInitializer?.Invoke(null, null);
         }
 
         internal static void FieldCleanup()

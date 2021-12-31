@@ -35,6 +35,14 @@ namespace WaspPile.Remnant
         skipReg:
             try
             {
+                if (DebugMode)
+                {
+                    Logger.LogWarning("REMNANT RUNNING IN DEBUG MODE! " + Environment.GetEnvironmentVariable("MARTYRDEBUG"));
+                }
+                if (DoTrolling)
+                {
+                    Logger.LogWarning("miimows style slugcat hips");
+                }
                 //var resnames = Assembly.GetExecutingAssembly().GetManifestResourceNames();
                 //File.WriteAllLines(Path.Combine(RWCustom.Custom.RootFolderDirectory(), "resnames.txt"), resnames);
             }
@@ -42,7 +50,9 @@ namespace WaspPile.Remnant
 
         }
         internal static bool DoTrolling => File.Exists(Path.Combine(RWCustom.Custom.RootFolderDirectory(), "gatobabosa.txt"));
-        internal static bool DebugMode => false;//Environment.GetEnvironmentVariable("MARTYRDEBUG") != null;
+        internal static bool DebugMode => DebugRules != null;
+        internal static string DebugRules => Environment.GetEnvironmentVariable("MARTYRDEBUG");
+        internal static string[] DebugRulesSplit => System.Text.RegularExpressions.Regex.Split(DebugRules ?? string.Empty, ", ");
         private bool registered = false;
     }
 
