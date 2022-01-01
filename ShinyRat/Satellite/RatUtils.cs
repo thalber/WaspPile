@@ -74,6 +74,13 @@ namespace WaspPile.ShinyRat.Satellite
         internal static Instruction CurrentInstruction(this ILCursor c) => c.Instrs[c.Index];
         internal static FieldInfo fieldof<T>(string name, BindingFlags context = allContextsInstance)
             => typeof(T).GetField(name, context);
+        internal static void CleanUp(this Type t)
+        {
+            foreach (var fld in t.GetFields(allContextsStatic))
+            {
+                fld.SetValue(null, default);
+            }
+        }
         #endregion
         #region collection extensions
         internal static void SetKey<tKey, tValue>(this Dictionary<tKey, tValue> dict, tKey key, tValue val)

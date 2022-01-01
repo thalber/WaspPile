@@ -28,10 +28,10 @@ namespace WaspPile.ShinyRat
         public static void Enable()
         {
             //idr
-            SG.InitiateSprites += SG_InitiateSprites;
-            SG.AddToContainer += SG_AddToContainer;
+            //SG.InitiateSprites += SG_InitiateSprites;
+            //SG.AddToContainer += SG_AddToContainer;
             SG.DrawSprites += SG_DrawSprites;
-            SG.ApplyPalette += SG_ApplyPalette;
+            //SG.ApplyPalette += SG_ApplyPalette;
             On.MainLoopProcess.ctor += WriteAllElms;
         }
 
@@ -70,6 +70,7 @@ namespace WaspPile.ShinyRat
                 foreach (var kvp in BpToIndex)
                 {
                     BP cbp = kvp.Key;
+                    if (cbp is BP.tail && ShinyRatPlugin.CustomTailsExist) continue;
                     foreach (int i in kvp.Value) sprites[i].color = (cbp == BP.face) ? cprof.faceCol : cprof.bodyCol;
                     cprof.BaseElements.TryGetValue(cbp, out var en);
                     if (en == default) continue;
@@ -125,10 +126,10 @@ namespace WaspPile.ShinyRat
         public static void Disable()
         {
             //idr
-            SG.InitiateSprites -= SG_InitiateSprites;
-            SG.AddToContainer -= SG_AddToContainer;
+            //SG.InitiateSprites -= SG_InitiateSprites;
+            //SG.AddToContainer -= SG_AddToContainer;
             SG.DrawSprites -= SG_DrawSprites;
-            SG.ApplyPalette -= SG_ApplyPalette;
+            //SG.ApplyPalette -= SG_ApplyPalette;
             On.MainLoopProcess.ctor -= WriteAllElms;
         }
     }
