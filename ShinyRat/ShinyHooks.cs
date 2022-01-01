@@ -70,7 +70,9 @@ namespace WaspPile.ShinyRat
                 foreach (var kvp in BpToIndex)
                 {
                     BP cbp = kvp.Key;
-                    var groupName = cprof.BaseElements[cbp].Value;
+                    cprof.BaseElements.TryGetValue(cbp, out var en);
+                    if (en == default) continue;
+                    var groupName = en.Value;
                     //string taren;
                     string stateInd = string.Empty;
                     foreach (int i in kvp.Value)
