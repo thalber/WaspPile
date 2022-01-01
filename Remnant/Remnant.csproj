@@ -108,6 +108,7 @@
     <Compile Include="MartyrHooks.Creatures.cs" />
     <Compile Include="OutlawChar.cs" />
     <Compile Include="OutlawHooks.cs" />
+    <Compile Include="PermanentHooks.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

@@ -43,15 +43,18 @@ namespace WaspPile.Remnant
                 {
                     Logger.LogWarning("miimows style slugcat hips");
                 }
-                //var resnames = Assembly.GetExecutingAssembly().GetManifestResourceNames();
-                //File.WriteAllLines(Path.Combine(RWCustom.Custom.RootFolderDirectory(), "resnames.txt"), resnames);
+                PermanentHooks.Enable();
             }
             catch { }
-
         }
+        public void OnDisable()
+        {
+            PermanentHooks.Disable();
+        }
+
         internal static bool DoTrolling => File.Exists(Path.Combine(RWCustom.Custom.RootFolderDirectory(), "gatobabosa.txt"));
         internal static bool DebugMode => DebugRuleString != null;
-        internal static string DebugRuleString => Environment.GetEnvironmentVariable("MARTYRDEBUG");
+        internal static string DebugRuleString;
         internal static string[] DebugRules => System.Text.RegularExpressions.Regex.Split(DebugRuleString ?? string.Empty, ", ");
         private bool registered = false;
     }

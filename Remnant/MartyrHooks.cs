@@ -213,8 +213,12 @@ namespace WaspPile.Remnant
         //initsprites lock, active when vanilla run of initsprites is in effect
         private static bool PLAYER_SIN_LOCK;
 
-        private static void Player_ATC(On.PlayerGraphics.orig_AddToContainer orig, 
-            PlayerGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, FContainer newContatiner)
+        private static void Player_ATC(
+            On.PlayerGraphics.orig_AddToContainer orig,
+            PlayerGraphics self,
+            RoomCamera.SpriteLeaser sLeaser,
+            RoomCamera rCam,
+            FContainer newContatiner)
         {
             orig(self, sLeaser, rCam, newContatiner);
             if (!playerFieldsByHash.TryGetValue(self.player.GetHashCode(), out var mf) || mf.bubbleSpriteIndex == -1 || PLAYER_SIN_LOCK) return;
@@ -228,15 +232,23 @@ namespace WaspPile.Remnant
             catch (IndexOutOfRangeException) { LogWarning("Something went bad on martyr player.ATC"); }
         }
 
-        private static void Player_Draw(On.PlayerGraphics.orig_DrawSprites orig, 
-            PlayerGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
+        private static void Player_Draw(
+            On.PlayerGraphics.orig_DrawSprites orig,
+            PlayerGraphics self,
+            RoomCamera.SpriteLeaser sLeaser,
+            RoomCamera rCam,
+            float timeStacker,
+            Vector2 camPos)
         {
+            playerFieldsByHash.TryGetValue(self.player.GetHashCode(), out var mf);
+            var face = sLeaser.sprites[9];
+            face.scale = 1f;
             orig(self, sLeaser, rCam, timeStacker, camPos);
-            if (self.owner.slatedForDeletetion || self.owner.room != rCam.room || !playerFieldsByHash.TryGetValue(self.player.GetHashCode(), out var mf)) return;
+            if (self.owner.slatedForDeletetion || self.owner.room != rCam.room || mf == null) return;
+            var bubble = sLeaser.sprites[mf.bubbleSpriteIndex];
             var npos = Vector2.Lerp(self.head.lastPos, self.head.pos, timeStacker);
             
             //martyr bubble
-            var bubble = sLeaser.sprites[mf.bubbleSpriteIndex];
             bubble.SetPosition(npos - camPos);
             //bubble.alpha = Lerp(mf.lastFade, mf.fade, timeStacker);
             bubble.element = Futile.atlasManager.GetElementWithName("Futile_White");
@@ -251,7 +263,6 @@ namespace WaspPile.Remnant
             //sLeaser.sprites[9].color = currEyeCol;
 
             //face elm
-            var face = sLeaser.sprites[9];
             face.color = currEyeCol;
             //var oldelm = face.element;
             if (mf.echoActive)
@@ -272,8 +283,11 @@ namespace WaspPile.Remnant
             
         }
 
-        private static void Player_MakeSprites(On.PlayerGraphics.orig_InitiateSprites orig, 
-            PlayerGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
+        private static void Player_MakeSprites(
+            On.PlayerGraphics.orig_InitiateSprites orig,
+            PlayerGraphics self,
+            RoomCamera.SpriteLeaser sLeaser,
+            RoomCamera rCam)
         {
             PLAYER_SIN_LOCK = true;
             orig(self, sLeaser, rCam);
@@ -290,7 +304,12 @@ namespace WaspPile.Remnant
             self.AddToContainer(sLeaser, rCam, null);
         }
 
-        private static void Player_APal(On.PlayerGraphics.orig_ApplyPalette orig, PlayerGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette palette)
+        private static void Player_APal(
+            On.PlayerGraphics.orig_ApplyPalette orig,
+            PlayerGraphics self,
+            RoomCamera.SpriteLeaser sLeaser,
+            RoomCamera rCam,
+            RoomPalette palette)
         {
             orig(self, sLeaser, rCam, palette);
             if (playerFieldsByHash.TryGetValue(self.player.GetHashCode(), out var mf))

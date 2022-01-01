@@ -121,27 +121,21 @@ namespace WaspPile.Remnant
             IL.BigSpiderAI.SpiderSpitModule.Update += Spider_slowReload;
             IL.BigSpiderGraphics.ApplyPalette += SpiderG_removeDarkness;
             IL.BigSpiderGraphics.ctor += SpiderG_RecolorAndFluff;
+
+            //misc
+            On.CreatureSymbol.ColorOfCreature += ColorArenaIcons;
         }
 
-        //private static void Dart_ReflectOffGhosts(ILContext il)
-        //{
-        //    ILCursor c = new(il);
-        //    c.GotoNext(MoveType.Before,
-        //        xx => xx.MatchLdloca(6),
-        //        xx => xx.MatchLdfld<SharedPhysics.CollisionResult>("chunk"),
-        //        xx => xx.MatchBrfalse(out _));
-        //    //c.Emit(Ldarg_0);
-        //    c.Emit(Ldloca, il.Body.Variables[6]);
-        //    //c.EmitDelegate<Action<DartMaggot, SharedPhysics.CollisionResult>>((mag, cr) => {
-        //    //    if (cr.chunk?.owner is Player p && playerFieldsByHash.ContainsKey(p.GetHashCode())) cr.chunk = null;
-        //    //});
-        //    var br = c.CurrentInstruction();
-        //    c.EmitDelegate<Func<SharedPhysics.CollisionResult, bool>>(cr =>
-        //    cr.chunk?.owner is Player p
-        //    && playerFieldsByHash.TryGetValue(p.GetHashCode(), out var mf)
-        //    && mf.echoActive);
-        //}
+        private static Color ColorArenaIcons(On.CreatureSymbol.orig_ColorOfCreature orig, IconSymbol.IconSymbolData iconData)
+        {
+            if (new[] { CRIT_CT_GOLDCENTI, CRIT_CT_GOLDLIZ, CRIT_CT_GOLDSPITTER }.Contains(iconData.critType)) return MartyrChar.echoGold;
+            return orig(iconData);
+        }
 
+        #region misc
+
+        #endregion misc
+        #region spider
         private static void Darts_ReflectOffMartyr(On.DartMaggot.orig_ChangeMode orig, DartMaggot self, DartMaggot.Mode newMode)
         {
             if (newMode == DartMaggot.Mode.StuckInChunk
@@ -150,7 +144,6 @@ namespace WaspPile.Remnant
                 && mf.echoActive) newMode = DartMaggot.Mode.Free;
             orig(self, newMode);
         }
-        #region spider
         private static void SpiderG_RecolorAndFluff(ILContext il)
         {
             ILCursor c = new(il);
@@ -388,7 +381,7 @@ namespace WaspPile.Remnant
         private static void Centi_Crawl(Action<Centipede> orig, Centipede self)
         {
             var oldsize = self.size;
-            if (self.Red) self.size *= 0.1f;
+            if (self.IsGolden()) self.size *= 0.7f;
             orig(self);
             self.size = oldsize;
         }
@@ -415,7 +408,7 @@ namespace WaspPile.Remnant
             }
         }
         private static Color Centi_ShortCutColor(Func<Centipede, Color> orig, Centipede self) 
-            => self.Red ? Color.yellow : orig(self);
+            => self.IsGolden() ? Color.yellow : orig(self);
         private static void Centi_recolorShellReg(
             On.CentipedeGraphics.orig_ctor orig,
             CentipedeGraphics self,
@@ -469,7 +462,7 @@ namespace WaspPile.Remnant
             orig(self, sLeaser, rCam, timeStacker, camPos);
             if (!self.lGraphics.lizard.IsGolden()) return;
             float amountFadedBy = default, incrementAdded;
-            if (self.lGraphics.lizard.Template.type == CreatureTemplate.Type.RedLizard)
+            if (self.lGraphics.lizard.IsGolden())
             {
                 incrementAdded = 1f / (self.bumps * 2);
                 for (int i = 0; i < 2; i++)
@@ -588,7 +581,7 @@ namespace WaspPile.Remnant
                         spr = self.AddCosmetic(spr, new LizardCosmetics.TailGeckoScales(self, spr));
                         spr = self.AddCosmetic(spr, new LizardCosmetics.JumpRings(self, spr));
                         spr = self.AddCosmetic(spr, new LizardCosmetics.ShortBodyScales(self, spr));
-                        Debug.Log("GOLDLIZ cosmetics applied.");
+                        if (RemnantPlugin.DebugMode) LogWarning("GOLDLIZ cosmetics applied.");
                     }
                     return spr;
                 });
@@ -599,7 +592,8 @@ namespace WaspPile.Remnant
             }
             else
             {
-                if (RemnantPlugin.DebugMode) LogWarning("GOLDLIZ: FAILED TO FIND INSERTION POINT!");
+                LogWarning("GOLDLIZ: FAILED TO FIND INSERTION POINT!");
+                //if (RemnantPlugin.DebugMode) 
             }
         }
         private static void Liz_RecolorSpit(
@@ -646,6 +640,9 @@ namespace WaspPile.Remnant
             IL.BigSpiderGraphics.ctor -= SpiderG_RecolorAndFluff;
             //IL.DartMaggot.ShotUpdate -= Dart_ReflectOffGhosts;
             On.DartMaggot.ChangeMode -= Darts_ReflectOffMartyr;
+
+            //misc
+            On.CreatureSymbol.ColorOfCreature -= ColorArenaIcons;
         }
     }
 }
