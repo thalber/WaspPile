@@ -33,7 +33,8 @@ namespace WaspPile.Remnant
         private static void RefreshDebugSettings(On.MainLoopProcess.orig_ctor orig, MainLoopProcess self, ProcessManager manager, ProcessManager.ProcessID ID)
         {
             orig(self, manager, ID);
-            RemnantPlugin.DebugRuleString = Environment.GetEnvironmentVariable("MARTYRDEBUG");
+            RemnantPlugin.RefreshDebugSettings();
+            LogWarning("REMNANT LOG STATUS : " + RemnantPlugin.DebugString);
         }
 
         internal static void Disable()

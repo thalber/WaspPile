@@ -4,15 +4,15 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{B6B5DEAB-313B-4A85-AC16-0E346FEFA011}</ProjectGuid>
+    <ProjectGuid>{36264D06-0AEE-4D5C-8F98-43178677F408}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>DefaultRodent</RootNamespace>
-    <AssemblyName>DefaultRodent</AssemblyName>
+    <RootNamespace>WaspPile.ShinyRat</RootNamespace>
+    <AssemblyName>ShinyRat</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
-    <LangVersion>9.0</LangVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
+    <LangVersion>9.0</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -34,55 +34,39 @@
   <ItemGroup>
     <Reference Include="Assembly-CSharp">
       <HintPath>..\SolutionReferences\Assembly-CSharp.dll</HintPath>
-      <Private>False</Private>
     </Reference>
     <Reference Include="BepInEx">
       <HintPath>..\SolutionReferences\BepInEx.dll</HintPath>
-      <Private>False</Private>
     </Reference>
     <Reference Include="HOOKS-Assembly-CSharp">
       <HintPath>..\SolutionReferences\HOOKS-Assembly-CSharp.dll</HintPath>
-      <Private>False</Private>
     </Reference>
     <Reference Include="Mono.Cecil">
       <HintPath>..\SolutionReferences\Mono.Cecil.dll</HintPath>
-      <Private>False</Private>
     </Reference>
     <Reference Include="Mono.Cecil.Mdb">
       <HintPath>..\SolutionReferences\Mono.Cecil.Mdb.dll</HintPath>
-      <Private>False</Private>
     </Reference>
     <Reference Include="Mono.Cecil.Pdb">
       <HintPath>..\SolutionReferences\Mono.Cecil.Pdb.dll</HintPath>
-      <Private>False</Private>
     </Reference>
     <Reference Include="Mono.Cecil.Rocks">
       <HintPath>..\SolutionReferences\Mono.Cecil.Rocks.dll</HintPath>
-      <Private>False</Private>
     </Reference>
     <Reference Include="MonoMod">
       <HintPath>..\SolutionReferences\MonoMod.dll</HintPath>
-      <Private>False</Private>
     </Reference>
     <Reference Include="MonoMod.RuntimeDetour">
       <HintPath>..\SolutionReferences\MonoMod.RuntimeDetour.dll</HintPath>
-      <Private>False</Private>
     </Reference>
     <Reference Include="MonoMod.RuntimeDetour.HookGen">
       <HintPath>..\SolutionReferences\MonoMod.RuntimeDetour.HookGen.exe</HintPath>
-      <Private>False</Private>
     </Reference>
     <Reference Include="MonoMod.Utils">
       <HintPath>..\SolutionReferences\MonoMod.Utils.dll</HintPath>
-      <Private>False</Private>
     </Reference>
     <Reference Include="Partiality">
       <HintPath>..\SolutionReferences\Partiality.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="SlugBase">
-      <HintPath>..\SolutionReferences\SlugBase.dll</HintPath>
-      <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -92,13 +76,15 @@
     <Reference Include="System.Xml" />
     <Reference Include="UnityEngine">
       <HintPath>..\SolutionReferences\UnityEngine.dll</HintPath>
-      <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="drPlugin.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ShinyConfig.cs" />
+    <Compile Include="Satellite\RatUtils.cs" />
+    <Compile Include="ShinyHooks.cs" />
+    <Compile Include="ShinyRatPlugin.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -33,6 +33,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Remnant", "Remnant\Remnant.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DefaultRodent", "DefaultRodent\DefaultRodent.csproj", "{B6B5DEAB-313B-4A85-AC16-0E346FEFA011}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShinyRat", "ShinyRat\ShinyRat.csproj", "{36264D06-0AEE-4D5C-8F98-43178677F408}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -99,6 +101,10 @@ Global
 		{B6B5DEAB-313B-4A85-AC16-0E346FEFA011}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B6B5DEAB-313B-4A85-AC16-0E346FEFA011}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B6B5DEAB-313B-4A85-AC16-0E346FEFA011}.Release|Any CPU.Build.0 = Release|Any CPU
+		{36264D06-0AEE-4D5C-8F98-43178677F408}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{36264D06-0AEE-4D5C-8F98-43178677F408}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{36264D06-0AEE-4D5C-8F98-43178677F408}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{36264D06-0AEE-4D5C-8F98-43178677F408}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

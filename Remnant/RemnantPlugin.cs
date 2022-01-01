@@ -53,9 +53,11 @@ namespace WaspPile.Remnant
         }
 
         internal static bool DoTrolling => File.Exists(Path.Combine(RWCustom.Custom.RootFolderDirectory(), "gatobabosa.txt"));
-        internal static bool DebugMode => DebugRuleString != null;
-        internal static string DebugRuleString;
-        internal static string[] DebugRules => System.Text.RegularExpressions.Regex.Split(DebugRuleString ?? string.Empty, ", ");
+        internal const string CALLKEY = "SHINYRATSPEAKS";
+        internal static void RefreshDebugSettings() => DebugString = Environment.GetEnvironmentVariable(CALLKEY);
+        internal static string DebugString;
+        internal static bool DebugMode => DebugString != null;
+        internal static string[] DebugRules => System.Text.RegularExpressions.Regex.Split(DebugString ?? string.Empty, ", ");
         private bool registered = false;
     }
 

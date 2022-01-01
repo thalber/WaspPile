@@ -78,6 +78,7 @@ namespace DefaultRodent
         class defaultRodentChar : SlugBaseCharacter
         {
             public override string DisplayName => dname;
+            public override string StartRoom => startRoom;
             public defaultRodentChar() : base(cname, FormatVersion.V1, useSpawns)
             {
                 inst = this;

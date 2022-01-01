@@ -1,7 +1,4 @@
-﻿//old shitty golden crits
-//
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -54,7 +51,7 @@ namespace WaspPile.Remnant
                 Vector2 res = Vector2.Lerp(c0.lastPos, c0.pos, ts);
                 return res;
             }
-            internal Dangler.DanglerProps Props(int ind)
+            internal Dangler.DanglerProps Props(int _)
                 => new()
                 { gravity = -0.02f,
                     airFriction = 0.9f,
@@ -94,7 +91,6 @@ namespace WaspPile.Remnant
             On.LizardCosmetics.TailFin.DrawSprites += Liz_recolorTailFins;
             On.LizardCosmetics.TailFin.ctor += Liz_increaseFinSize;
             manualHooks.Add(new ILHook(ctorof<LizardGraphics>(typeof(PhysicalObject)), Liz_IL_makeGraphic));
-            //manualHooks.Add(new Hook(methodof<LizardSpit>(nameof(LizardSpit.DrawSprites))))
             manualHooks.Add(new Hook(methodof<LizardSpit>("DrawSprites"), methodof(mhk_t, nameof(Liz_RecolorSpit))));
             //centi
             On.CentipedeGraphics.ctor += Centi_recolorShellReg;

@@ -467,7 +467,7 @@ namespace WaspPile.Remnant
         {
 #warning breaks whiplashes
             orig(self);
-            if (!playerFieldsByHash.TryGetValue(self.GetHashCode(), out var mf)) return;
+            if (!playerFieldsByHash.TryGetValue(self.GetHashCode(), out _)) return;
             int bound = default;
             switch (self.animation)
             {
@@ -510,12 +510,6 @@ namespace WaspPile.Remnant
             }
             return orig(self, source, dmg, chunk, appPos, direction);
         }
-        
-        //private static void EchomodeDamageBonus(On.Player.orig_ThrownSpear orig, 
-        //    Player self, Spear spear)
-        //{
-        //    orig(self, spear);
-        //}
         #endregion
         #region lifecycle
         private static void regstats(On.Player.orig_SetMalnourished orig, Player self, bool m)
