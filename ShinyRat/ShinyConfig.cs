@@ -4,11 +4,13 @@ using System.Linq;
 using System.Text;
 using BepInEx;
 using BepInEx.Configuration;
+using UnityEngine;
 
 using static RWCustom.Custom;
 using static UnityEngine.Mathf;
 using static Mono.Cecil.Cil.OpCodes;
 using static UnityEngine.Debug;
+using static WaspPile.ShinyRat.Satellite.RatUtils;
 
 namespace WaspPile.ShinyRat
 {
@@ -17,6 +19,12 @@ namespace WaspPile.ShinyRat
         internal class RatProfile
         {
             internal readonly Dictionary<BP, ConfigEntry<string>> BaseElements = new();
+            internal readonly ConfigEntry<float>[] FaceColorElms = new ConfigEntry<float>[3];
+            internal readonly ConfigEntry<float>[] BodyColorElms = new ConfigEntry<float>[3];
+            internal Color faceCol 
+                => (new Color(FaceColorElms[0].Value, FaceColorElms[1].Value, FaceColorElms[2].Value) / 255f).Clamped();
+            internal Color bodyCol
+                => (new Color(BodyColorElms[0].Value, BodyColorElms[1].Value, BodyColorElms[2].Value) / 255f).Clamped();
         }
         internal static RatProfile GetVisProfile(this Player p)
         {

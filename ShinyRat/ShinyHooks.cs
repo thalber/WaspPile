@@ -70,15 +70,15 @@ namespace WaspPile.ShinyRat
                 foreach (var kvp in BpToIndex)
                 {
                     BP cbp = kvp.Key;
+                    foreach (int i in kvp.Value) sprites[i].color = (cbp == BP.face) ? cprof.faceCol : cprof.bodyCol;
                     cprof.BaseElements.TryGetValue(cbp, out var en);
                     if (en == default) continue;
-                    var groupName = en.Value;
-                    //string taren;
                     string stateInd = string.Empty;
                     foreach (int i in kvp.Value)
                     {
-                        string pattern = string.Empty;
                         var csprite = sprites[i];
+                        var groupName = en.Value;
+                        string pattern = string.Empty;//"[^0-9AB]";
                         switch (cbp)
                         {
                             //todo: regex into objects?
@@ -95,6 +95,12 @@ namespace WaspPile.ShinyRat
                         {
                             csprite.element = Futile.atlasManager.GetElementWithName(fullElmName);
                         }
+                        
+                        //if (ShinyRatPlugin.DebugRules.Contains("writeall"))
+                        //{
+                        //    //LogBunch(__arglist(fullElmName));
+                        //    Log(fullElmName);
+                        //}
                     }
                 }
             }

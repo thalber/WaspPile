@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using BepInEx.Configuration;
+using UnityEngine;
 
 namespace WaspPile.ShinyRat
 {
@@ -23,7 +24,7 @@ namespace WaspPile.ShinyRat
             string defval = default;
             for (int i = 0; i < ShinyConfig.profiles.Length; i++)
             {
-                subcat = $"Player {i}";
+                subcat = $"Player {i + 1}";
                 ShinyConfig.RatProfile crat = new();
                 foreach (var bpt in Enum.GetValues(typeof(BP)).Cast<BP>())
                 {
@@ -35,6 +36,14 @@ namespace WaspPile.ShinyRat
                         ccf = Config.Bind(subcat, entryname, defval, $"Base sprite name for {bpt}");
                         crat.BaseElements.Add(bpt, ccf);
                     }
+                }
+                //crat.bodyCol = Config.Bind(subcat, "Body Color", Color.white, "Body color");
+                //crat.faceCol = Config.Bind(subcat, "Face Color", Color.white, "Face color");
+                string[] channels = new[] { "R", "G", "B" };
+                for (int j = 0; j < 3; j++)
+                {
+                    crat.FaceColorElms[j] = Config.Bind(subcat, "Face Color " + channels[j], 255f, $"Face color {channels[j]} channel; should be between 0 and 255");
+                    crat.BodyColorElms[j] = Config.Bind(subcat, "Body Color " + channels[j], 255f, $"Body color {channels[j]} channel; should be between 0 and 255");
                 }
                 ShinyConfig.profiles[i] = crat;
             }
