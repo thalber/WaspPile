@@ -28,7 +28,7 @@ namespace WaspPile.ShinyRat
         }
         internal static RatProfile GetVisProfile(this Player p)
         {
-            var pnum = p.room.game.Players.IndexOf(p.abstractCreature);
+            var pnum = p?.room?.game?.Players.IndexOf(p?.abstractCreature) ?? 0;
             return profiles[IntClamp(pnum, 0, profiles.Length - 1)];
         }
         internal static RatProfile[] profiles = new RatProfile[4];

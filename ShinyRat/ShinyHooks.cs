@@ -54,10 +54,10 @@ namespace WaspPile.ShinyRat
         }
 
         #region idrawable
-        private static void SG_ApplyPalette(SG.orig_ApplyPalette orig, PlayerGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette pal)
-        {
-            orig(self, sLeaser, rCam, pal);
-        }
+        //private static void SG_ApplyPalette(SG.orig_ApplyPalette orig, PlayerGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, RoomPalette pal)
+        //{
+        //    orig(self, sLeaser, rCam, pal);
+        //}
 
         private static void SG_DrawSprites(SG.orig_DrawSprites orig, PlayerGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float ts, Vector2 camPos)
         {
@@ -112,15 +112,15 @@ namespace WaspPile.ShinyRat
             
         }
 
-        private static void SG_AddToContainer(SG.orig_AddToContainer orig, PlayerGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, FContainer ncon)
-        {
-            orig(self, sLeaser, rCam, ncon);
-        }
+        //private static void SG_AddToContainer(SG.orig_AddToContainer orig, PlayerGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, FContainer ncon)
+        //{
+        //    orig(self, sLeaser, rCam, ncon);
+        //}
 
-        private static void SG_InitiateSprites(SG.orig_InitiateSprites orig, PlayerGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
-        {
-            orig(self, sLeaser, rCam);
-        }
+        //private static void SG_InitiateSprites(SG.orig_InitiateSprites orig, PlayerGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
+        //{
+        //    orig(self, sLeaser, rCam);
+        //}
         #endregion idrawable
 
         public static void Disable()
