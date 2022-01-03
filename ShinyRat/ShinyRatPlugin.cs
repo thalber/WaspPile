@@ -56,6 +56,7 @@ namespace WaspPile.ShinyRat
                     crat.FaceColorElms[j] = Config.Bind(subcat, "Face Color " + channels[j], 255f, $"Face color {channels[j]} channel; should be between 0 and 255");
                     crat.BodyColorElms[j] = Config.Bind(subcat, "Body Color " + channels[j], 255f, $"Body color {channels[j]} channel; should be between 0 and 255");
                 }
+                crat.enabled = Config.Bind(subcat, "Sets whether this profile is enabled", true, "Turn off if you want player sprites to remain unchanged");
                 ShinyConfig.profiles[i] = crat;
             }
             foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())

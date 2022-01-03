@@ -26,12 +26,16 @@ namespace WaspPile.Remnant
         public static readonly Color deplEyeCol = new(0.7f, 0f, 0f);
         public static readonly Color echoGold = HSL2RGB(0.13f, 1, 0.63f);
 
-        public MartyrChar() : base(CHARNAME, FormatVersion.V1, 2) {
+        public MartyrChar() : base(CHARNAME, FormatVersion.V1, 2, false) {
+            __ME = new WeakReference(this);
             //instance = this;
 
         }
         //public static MartyrChar instance;
+        private static WeakReference __ME;
+        internal static MartyrChar ME => __ME?.Target as MartyrChar;
 
+        #region chardetails
         public override string Description => RemnantPlugin.DoTrolling 
             ? "REMNANT OF A MIND IS MATERIALIZED\nWEAKNESS IS BRIDGE TO STRENGTH\nINSERTION IS VIOLATION"
             : "The remnant of a mind, materialized, weakened in the physical plane but retaining\nabilities of the Void. In a state outside the Cycle itself, your journey will only last as long as you do.";
@@ -70,7 +74,10 @@ namespace WaspPile.Remnant
         }
         public override bool CanEatMeat(Player player, Creature creature) => (creature is Centipede || creature is not IPlayerEdible);
         public override bool QuarterFood => true;
-
+        public override string DisplayName => RemnantPlugin.DoTrolling ? "Martyr" : "The Martyr";
+        public override string StartRoom => STARTROOM;
+        #endregion chardetails
+        #region hooks lc
         protected override void Disable()
         {
             MartyrHooks.Disable();
@@ -81,21 +88,9 @@ namespace WaspPile.Remnant
             MartyrHooks.Enable();
             CommonHooks.Enable();
         }
+        #endregion hooks lc
 
-        public override string DisplayName => RemnantPlugin.DoTrolling ? "Martyr" : "The Martyr"; 
-        public override string StartRoom => STARTROOM;
-        public override void StartNewGame(Room room)
-        {
-            base.StartNewGame(room);
-            if (room.game.IsStorySession) {
-                var ss = room.game.GetStorySession.saveState;
-                ss.miscWorldSaveData.SLOracleState.neuronsLeft = 0;
-                //??...
-                ss.deathPersistentSaveData.theMark = true;
-            }
-            CurrentMiscSaveData(CHARNAME).TryRemoveKey(PERMADEATHKEY);
-            
-        }
+        #region scenes and menus
         public override bool HasSlideshow(string slideshowName) => false;
         public override CustomScene BuildScene(string sceneName)
         {
@@ -127,6 +122,20 @@ namespace WaspPile.Remnant
                 return SelectMenuAccessibility.MustRestart;
             }
             return SelectMenuAccessibility.Available;
+        }
+        #endregion scenes and menus
+        #region saves
+        public override void StartNewGame(Room room)
+        {
+            base.StartNewGame(room);
+            if (room.game.IsStorySession) {
+                var ss = room.game.GetStorySession.saveState;
+                ss.miscWorldSaveData.SLOracleState.neuronsLeft = 0;
+                //??...
+                ss.deathPersistentSaveData.theMark = true;
+            }
+            CurrentMiscSaveData(CHARNAME).TryRemoveKey(PERMADEATHKEY);
+            
         }
         public static bool MartyrIsDead(int saveslot)
         {
@@ -204,5 +213,6 @@ namespace WaspPile.Remnant
                 set { rc = value; if (RemnantPlugin.DebugMode) Debug.LogWarning("REMEDY CACHE SET TO: " + value); } 
             }
         }
+        #endregion saves
     }
 }

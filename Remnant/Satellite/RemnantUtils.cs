@@ -74,6 +74,15 @@ namespace WaspPile.Remnant.Satellite
         internal static Instruction CurrentInstruction(this ILCursor c) => c.Instrs[c.Index];
         internal static FieldInfo fieldof<T>(string name, BindingFlags context = allContextsInstance)
             => typeof(T).GetField(name, context);
+
+
+        internal static void CleanUpStatic(this Type t)
+        {
+            foreach (var fld in t.GetFields(allContextsStatic))
+            {
+                if (!fld.FieldType.IsValueType) fld.SetValue(null, default);
+            }
+        }
         #endregion
         #region collection extensions
         internal static void SetKey<tKey, tValue>(this Dictionary<tKey, tValue> dict, tKey key, tValue val)

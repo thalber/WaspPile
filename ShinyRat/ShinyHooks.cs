@@ -63,7 +63,7 @@ namespace WaspPile.ShinyRat
         {
             orig(self, sLeaser, rCam, ts, camPos);
             var cprof = self.player.GetVisProfile();
-            if (cprof == null) return;
+            if (cprof is null || !cprof.enabled.Value) return;
             try
             {
                 var sprites = sLeaser.sprites;
@@ -80,16 +80,12 @@ namespace WaspPile.ShinyRat
                         var csprite = sprites[i];
                         var groupName = en.Value;
                         string pattern = string.Empty;//"[^0-9AB]";
-                        switch (cbp)
+                        pattern = cbp switch
                         {
                             //todo: regex into objects?
-                            case BP.face:
-                                pattern = "[^0-9AB]";
-                                break;
-                            default:
-                                pattern = "[^0-9]";
-                                break;
-                        }
+                            BP.face => "[^0-9AB]",
+                            _ => "[^0-9]",
+                        };
                         stateInd = Regex.Replace(csprite.element.name, pattern, string.Empty);
                         var fullElmName = groupName + stateInd;
                         if (Futile.atlasManager.DoesContainElementWithName(fullElmName))

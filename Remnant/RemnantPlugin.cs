@@ -57,6 +57,15 @@ namespace WaspPile.Remnant
         public void OnDisable()
         {
             PermanentHooks.Disable();
+            foreach (Type t in new[] { typeof(MartyrHooks), 
+                typeof(CommonHooks), 
+                typeof(PermanentHooks), 
+                typeof(OutlawHooks), 
+                typeof(RemnantPlugin), 
+                typeof(Satellite.ArenaIcons) })
+            {
+                t.CleanUpStatic();
+            }
         }
         public void Update()
         {

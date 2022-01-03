@@ -14,10 +14,14 @@ using static WaspPile.ShinyRat.Satellite.RatUtils;
 
 namespace WaspPile.ShinyRat
 {
+    //TODO: ontopofterrainhands
     internal static class ShinyConfig
     {
         internal class RatProfile
         {
+            internal void ReadProfile()
+            {
+            }
             internal readonly Dictionary<BP, ConfigEntry<string>> BaseElements = new();
             internal readonly ConfigEntry<float>[] FaceColorElms = new ConfigEntry<float>[3];
             internal readonly ConfigEntry<float>[] BodyColorElms = new ConfigEntry<float>[3];
@@ -25,6 +29,7 @@ namespace WaspPile.ShinyRat
                 => (new Color(FaceColorElms[0].Value, FaceColorElms[1].Value, FaceColorElms[2].Value) / 255f).Clamped();
             internal Color bodyCol
                 => (new Color(BodyColorElms[0].Value, BodyColorElms[1].Value, BodyColorElms[2].Value) / 255f).Clamped();
+            internal ConfigEntry<bool> enabled;
         }
         internal static RatProfile GetVisProfile(this Player p)
         {

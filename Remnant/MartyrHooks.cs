@@ -82,6 +82,7 @@ namespace WaspPile.Remnant
         internal const int ECHOMODE_RCB_ROLL = 14;
         public static void powerDown(this Player self, ref MartyrFields mf, bool fullDeplete = false)
         {
+            if (mf is null) return;
             mf.cooldown = fullDeplete ?
                 ECHOMODE_DEPLETE_COOLDOWN
                 : ECHOMODE_DEPLETE_COOLDOWN * InverseLerp(mf.maxEchoReserve, 0f, mf.echoReserve) * 0.8f;
@@ -100,7 +101,7 @@ namespace WaspPile.Remnant
         }
         public static void powerUp(this Player self, ref MartyrFields mf)
         {
-            if (!self.Consious) return;
+            if (!self.Consious || mf is null) return;
             mf.echoActive = true;
             self.room.PlaySound(SoundID.Rock_Hit_Creature, self.firstChunk.pos, 1.0f, 0.5f);
             self.airInLungs = 1f;
@@ -162,6 +163,8 @@ namespace WaspPile.Remnant
             CRIT_Enable();
             CONVO_Enable();
         }
+
+        #region misc
         private static void KillMoon(ILContext il)
         {
             ILCursor c = new(il);
@@ -175,8 +178,6 @@ namespace WaspPile.Remnant
                 if (moon.room.game.session is StoryGameSession ss) ss.saveState.miscWorldSaveData.SLOracleState.neuronsLeft = 0;
             });
         }
-
-        #region misc
 
         private static void regdeath(On.Player.orig_Die orig, Player self)
         {
@@ -232,6 +233,18 @@ namespace WaspPile.Remnant
             catch (IndexOutOfRangeException) { LogWarning("Something went bad on martyr player.ATC"); }
         }
 
+        internal static void ExtendSprites(this PlayerGraphics self, MartyrFields mf, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam)
+        {
+            foreach (var sprite in sLeaser.sprites) sprite.RemoveFromContainer();
+            Array.Resize(ref sLeaser.sprites, sLeaser.sprites.Length + 1);
+            mf.bubbleSpriteIndex = sLeaser.sprites.Length - 1;
+            if (RemnantPlugin.DebugMode) LogWarning($"martyr bubble sprite: {mf.bubbleSpriteIndex}");
+            sLeaser.sprites[mf.bubbleSpriteIndex] = new FSprite(Futile.atlasManager.GetElementWithName("Futile_White"))
+            {
+                shader = self.player.room.game.rainWorld.Shaders["GhostDistortion"]
+            };
+            self.AddToContainer(sLeaser, rCam, null);
+        }
         private static void Player_Draw(
             On.PlayerGraphics.orig_DrawSprites orig,
             PlayerGraphics self,
@@ -245,6 +258,11 @@ namespace WaspPile.Remnant
             face.scale = 1f;
             orig(self, sLeaser, rCam, timeStacker, camPos);
             if (self.owner.slatedForDeletetion || self.owner.room != rCam.room || mf == null) return;
+            //crutch for multiinst arena mode
+            if (mf.bubbleSpriteIndex is default(int))
+            {
+                self.ExtendSprites(mf, sLeaser, rCam);
+            }
             var bubble = sLeaser.sprites[mf.bubbleSpriteIndex];
             var npos = Vector2.Lerp(self.head.lastPos, self.head.pos, timeStacker);
             
@@ -282,7 +300,6 @@ namespace WaspPile.Remnant
             }
             
         }
-
         private static void Player_MakeSprites(
             On.PlayerGraphics.orig_InitiateSprites orig,
             PlayerGraphics self,
@@ -293,15 +310,7 @@ namespace WaspPile.Remnant
             orig(self, sLeaser, rCam);
             PLAYER_SIN_LOCK = false;
             if (!playerFieldsByHash.TryGetValue(self.player.GetHashCode(), out var mf)) return;
-            foreach (var sprite in sLeaser.sprites) sprite.RemoveFromContainer();
-            Array.Resize(ref sLeaser.sprites, sLeaser.sprites.Length + 1);
-            mf.bubbleSpriteIndex = sLeaser.sprites.Length - 1;
-            if (RemnantPlugin.DebugMode) LogWarning($"martyr bubble sprite: {mf.bubbleSpriteIndex}");
-            sLeaser.sprites[mf.bubbleSpriteIndex] = new FSprite(Futile.atlasManager.GetElementWithName("Futile_White"))
-            {
-                shader = self.player.room.game.rainWorld.Shaders["GhostDistortion"]
-            };
-            self.AddToContainer(sLeaser, rCam, null);
+            self.ExtendSprites(mf, sLeaser, rCam);
         }
 
         private static void Player_APal(
@@ -330,7 +339,7 @@ namespace WaspPile.Remnant
         }
         private static int triSpearWield(On.Player.orig_Grabability orig, Player self, PhysicalObject obj)
         {
-            if (obj is Spear) return (int)Player.ObjectGrabability.OneHand;
+            if (playerFieldsByHash.TryGetValue(self.GetHashCode(), out _) && obj is Spear) return (int)Player.ObjectGrabability.OneHand;
             return orig(self, obj);
         }
         private static void wallbang(Action<Weapon> orig,
@@ -527,7 +536,11 @@ namespace WaspPile.Remnant
         private static void RunAbilityCycle(On.Player.orig_Update orig, 
             Player self, bool eu)
         {
-            if (!playerFieldsByHash.TryGetValue(self.GetHashCode(), out var mf)) goto skipNotMine;
+            if (!playerFieldsByHash.TryGetValue(self.GetHashCode(), out var mf))
+            {
+                if (self.room.game.IsArenaSession && MartyrChar.ME.IsMe(self)) self.RegMartyrInst();
+                goto skipNotMine;
+            }
             //basic recharge/cooldown and activation
             mf.lastKeyDown = mf.keyDown;
             mf.keyDown = Input.GetKey(RemnantConfig.GetKeyForPlayer(self.room.game.Players.IndexOf(self.abstractCreature)));
@@ -581,9 +594,20 @@ namespace WaspPile.Remnant
             Player self, AbstractCreature abstractCreature, World world)
         {
             orig(self, abstractCreature, world);
+
+            if (!MartyrChar.ME?.IsMe(self) ?? true) return;
+            self.RegMartyrInst();
+        }
+        internal static void RegMartyrInst(this Player self)
+        {
+            LogWarning("Instantiating a new martyr...");
+            if (RemnantPlugin.DebugMode)
+            {
+            }
             self.spearOnBack = new Player.SpearOnBack(self);
             bool remedy = false;
-            if (self.TryGetSave<MartyrChar.MartyrSave>(out var css)){
+            if (self.TryGetSave<MartyrChar.MartyrSave>(out var css))
+            {
                 remedy |= css.RemedyCache;
             }
             playerFieldsByHash.SetKey(self.GetHashCode(), new MartyrFields()
@@ -602,10 +626,7 @@ namespace WaspPile.Remnant
                 bCol = MartyrChar.baseBodyCol,
                 lastBCol = MartyrChar.baseBodyCol
             });
-            self.SetMalnourished(!remedy);
-
-            //self.SetMalnourished();
-            //if (self.room.game.IsStorySession) self.redsIllness = new RedsIllness(self, Abs(RedsIllness.RedsCycles(false) - self.abstractCreature.world.game.GetStorySession.saveState.cycleNumber));
+            self.SetMalnourished(self.Malnourished || !remedy);
         }
         private static void GameStarts(On.RainWorldGame.orig_ctor orig, 
             RainWorldGame self, ProcessManager manager)
