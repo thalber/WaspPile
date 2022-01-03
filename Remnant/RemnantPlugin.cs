@@ -9,7 +9,9 @@ using System.Reflection;
 using System.IO;
 using System.Runtime.InteropServices;
 
+using static UnityEngine.Debug;
 using static WaspPile.Remnant.RemnantConfig;
+using static WaspPile.Remnant.Satellite.RemnantUtils;
 
 namespace WaspPile.Remnant
 {
@@ -20,8 +22,12 @@ namespace WaspPile.Remnant
 
         public void OnEnable()
         {
+            RefreshDebugSettings();
+            martyrPortrait = new UnityEngine.Texture2D(84, 84);
+            var str = MartyrChar.GetRes("MarmyrPortrait.png");
+            martyrPortrait.LoadImage(new BinaryReader(str).ReadBytes((int)str.Length));
             if (registered) goto skipReg;
-
+            //var fel = new FAtlas("martyrsprites", UnityEngine.Texture2D.Crea //AddElement(new FAtlasElement())
             SlugBase.PlayerManager.RegisterCharacter(new MartyrChar());
             //SlugBase.PlayerManager.RegisterCharacter(new OutlawChar());
             for (int i = 0; i < abilityBinds.Length; i++)
@@ -38,6 +44,7 @@ namespace WaspPile.Remnant
                 if (DebugMode)
                 {
                     Logger.LogWarning("REMNANT RUNNING IN DEBUG MODE! " + Environment.GetEnvironmentVariable("MARTYRDEBUG"));
+                    File.WriteAllLines(Path.Combine(RWCustom.Custom.RootFolderDirectory(), "rnams.txt"), Assembly.GetExecutingAssembly().GetManifestResourceNames());
                 }
                 if (DoTrolling)
                 {
@@ -51,6 +58,18 @@ namespace WaspPile.Remnant
         {
             PermanentHooks.Disable();
         }
+        public void Update()
+        {
+            if (atlasesRegistered) return;
+            if (Futile.atlasManager is not null)
+            {
+                var nat = Futile.atlasManager.LoadAtlasFromTexture(martyrFaceName, martyrPortrait);
+                atlasesRegistered |= nat is not null;
+            }
+        }
+        internal bool atlasesRegistered = false;
+        internal const string martyrFaceName = "marmyrPortrait";
+        internal UnityEngine.Texture2D martyrPortrait;
 
         internal static bool DoTrolling => File.Exists(Path.Combine(RWCustom.Custom.RootFolderDirectory(), "gatobabosa.txt"));
         internal const string CALLKEY = "SHINYRATSPEAKS";

@@ -35,6 +35,7 @@ namespace WaspPile.Remnant
             {
                 On.Creature.Violence += LogDamage;
             }
+            Satellite.ArenaIcons.Apply();
         }
 
         private static void LogDamage(On.Creature.orig_Violence orig, Creature self, BodyChunk source, Vector2? directionAndMomentum, BodyChunk hitChunk, PhysicalObject.Appendage.Pos hitAppendage, Creature.DamageType type, float damage, float stunBonus)
@@ -122,6 +123,7 @@ namespace WaspPile.Remnant
             On.Creature.Violence -= LogDamage;
             foreach (var hk in manualHooks) hk.Undo();
             manualHooks.Clear();
+            Satellite.ArenaIcons.Undo();
         }
     }
 }

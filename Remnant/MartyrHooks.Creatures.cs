@@ -23,10 +23,11 @@ namespace WaspPile.Remnant
     public static partial class MartyrHooks
     {
         internal const float CRIT_GOLDEN_RESIST_MODIFIER = 25f;
-        internal static CreatureTemplate.Type CRIT_CT_GOLDLIZ => CreatureTemplate.Type.RedLizard;
-        internal static CreatureTemplate.Type CRIT_CT_GOLDCENTI => CreatureTemplate.Type.RedCentipede;
-        internal static CreatureTemplate.Type CRIT_CT_GOLDSPITTER => CreatureTemplate.Type.SpitterSpider;
-        internal static bool IsGolden(this Creature c) => c.Template.type == CRIT_CT_GOLDCENTI || c.Template.type == CRIT_CT_GOLDLIZ || c.Template.type == CRIT_CT_GOLDSPITTER;
+        internal const CreatureTemplate.Type CRIT_CT_GOLDLIZ = CreatureTemplate.Type.RedLizard;
+        internal const CreatureTemplate.Type CRIT_CT_GOLDCENTI = CreatureTemplate.Type.RedCentipede;
+        internal const CreatureTemplate.Type CRIT_CT_GOLDSPITTER = CreatureTemplate.Type.SpitterSpider;
+        internal static bool IsGolden(this Creature c)
+            => c is { Template: { type: CRIT_CT_GOLDCENTI or CRIT_CT_GOLDLIZ or CRIT_CT_GOLDSPITTER } };//c.Template.type == CRIT_CT_GOLDCENTI || c.Template.type == CRIT_CT_GOLDLIZ || c.Template.type == CRIT_CT_GOLDSPITTER;
         internal class CentiGrafFields
         {
             internal CentiGrafFields(CentipedeGraphics cg)

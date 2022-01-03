@@ -107,12 +107,12 @@ namespace WaspPile.Remnant
             var patchedPath = new string[path.Length];
             Array.Copy(path, patchedPath, path.Length);
             //kinda janky for having 2 overlapping scenes but whatevs
-            if (path[path.Length - 2] == "SelectMenuDisrupt" && path.Last() != "scene.json")
+            if (path.Length > 2 && path[path.Length - 2] == "SelectMenuDisrupt" && path.Last() != "scene.json")
                 patchedPath[path.Length - 2] = "SelectMenu";
             string oresname = "WaspPile.Remnant.assets." + string.Join(".", patchedPath);
-            if (RemnantPlugin.DebugRules.Contains("RESFILES"))
+            if (RemnantPlugin.DebugMode || true)
             {
-
+                Debug.LogWarning(oresname);
             }
             var tryret = Assembly.GetExecutingAssembly().GetManifestResourceStream(oresname);
             if (tryret != null && RemnantPlugin.DebugMode) Debug.LogWarning($"LOADING ER: {oresname}");

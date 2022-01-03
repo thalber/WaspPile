@@ -66,6 +66,7 @@ namespace WaspPile.ShinyRat
             regdone = true;
         skipreg:
             ShinyHooks.Enable();
+            var v = Assembly.GetExecutingAssembly().GetName().Version;
         }
         public void OnDisable()
         {
