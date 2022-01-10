@@ -40,6 +40,10 @@
       <HintPath>..\SolutionReferences\BepInEx.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="ConfigMachine">
+      <HintPath>..\SolutionReferences\ConfigMachine.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="HOOKS-Assembly-CSharp">
       <HintPath>..\SolutionReferences\HOOKS-Assembly-CSharp.dll</HintPath>
       <Private>False</Private>
@@ -94,9 +98,11 @@
   <ItemGroup>
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Satellite\NFVerCrutches.cs" />
     <Compile Include="ShinyConfig.cs" />
     <Compile Include="Satellite\RatUtils.cs" />
     <Compile Include="ShinyHooks.cs" />
+    <Compile Include="ShinyOI.cs" />
     <Compile Include="ShinyRatPlugin.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

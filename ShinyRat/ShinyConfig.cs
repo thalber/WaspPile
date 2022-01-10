@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using BepInEx;
 using BepInEx.Configuration;
 using UnityEngine;
@@ -14,23 +15,8 @@ using static WaspPile.ShinyRat.Satellite.RatUtils;
 
 namespace WaspPile.ShinyRat
 {
-    //TODO: ontopofterrainhands
     internal static class ShinyConfig
     {
-        internal class RatProfile
-        {
-            internal void ReadProfile()
-            {
-            }
-            internal readonly Dictionary<BP, ConfigEntry<string>> BaseElements = new();
-            internal readonly ConfigEntry<float>[] FaceColorElms = new ConfigEntry<float>[3];
-            internal readonly ConfigEntry<float>[] BodyColorElms = new ConfigEntry<float>[3];
-            internal Color faceCol 
-                => (new Color(FaceColorElms[0].Value, FaceColorElms[1].Value, FaceColorElms[2].Value) / 255f).Clamped();
-            internal Color bodyCol
-                => (new Color(BodyColorElms[0].Value, BodyColorElms[1].Value, BodyColorElms[2].Value) / 255f).Clamped();
-            internal ConfigEntry<bool> enabled;
-        }
         internal static RatProfile GetVisProfile(this Player p)
         {
             var pnum = p?.room?.game?.Players.IndexOf(p?.abstractCreature) ?? 0;
@@ -58,6 +44,70 @@ namespace WaspPile.ShinyRat
             { BP.hand, new[] { 7, 8 } },
             { BP.face, new[] { 9 } },
         };
+        
+        internal class RatProfile
+        {
+            internal void ReadProfile(string[] text)
+            {
+                foreach (string l in text)
+                {
+                    var split = Regex.Split(l, " : ");
+                    switch (split.Length)
+                    {
+                        case 2:
+                            if (split[0].TryParseEnum<BP>(out var bpin))
+                            {
+                                BaseElements[bpin].Value = split[1];
+                            }
+                            else if (split[0] == "enabled" && bool.TryParse(split[1], out var r))
+                            {
+                                enabled.Value = r;
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+            internal readonly Dictionary<BP, ConfigEntry<string>> BaseElements = new();
+            internal readonly ConfigEntry<float>[] FaceCol = new ConfigEntry<float>[3];
+            internal readonly ConfigEntry<float>[] BodyCol = new ConfigEntry<float>[3];
+            internal readonly ConfigEntry<float>[] TTHandCol = new ConfigEntry<float>[3];
+            internal Color faceCol
+            {
+                get => (new Color(FaceCol[0].Value, FaceCol[1].Value, FaceCol[2].Value) / 255f).Clamped();
+                set {
+                    for (int i = 0; i < 3; i++)
+                    {
+                        FaceCol[i].Value = value[i] * 255f;
+                    }
+                }
+            }
+            internal Color bodyCol
+            {
+                get => (new Color(BodyCol[0].Value, BodyCol[1].Value, BodyCol[2].Value) / 255f).Clamped();
+                set
+                {
+                    for (int i = 0; i < 3; i++)
+                    {
+                        BodyCol[i].Value = value[i] * 255f;
+                    }
+                }
+            }
+            internal Color TTHCol
+            {
+                get => (new Color(TTHandCol[0].Value, TTHandCol[1].Value, TTHandCol[2].Value) / 255f).Clamped();
+                set
+                {
+                    for (int i = 0; i < 3; i++)
+                    {
+                        TTHandCol[i].Value = value[i] * 255f;
+                    }
+                }
+            }
+            internal ConfigEntry<bool> enabled;
+            internal ConfigEntry<bool> yieldToCT;
+        }
     }
 
     internal enum BP

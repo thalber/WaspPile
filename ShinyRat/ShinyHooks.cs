@@ -67,11 +67,22 @@ namespace WaspPile.ShinyRat
             try
             {
                 var sprites = sLeaser.sprites;
-                foreach (var kvp in BpToIndex)
+                foreach (KeyValuePair<BP, int[]> kvp in BpToIndex)
                 {
                     BP cbp = kvp.Key;
-                    if (cbp is BP.tail && ShinyRatPlugin.CustomTailsExist) continue;
-                    foreach (int i in kvp.Value) sprites[i].color = (cbp == BP.face) ? cprof.faceCol : cprof.bodyCol;
+                    //skip tail if needed
+                    if (cbp is BP.tail && ShinyRatPlugin.CustomTailsExist && cprof.yieldToCT.Value) continue;
+                    foreach (int j in kvp.Value)
+                    {
+                        var cs = sprites[j];
+                        Color c = (cs, cbp) switch
+                        {
+                            { cbp: BP.hand, cs: { element: { name: "OnTopOfTerrainHand" } } } => cprof.TTHCol,
+                            { cbp: BP.face } => cprof.faceCol,
+                            _ => cprof.bodyCol
+                        };
+                        cs.color = c;
+                    }
                     cprof.BaseElements.TryGetValue(cbp, out var en);
                     if (en == default) continue;
                     string stateInd = string.Empty;

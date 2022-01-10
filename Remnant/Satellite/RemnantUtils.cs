@@ -75,7 +75,12 @@ namespace WaspPile.Remnant.Satellite
         internal static FieldInfo fieldof<T>(string name, BindingFlags context = allContextsInstance)
             => typeof(T).GetField(name, context);
 
-
+        internal static IEnumerable<Assembly> FindAssembliesByName(string n)
+        {
+            var lasms = AppDomain.CurrentDomain.GetAssemblies();
+            for (int i = lasms.Length - 1; i > -1; i--) 
+                if (lasms[i].FullName.Contains(n)) yield return lasms[i];
+        }
         internal static void CleanUpStatic(this Type t)
         {
             foreach (var fld in t.GetFields(allContextsStatic))

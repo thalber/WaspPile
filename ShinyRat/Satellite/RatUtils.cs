@@ -78,7 +78,7 @@ namespace WaspPile.ShinyRat.Satellite
         {
             foreach (var fld in t.GetFields(allContextsStatic))
             {
-                fld.SetValue(null, default);
+                if (!fld.FieldType.IsValueType) fld.SetValue(null, default);
             }
         }
         #endregion
@@ -125,9 +125,18 @@ namespace WaspPile.ShinyRat.Satellite
         internal static string combinePath(params string[] parts) => parts.Aggregate(Path.Combine);
         internal static RainWorld CRW => UnityEngine.Object.FindObjectOfType<RainWorld>();
         internal static CreatureTemplate GetCreatureTemplate(CreatureTemplate.Type t) => StaticWorld.creatureTemplates[(int)t];
-        //internal static Dictionary<string, string> CurrentMiscSaveData(string name) => SlugBase.SaveManager.GetCharacterData(name, CRW.options.saveSlot);
-        //internal static SlugBase.SaveManager.SlugBaseSaveSummary CurrentSaveSummary(string name) => SlugBase.SaveManager.GetSaveSummary(CRW, name, CRW.options.saveSlot);
         internal static Vector2 MiddleOfRoom(this Room rm) => new((float)rm.PixelWidth * 0.5f, (float)rm.PixelHeight * 0.5f);
+        internal static bool TryParseEnum<T>(this string s, out T res) where T : Enum
+        {
+            res = default;
+            var mt = typeof(T);
+            if (Enum.GetNames(mt).Contains(s))
+            {
+                res = (T)Enum.Parse(mt, s);
+                return true;
+            }
+            return false;
+        }
         #endregion
     }
 }
