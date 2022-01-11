@@ -8,7 +8,7 @@ using System.Text;
 using UnityEngine;
 using System.Reflection;
 
-
+using static UnityEngine.Debug;
 using static RWCustom.Custom;
 using static WaspPile.Remnant.Satellite.RemnantUtils;
 
@@ -55,21 +55,12 @@ namespace WaspPile.Remnant
         protected override void GetStats(SlugcatStats stats)
         {
             base.GetStats(stats);
-            stats.runspeedFac = 1.2f;
-            stats.bodyWeightFac = 1.12f;
-            stats.generalVisibilityBonus = 0.1f;
-            stats.visualStealthInSneakMode = 0.3f;
-            stats.loudnessFac = 1.35f;
+            SlugcatStats ssn = new(2, stats.malnourished);
+            CloneInstance(ssn, stats);
             stats.throwingSkill = 2;
-            stats.poleClimbSpeedFac = 1.25f;
-            stats.corridorClimbSpeedFac = 1.2f;
-            if (stats.malnourished)
-            {
-                stats.bodyWeightFac = 0.9f;
-                stats.runspeedFac = 0.875f;
-                //stats.throwingSkill = 0;
-                stats.poleClimbSpeedFac = 0.8f;
-                stats.corridorClimbSpeedFac = 0.86f;
+            if (RemnantPlugin.DebugMode) {
+                LogWarning($"GetStats run: {stats.malnourished}");
+                LogWarning(Json.Serialize(InstFieldsToDict(stats)));
             }
         }
         public override bool CanEatMeat(Player player, Creature creature) => (creature is Centipede || creature is not IPlayerEdible);
@@ -133,6 +124,7 @@ namespace WaspPile.Remnant
                 ss.miscWorldSaveData.SLOracleState.neuronsLeft = 0;
                 //??...
                 ss.deathPersistentSaveData.theMark = true;
+                ss.theGlow = true;
             }
             CurrentMiscSaveData(CHARNAME).TryRemoveKey(PERMADEATHKEY);
             
@@ -192,8 +184,8 @@ namespace WaspPile.Remnant
                     CRW.processManager.RequestMainProcessSwitch(ProcessManager.ProcessID.MainMenu);
                     Debug.Log($"REMNANT DISRUPTED: {deathmark}");
                 }
-                if (RemedyCache && !asDeath) { data.SetKey(ALLEVKEY, "ON"); Debug.LogWarning("REMEDY RETAINED"); }
-                else { data.SetKey(ALLEVKEY, "OFF"); Debug.LogWarning("SAVED AS DEATH, REMEDY REMOVED"); }
+                if (RemedyCache && !asDeath) { data.SetKey(ALLEVKEY, "ON"); LogWarning("REMEDY RETAINED"); }
+                else { data.SetKey(ALLEVKEY, "OFF"); LogWarning("SAVED AS DEATH, REMEDY REMOVED"); }
                 //else if (RemedyCache) data.SetKey(ALLEVKEY, "UNSPECIFIED");
                 base.SavePermanent(data, asDeath, asQuit);
             }
@@ -203,14 +195,14 @@ namespace WaspPile.Remnant
                 //RemedyCache = data[ALLEVKEY] == "ON";
                 data.TryGetValue(ALLEVKEY, out var res);
                 RemedyCache = res == "ON";
-                if (RemnantPlugin.DebugMode) Debug.LogWarning("LOADPERM RUN");
+                if (RemnantPlugin.DebugMode) LogWarning("LOADPERM RUN");
                 base.LoadPermanent(data);
             }
             private bool rc;
 
             internal bool RemedyCache {
-                get { if (RemnantPlugin.DebugMode) Debug.LogWarning("REMEDY CACHED: " + rc); return rc; } 
-                set { rc = value; if (RemnantPlugin.DebugMode) Debug.LogWarning("REMEDY CACHE SET TO: " + value); } 
+                get { if (RemnantPlugin.DebugMode) LogWarning("REMEDY CACHED: " + rc); return rc; } 
+                set { rc = value; if (RemnantPlugin.DebugMode) LogWarning("REMEDY CACHE SET TO: " + value); } 
             }
         }
         #endregion saves

@@ -88,6 +88,26 @@ namespace WaspPile.Remnant.Satellite
                 if (!fld.FieldType.IsValueType) fld.SetValue(null, default);
             }
         }
+        internal static void CloneInstance<T>(T from, T to, BindingFlags context = allContextsInstance)
+        {
+            var tt = typeof(T);
+            foreach (FieldInfo field in tt.GetFields(context)){
+                if (field.IsStatic) continue;
+                //field.SetValueDirect(__makeref(to), field.GetValue(from));
+                field.SetValue(to, field.GetValue(from), context, null, System.Globalization.CultureInfo.CurrentCulture);
+            }
+        }
+        internal static Dictionary<string, object> InstFieldsToDict<T>(T inst, BindingFlags context = allContextsInstance)
+        {
+            Dictionary<string, object> res = new();
+            var tt = typeof(T);
+            foreach(var field in tt.GetFields(context))
+            {
+                if (field.IsStatic) continue;
+                res.Add(field.Name, field.GetValue(inst));
+            }
+            return res;
+        }
         #endregion
         #region collection extensions
         internal static void SetKey<tKey, tValue>(this Dictionary<tKey, tValue> dict, tKey key, tValue val)

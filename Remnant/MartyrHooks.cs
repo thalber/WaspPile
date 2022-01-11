@@ -532,6 +532,11 @@ namespace WaspPile.Remnant
                 mf.basePoleSpeed = self.slugcatStats.poleClimbSpeedFac;
                 mf.baseWaterFric = self.waterFriction;
             }
+            if (RemnantPlugin.DebugMode)
+            {
+                LogWarning("stamina pass 2");
+                LogWarning(Json.Serialize(InstFieldsToDict(self.slugcatStats)));
+            }
         }
         private static void RunAbilityCycle(On.Player.orig_Update orig, 
             Player self, bool eu)
@@ -610,7 +615,7 @@ namespace WaspPile.Remnant
             {
                 remedy |= css.RemedyCache;
             }
-            playerFieldsByHash.SetKey(self.GetHashCode(), new MartyrFields()
+            playerFieldsByHash.Add(self.GetHashCode(), new MartyrFields()
             {
                 maxEchoReserve = 520f,
                 echoReserve = 520f,
@@ -631,8 +636,8 @@ namespace WaspPile.Remnant
         private static void GameStarts(On.RainWorldGame.orig_ctor orig, 
             RainWorldGame self, ProcessManager manager)
         {
-            orig(self, manager);
             FieldCleanup();
+            orig(self, manager);
             if (self.TryGetSave<MartyrChar.MartyrSave>(out _))
             {
                 
