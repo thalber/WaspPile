@@ -19,6 +19,7 @@ namespace WaspPile.ShinyRat
     internal class ShinyOI : OptionInterface
     {
         //todo: highlight broken elements
+        //todo: find a fix for intersecting scrollboxes
         public ShinyOI(BaseUnityPlugin plugin) : base(plugin)
         {
 
@@ -35,12 +36,12 @@ namespace WaspPile.ShinyRat
                 var cTab = Tabs[i];
                 var cProf = profiles[i];
                 var cPage = ratPages[i];
-                string keyprefix = $"thalber.ShinyRat.p{i}.";
+                string keyprefix = $"ShinyRat.p{i}.";
                 //header
                 OpRect headerBack = new(new(15, 495), new(530, 90));
                 OpLabel header0 = new(30f, 520, "ShinyRat", true);
                 OpLabel header1 = new(new(240, 500), new(280, 80), 
-                    $"Profile settings for {cTab.name}\nSelect sprite replacements and colours below", 
+                    $"Profile settings for {cTab.name}\nSelect sprite replacements and colors below", 
                     FLabelAlignment.Right);
                 cPage.op_enabled = new(new(20, 450), keyprefix + $"enabled", true) { description = cProf.enabled.Description.Description };
                 cPage.op_yield = new(new(325, 450), keyprefix + $"ctyield") { description = cProf.yieldToCT.Description.Description };
@@ -92,15 +93,22 @@ namespace WaspPile.ShinyRat
                 }
                 cPage.ratLogo = new(new(170, 535));
                 cTab.AddItems(cPage.ratLogo);
-                //cPage.readFromProfile(cProf);
+                cPage.mutexScrol[0] = bpHolder;
+                cPage.mutexScrol[1] = colorHolder;
             }
+            PERPETUALTORMENT = cycleBpForAllPlayers();
         }
         public override void Update(float dt)
         {
             base.Update(dt);
             foreach (var page in ratPages)
             {
-                if(page.ratLogo.container.GetChildCount() is not 0)
+                //prevent intersections
+                var acBox = page.mutexScrol.FirstOrDefault(xx => xx.MouseOver);
+                if (acBox is not null) foreach (var other in page.mutexScrol) if (other != acBox) other.ScrollToTop();
+                //spin the rat
+                //todo: more rats?
+                if (page.ratLogo.container.GetChildCount() is not 0)
                 {
                     page.ratLogo.container.GetChildAt(0).rotation += 13f * dt;
                 }
@@ -110,13 +118,22 @@ namespace WaspPile.ShinyRat
                     logoSprite.scale = 0.5f;
                     page.ratLogo.container.AddChild(logoSprite);
                 }
+                if (PERPETUALTORMENT.MoveNext())
+                {
+                    evalSpriteGroup(PERPETUALTORMENT.Current);
+                }
             }
         }
         public override void ConfigOnChange()
         {
             base.ConfigOnChange();
-            if (ShinyRatPlugin.DebugMode) Debug.LogWarning("OI CoC, writing bep config");
+            applyCfg();
+        }
+        private void applyCfg()
+        {
+            if (ShinyRatPlugin.DebugMode) Debug.LogWarning("saving rat cfg");
             for (int i = 0; i < ratPages.Length; i++) ratPages[i].writeToProfile(profiles[i]);
+            ShinyRatPlugin.ME.savecfg();
         }
 
         internal RatPage[] ratPages;
@@ -130,6 +147,7 @@ namespace WaspPile.ShinyRat
             /// </summary>
             internal OpColorPicker[] op_colorGroups = new OpColorPicker[3];
             internal OpContainer ratLogo;
+            internal OpScrollBox[] mutexScrol = new OpScrollBox[2];
             internal void readFromProfile(RatProfile prof)
             {
                 op_enabled.valueBool = prof.enabled.Value;
@@ -162,6 +180,54 @@ namespace WaspPile.ShinyRat
                 prof.faceCol = op_colorGroups[1].valueColor;
                 prof.TTHCol = op_colorGroups[2].valueColor;
             }
+        }
+
+        private object freedom;
+        internal IEnumerator<(BP, OpTextBox)> PERPETUALTORMENT;
+        internal IEnumerator<(BP, OpTextBox)> cycleBpForAllPlayers()
+        {
+            int cpi = default;
+            while (freedom == null)
+            {
+                cpi++;
+                if (cpi >= ratPages.Length) cpi = 0;
+                var cpage = ratPages[cpi];
+                foreach (var kvp in cpage.op_spriteGroups) yield return (kvp.Key, kvp.Value.Item1);
+            }
+        }
+        internal void evalSpriteGroup((BP, OpTextBox) sg)
+        {
+            static IEnumerable<string> appendall(string b, IEnumerable<object> postf)
+            {
+                foreach (var p in postf) yield return b + postf;
+            }
+            static IEnumerable<int> allbetween(int from, int to)
+            {
+                int lowb = Mathf.Min(from, to), higb = Mathf.Max(from, to);
+                while (lowb <= higb) { yield return lowb; lowb++; }
+            }
+
+            Color res = Color.grey;
+            if (Futile.atlasManager is null) goto skipAll;
+            string[] requiredElms = sg.Item1 switch
+            {
+                BP.arm => appendall(sg.Item2.value, allbetween(0, 12).Cast<object>()).ToArray(),
+                BP.head => appendall(sg.Item2.value, allbetween(0, 17).Cast<object>()).ToArray(),
+                BP.face => appendall(sg.Item2.value, allbetween(0, 8).Cast<object>()).ToArray(),
+                _ => new[] {sg.Item2.value}
+            };
+            int errc = 0;
+            foreach (var relm in requiredElms) if (!Futile.atlasManager.DoesContainElementWithName(relm)) errc++;
+            if (errc <= 0) res = Color.cyan;
+            else if (errc < requiredElms.Length) res = Color.yellow;
+            else res = Color.red;
+            skipAll:
+            sg.Item2.colorText = res;
+        }
+
+        ~ShinyOI()
+        {
+            PERPETUALTORMENT?.Dispose();
         }
         static ShinyOI()
         {

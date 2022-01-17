@@ -85,7 +85,7 @@ namespace WaspPile.ShinyRat
                     }
                     cprof.BodyPartSettings.TryGetValue(cbp, out var en);
                     if (en == default) continue;
-                    string stateInd = string.Empty;
+                    //string stateInd = string.Empty;
                     foreach (int i in kvp.Value)
                     {
                         var csprite = sprites[i];
@@ -93,18 +93,26 @@ namespace WaspPile.ShinyRat
                         string pattern = string.Empty;//"[^0-9AB]";
                         pattern = cbp switch
                         {
+                            BP.head => "Head",
+                            BP.legs => "Legs",
+                            BP.arm => "PlayerArm",
+                            BP.face => "Face",
+                            _ => csprite.element.name,
                             //todo: regex into objects?
-                            BP.face => "[^0-9AB]",
-                            _ => "[^0-9]",
+                            //BP.face => "(Stunned|Dead)?[0-9AB]{0,2}",
+                            //BP.legs => "(Air0|Air1|Wall|Climbing|Crawling|OnPole|Pole|VerticalPole)?[0-9AB]{0,2}",
+                            //BP.head => "[0-9]{0,2}",
+                            //_ => "[0-9]{0,2}",
+
                         };
-                        stateInd = Regex.Replace(csprite.element.name, pattern, string.Empty);
-                        var fullElmName = groupName + stateInd;
+                        var m = csprite.element.name.Replace(pattern, string.Empty);
+                        var fullElmName = groupName + m;
                         if (Futile.atlasManager.DoesContainElementWithName(fullElmName))
                         {
                             csprite.element = Futile.atlasManager.GetElementWithName(fullElmName);
                         }
-                        csprite.scaleX = (cbp == BP.face) ? Sign(csprite.scaleX) * en.scaleX.Value : en.scaleX.Value;
-                        csprite.scaleY = en.scaleY.Value;
+                        csprite.scaleX = Sign(csprite.scaleX) * en.scaleX.Value;
+                        csprite.scaleY = Sign(csprite.scaleY) * en.scaleY.Value;
                     }
                 }
             }

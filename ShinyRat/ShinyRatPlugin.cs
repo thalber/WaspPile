@@ -89,6 +89,7 @@ namespace WaspPile.ShinyRat
         
         internal Texture2D ratTex;
         internal bool atlasDone = false;
+        public void savecfg() => Config.Save();
         public void Update()
         {
             if (atlasDone) return;
@@ -102,6 +103,7 @@ namespace WaspPile.ShinyRat
                     atlasDone = true;
                     if (DebugMode) Logger.LogWarning("rat texture registered");
                 }
+                //if (DebugMode) Futile.atlasManager.LogAllElementNames();
             }
         }
 

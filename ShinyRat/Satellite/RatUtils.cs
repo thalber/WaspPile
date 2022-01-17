@@ -79,7 +79,11 @@ namespace WaspPile.ShinyRat.Satellite
         {
             foreach (var fld in t.GetFields(allContextsStatic))
             {
-                if (!fld.FieldType.IsValueType) fld.SetValue(null, default);
+                try
+                {
+                    if (!fld.FieldType.IsValueType) fld.SetValue(null, default);
+                }
+                catch { }
             }
         }
         #endregion
