@@ -138,7 +138,11 @@ namespace WaspPile.ShinyRat.Satellite
             }
             return false;
         }
-        public static readonly Color echoGold = HSL2RGB(0.13f, 1, 0.63f);
+        internal static readonly Color echoGold = HSL2RGB(0.13f, 1, 0.63f);
+        internal static void Deconstruct<T1, T2, T3>(this (T1, T2, T3) tp, out T1 o1, out T2 o2, out T3 o3)
+        {
+            o1 = tp.Item1; o2 = tp.Item2; o3 = tp.Item3;
+        }
         #endregion
     }
 }

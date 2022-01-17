@@ -203,7 +203,7 @@ namespace System
                 {
                     return CompareTo(objTuple);
                 }
-                throw new ArgumentException("incorrect type");
+                throw new ArgumentException("incorrect tuple types");
                 //ThrowHelper.ThrowArgumentException_TupleIncorrectType(this);
             }
 

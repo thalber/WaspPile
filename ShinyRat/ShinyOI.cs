@@ -18,6 +18,7 @@ namespace WaspPile.ShinyRat
 {
     internal class ShinyOI : OptionInterface
     {
+        //todo: highlight broken elements
         public ShinyOI(BaseUnityPlugin plugin) : base(plugin)
         {
 
@@ -91,6 +92,7 @@ namespace WaspPile.ShinyRat
                 }
                 cPage.ratLogo = new(new(170, 535));
                 cTab.AddItems(cPage.ratLogo);
+                //cPage.readFromProfile(cProf);
             }
         }
         public override void Update(float dt)
@@ -110,6 +112,12 @@ namespace WaspPile.ShinyRat
                 }
             }
         }
+        public override void ConfigOnChange()
+        {
+            base.ConfigOnChange();
+            if (ShinyRatPlugin.DebugMode) Debug.LogWarning("OI CoC, writing bep config");
+            for (int i = 0; i < ratPages.Length; i++) ratPages[i].writeToProfile(profiles[i]);
+        }
 
         internal RatPage[] ratPages;
         internal sealed class RatPage
@@ -122,6 +130,38 @@ namespace WaspPile.ShinyRat
             /// </summary>
             internal OpColorPicker[] op_colorGroups = new OpColorPicker[3];
             internal OpContainer ratLogo;
+            internal void readFromProfile(RatProfile prof)
+            {
+                op_enabled.valueBool = prof.enabled.Value;
+                op_yield.valueBool = prof.yieldToCT.Value;
+                foreach (KeyValuePair<BP, SpriteGroupInfo> kvp in prof.BodyPartSettings)
+                {
+                    if (!op_spriteGroups.TryGetValue(kvp.Key, out var tri)) continue;
+                    tri.Deconstruct(out var elm, out var scx, out var scy);
+                    elm.value = kvp.Value.baseElm.Value;
+                    scx.valueFloat = kvp.Value.scaleX.Value;
+                    scy.valueFloat = kvp.Value.scaleY.Value;
+                }
+                op_colorGroups[0].valueColor = prof.bodyCol;
+                op_colorGroups[1].valueColor = prof.faceCol;
+                op_colorGroups[2].valueColor = prof.TTHCol;
+            }
+            internal void writeToProfile(RatProfile prof)
+            {
+                prof.enabled.Value = op_enabled.valueBool;
+                prof.yieldToCT.Value = op_yield.valueBool;
+                foreach (KeyValuePair<BP, (OpTextBox, OpUpdown, OpUpdown)> kvp in op_spriteGroups)
+                {
+                    if (!prof.BodyPartSettings.TryGetValue(kvp.Key, out var sgi)) continue;
+                    kvp.Value.Deconstruct(out var elm, out var scx, out var scy);
+                    sgi.baseElm.Value = elm.value;
+                    sgi.scaleX.Value = scx.valueFloat;
+                    sgi.scaleY.Value = scy.valueFloat;
+                }
+                prof.bodyCol = op_colorGroups[0].valueColor;
+                prof.faceCol = op_colorGroups[1].valueColor;
+                prof.TTHCol = op_colorGroups[2].valueColor;
+            }
         }
         static ShinyOI()
         {

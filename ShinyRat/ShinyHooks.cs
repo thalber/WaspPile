@@ -103,12 +103,8 @@ namespace WaspPile.ShinyRat
                         {
                             csprite.element = Futile.atlasManager.GetElementWithName(fullElmName);
                         }
-                        
-                        //if (ShinyRatPlugin.DebugRules.Contains("writeall"))
-                        //{
-                        //    //LogBunch(__arglist(fullElmName));
-                        //    Log(fullElmName);
-                        //}
+                        csprite.scaleX = (cbp == BP.face) ? Sign(csprite.scaleX) * en.scaleX.Value : en.scaleX.Value;
+                        csprite.scaleY = en.scaleY.Value;
                     }
                 }
             }

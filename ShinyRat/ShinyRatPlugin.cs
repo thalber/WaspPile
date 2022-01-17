@@ -22,7 +22,6 @@ namespace WaspPile.ShinyRat
         {
             __me = new(this);
         }
-        //TODO: proper CMOI
         // AU
         // ------------------------------------------------
         public string updateURL = "http://beestuff.pythonanywhere.com/audb/api/mods/5/3";

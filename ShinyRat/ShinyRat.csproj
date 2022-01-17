@@ -72,10 +72,6 @@
       <HintPath>..\SolutionReferences\MonoMod.RuntimeDetour.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="MonoMod.RuntimeDetour.HookGen">
-      <HintPath>..\SolutionReferences\MonoMod.RuntimeDetour.HookGen.exe</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="MonoMod.Utils">
       <HintPath>..\SolutionReferences\MonoMod.Utils.dll</HintPath>
       <Private>False</Private>
