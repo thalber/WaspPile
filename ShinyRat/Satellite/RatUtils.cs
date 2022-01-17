@@ -11,6 +11,7 @@ using System.Threading;
 using RWCustom;
 
 using static UnityEngine.Mathf;
+using static RWCustom.Custom;
 
 using URand = UnityEngine.Random;
 
@@ -137,6 +138,7 @@ namespace WaspPile.ShinyRat.Satellite
             }
             return false;
         }
+        public static readonly Color echoGold = HSL2RGB(0.13f, 1, 0.63f);
         #endregion
     }
 }

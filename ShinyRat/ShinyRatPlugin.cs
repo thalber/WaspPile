@@ -3,6 +3,7 @@ using MonoMod.RuntimeDetour;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
 using System.Text;
 using BepInEx.Configuration;
 using UnityEngine;
@@ -34,22 +35,27 @@ namespace WaspPile.ShinyRat
         {
             RefreshDebugSettings();
             if (regdone) goto skipreg;
-            string subcat = "General";
+            string subcategory = "General";
             string entryname = default;
             string defval = default;
             for (int i = 0; i < ShinyConfig.profiles.Length; i++)
             {
-                subcat = $"Player {i + 1}";
-                ShinyConfig.RatProfile crat = new();
+                subcategory = $"Player {i + 1}";
+                ShinyConfig.RatProfile currentRat = new();
                 foreach (var bpt in Enum.GetValues(typeof(BP)).Cast<BP>())
                 {
-                    ConfigEntry<string> ccf = default;
                     entryname = bpt.ToString();
                     ShinyConfig.DefaultElmBaseNames.TryGetValue(bpt, out defval);
                     if (defval is not default(string))
                     {
-                        ccf = Config.Bind(subcat, entryname, defval, $"Base sprite name for {bpt}");
-                        crat.BaseElements.Add(bpt, ccf);
+                        ShinyConfig.SpriteGroupInfo csg = new()
+                        {
+                            baseElm = Config.Bind(subcategory, entryname, defval, $"Base sprite name for {bpt}"),
+                            scaleX = Config.Bind(subcategory, entryname + "_scaleX", 1f, $"Sprite scale X factor for {bpt}"),
+                            scaleY = Config.Bind(subcategory, entryname + "_scaleY", 1f, $"Sprite scale Y factor for {bpt}")
+                        };
+
+                        currentRat.BodyPartSettings.Add(bpt, csg);
                     }
                 }
                 //crat.bodyCol = Config.Bind(subcat, "Body Color", Color.white, "Body color");
@@ -58,13 +64,13 @@ namespace WaspPile.ShinyRat
                 for (int j = 0; j < 3; j++)
                 {
                     var chan = channels[j];
-                    crat.FaceCol[j] = Config.Bind(subcat, "Face Color " + chan, 125f, $"Face color {chan} channel; should be between 0 and 255");
-                    crat.BodyCol[j] = Config.Bind(subcat, "Body Color " + chan, 255f, $"Body color {chan} channel; should be between 0 and 255");
-                    crat.TTHandCol[j] = Config.Bind(subcat, "OnTopOfTerrainHand color " + chan, 255f, $"OnTopOfTerrain hands {chan} channel; should be between 0 and 255");
+                    currentRat.FaceCol[j] = Config.Bind(subcategory, "Face Color " + chan, 125f, $"Face color {chan} channel; should be between 0 and 255");
+                    currentRat.BodyCol[j] = Config.Bind(subcategory, "Body Color " + chan, 255f, $"Body color {chan} channel; should be between 0 and 255");
+                    currentRat.TTHandCol[j] = Config.Bind(subcategory, "OnTopOfTerrainHand color " + chan, 255f, $"OnTopOfTerrain hands {chan} channel; should be between 0 and 255");
                 }
-                crat.enabled = Config.Bind(subcat, "Profile enabled", true, "Turn off if you want sprites to remain unchanged for " + subcat);
-                crat.yieldToCT = Config.Bind(subcat, "Cooperate with CustomTail", true, "If CustomTail mod is present, ShinyRat won't modify tail texture and color for this profile.");
-                ShinyConfig.profiles[i] = crat;
+                currentRat.enabled = Config.Bind(subcategory, "Profile enabled", true, "Turn off if you want sprites to remain unchanged for " + subcategory);
+                currentRat.yieldToCT = Config.Bind(subcategory, "Cooperate with CustomTail", true, "If CustomTail mod is present, ShinyRat won't modify tail texture and color for this profile.");
+                ShinyConfig.profiles[i] = currentRat;
             }
             foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
             {
@@ -81,9 +87,27 @@ namespace WaspPile.ShinyRat
             foreach (var t in new[] { typeof(ShinyConfig), typeof(ShinyRatPlugin) }) t.CleanUp();
         }
         private bool regdone = false;
+        
+        internal Texture2D ratTex;
+        internal bool atlasDone = false;
+        public void Update()
+        {
+            if (atlasDone) return;
+            if (Futile.atlasManager is not null)
+            {
+                ratTex = new(125, 125);
+                using (var str = Assembly.GetExecutingAssembly().GetManifestResourceStream("WaspPile.ShinyRat.assets.plat.png")){
+                    BinaryReader br = new(str);
+                    ratTex.LoadImage(br.ReadBytes((int)str.Length));
+                    Futile.atlasManager.LoadAtlasFromTexture("ShinyRat", ratTex);
+                    atlasDone = true;
+                    if (DebugMode) Logger.LogWarning("rat texture registered");
+                }
+            }
+        }
 
         private static WeakReference __me;
-        private static ShinyRatPlugin ME => __me?.Target as ShinyRatPlugin;
+        internal static ShinyRatPlugin ME => __me?.Target as ShinyRatPlugin;
 
         internal static bool CustomTailsExist;
         internal const string CALLKEY = "SHINYRATSPEAKS";
@@ -95,7 +119,13 @@ namespace WaspPile.ShinyRat
         {
             try
             {
-                return new ShinyOI(ME);
+                var res = new ShinyOI(ME);
+                if (DebugMode)
+                {
+                    Console.WriteLine(res);
+                    Console.WriteLine(ME);
+                }
+                return res;
             }
             catch (TypeLoadException)
             {

@@ -57,7 +57,7 @@ namespace WaspPile.ShinyRat
                         case 2:
                             if (split[0].TryParseEnum<BP>(out var bpin))
                             {
-                                BaseElements[bpin].Value = split[1];
+                                BodyPartSettings[bpin].baseElm.Value = split[1];
                             }
                             else if (split[0] == "enabled" && bool.TryParse(split[1], out var r))
                             {
@@ -69,7 +69,7 @@ namespace WaspPile.ShinyRat
                     }
                 }
             }
-            internal readonly Dictionary<BP, ConfigEntry<string>> BaseElements = new();
+            internal readonly Dictionary<BP, SpriteGroupInfo> BodyPartSettings = new();
             internal readonly ConfigEntry<float>[] FaceCol = new ConfigEntry<float>[3];
             internal readonly ConfigEntry<float>[] BodyCol = new ConfigEntry<float>[3];
             internal readonly ConfigEntry<float>[] TTHandCol = new ConfigEntry<float>[3];
@@ -107,6 +107,14 @@ namespace WaspPile.ShinyRat
             }
             internal ConfigEntry<bool> enabled;
             internal ConfigEntry<bool> yieldToCT;
+#warning binding break
+        }
+
+        internal sealed class SpriteGroupInfo
+        {
+            internal ConfigEntry<string> baseElm;
+            internal ConfigEntry<float> scaleX;
+            internal ConfigEntry<float> scaleY;
         }
     }
 

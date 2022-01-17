@@ -105,5 +105,8 @@
     <Compile Include="ShinyOI.cs" />
     <Compile Include="ShinyRatPlugin.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="assets\plat.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -44,9 +44,9 @@ namespace WaspPile.ShinyRat
             for (int i = 0; i < profiles.Length; i++)
             {
                 LogWarning($"Profile {i}:");
-                foreach (var ovr in profiles[i].BaseElements)
+                foreach (var ovr in profiles[i].BodyPartSettings)
                 {
-                    LogWarning($"{ovr.Key}, {ovr.Value.Value}");
+                    LogWarning($"{ovr.Key}, {ovr.Value.baseElm.Value}");
                 }
                 LogWarning("_ _ _");
             }
@@ -83,13 +83,13 @@ namespace WaspPile.ShinyRat
                         };
                         cs.color = c;
                     }
-                    cprof.BaseElements.TryGetValue(cbp, out var en);
+                    cprof.BodyPartSettings.TryGetValue(cbp, out var en);
                     if (en == default) continue;
                     string stateInd = string.Empty;
                     foreach (int i in kvp.Value)
                     {
                         var csprite = sprites[i];
-                        var groupName = en.Value;
+                        var groupName = en.baseElm.Value;
                         string pattern = string.Empty;//"[^0-9AB]";
                         pattern = cbp switch
                         {
