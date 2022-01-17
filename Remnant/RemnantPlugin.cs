@@ -81,7 +81,7 @@ namespace WaspPile.Remnant
         internal UnityEngine.Texture2D martyrPortrait;
 
         internal static bool DoTrolling => File.Exists(Path.Combine(RWCustom.Custom.RootFolderDirectory(), "gatobabosa.txt"));
-        internal const string CALLKEY = "SHINYRATSPEAKS";
+        internal const string CALLKEY = "MARTYRDEBUG";
         internal static void RefreshDebugSettings() => DebugString = Environment.GetEnvironmentVariable(CALLKEY);
         internal static string DebugString;
         internal static bool DebugMode => DebugString != null;
