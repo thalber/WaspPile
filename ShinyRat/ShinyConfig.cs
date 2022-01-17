@@ -47,28 +47,7 @@ namespace WaspPile.ShinyRat
         
         internal class RatProfile
         {
-            internal void ReadProfile(string[] text)
-            {
-                foreach (string l in text)
-                {
-                    var split = Regex.Split(l, " : ");
-                    switch (split.Length)
-                    {
-                        case 2:
-                            if (split[0].TryParseEnum<BP>(out var bpin))
-                            {
-                                BodyPartSettings[bpin].baseElm.Value = split[1];
-                            }
-                            else if (split[0] == "enabled" && bool.TryParse(split[1], out var r))
-                            {
-                                enabled.Value = r;
-                            }
-                            break;
-                        default:
-                            break;
-                    }
-                }
-            }
+            
             internal readonly Dictionary<BP, SpriteGroupInfo> BodyPartSettings = new();
             internal readonly ConfigEntry<float>[] FaceCol = new ConfigEntry<float>[3];
             internal readonly ConfigEntry<float>[] BodyCol = new ConfigEntry<float>[3];
