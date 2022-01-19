@@ -32,7 +32,7 @@ namespace WaspPile.ShinyRat
             for (int i = 0; i < profiles.Length; i++)
             {
                 Tabs[i] = new($"Player {i + 1}");
-                ratPages[i] = new();
+                ratPages[i] = new(this);
                 var cTab = Tabs[i];
                 var cProf = profiles[i];
                 var cPage = ratPages[i];
@@ -118,10 +118,10 @@ namespace WaspPile.ShinyRat
                     logoSprite.scale = 0.5f;
                     page.ratLogo.container.AddChild(logoSprite);
                 }
-                if (PERPETUALTORMENT.MoveNext())
-                {
-                    evalSpriteGroup(PERPETUALTORMENT.Current);
-                }
+            }
+            if (PERPETUALTORMENT.MoveNext())
+            {
+                evalSpriteGroup(PERPETUALTORMENT.Current);
             }
         }
         public override void ConfigOnChange()
@@ -135,10 +135,16 @@ namespace WaspPile.ShinyRat
             for (int i = 0; i < ratPages.Length; i++) ratPages[i].writeToProfile(profiles[i]);
             ShinyRatPlugin.ME.savecfg();
         }
+        internal Dictionary<string, string> p_config => config;
 
         internal RatPage[] ratPages;
         internal sealed class RatPage
         {
+            private ShinyOI owner;
+            internal RatPage(ShinyOI ow)
+            {
+                owner = ow;
+            }
             internal OpCheckBox op_enabled;
             internal OpCheckBox op_yield;
             internal Dictionary<BP, (OpTextBox, OpUpdown, OpUpdown)> op_spriteGroups = new();
@@ -152,33 +158,35 @@ namespace WaspPile.ShinyRat
             {
                 op_enabled.valueBool = prof.enabled.Value;
                 op_yield.valueBool = prof.yieldToCT.Value;
+                var cfg = owner.p_config;
                 foreach (KeyValuePair<BP, SpriteGroupInfo> kvp in prof.BodyPartSettings)
                 {
                     if (!op_spriteGroups.TryGetValue(kvp.Key, out var tri)) continue;
                     tri.Deconstruct(out var elm, out var scx, out var scy);
-                    elm.value = kvp.Value.baseElm.Value;
-                    scx.valueFloat = kvp.Value.scaleX.Value;
-                    scy.valueFloat = kvp.Value.scaleY.Value;
+                    cfg.SetKey(elm.key, kvp.Value.baseElm.Value);
+                    cfg.SetKey(scx.key, kvp.Value.scaleX.Value.ToString());
+                    cfg.SetKey(scy.key, kvp.Value.scaleY.Value.ToString());
                 }
-                op_colorGroups[0].valueColor = prof.bodyCol;
-                op_colorGroups[1].valueColor = prof.faceCol;
-                op_colorGroups[2].valueColor = prof.TTHCol;
+                cfg.SetKey(op_colorGroups[0].key, OpColorPicker.ColorToHex(prof.bodyCol));
+                cfg.SetKey(op_colorGroups[1].key, OpColorPicker.ColorToHex(prof.faceCol));
+                cfg.SetKey(op_colorGroups[2].key, OpColorPicker.ColorToHex(prof.TTHCol));
             }
             internal void writeToProfile(RatProfile prof)
             {
                 prof.enabled.Value = op_enabled.valueBool;
                 prof.yieldToCT.Value = op_yield.valueBool;
+                var cfg = owner.p_config;
                 foreach (KeyValuePair<BP, (OpTextBox, OpUpdown, OpUpdown)> kvp in op_spriteGroups)
                 {
                     if (!prof.BodyPartSettings.TryGetValue(kvp.Key, out var sgi)) continue;
                     kvp.Value.Deconstruct(out var elm, out var scx, out var scy);
-                    sgi.baseElm.Value = elm.value;
-                    sgi.scaleX.Value = scx.valueFloat;
-                    sgi.scaleY.Value = scy.valueFloat;
+                    sgi.baseElm.Value = cfg.TryGetAndParse(elm.key, sgi.baseElm.Value);
+                    sgi.scaleX.Value = cfg.TryGetAndParse(scx.key, sgi.scaleX.Value);
+                    sgi.scaleY.Value = cfg.TryGetAndParse(scy.key, sgi.scaleY.Value);
                 }
-                prof.bodyCol = op_colorGroups[0].valueColor;
-                prof.faceCol = op_colorGroups[1].valueColor;
-                prof.TTHCol = op_colorGroups[2].valueColor;
+                prof.bodyCol = cfg.TryGetAndParse(op_colorGroups[0].key, prof.bodyCol);
+                prof.faceCol = cfg.TryGetAndParse(op_colorGroups[1].key, prof.bodyCol);
+                prof.TTHCol = cfg.TryGetAndParse(op_colorGroups[2].key, prof.bodyCol);
             }
         }
 

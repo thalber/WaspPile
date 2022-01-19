@@ -147,6 +147,29 @@ namespace WaspPile.ShinyRat.Satellite
         {
             o1 = tp.Item1; o2 = tp.Item2; o3 = tp.Item3;
         }
+        internal static TOut TryGetAndParse<TOut>(this Dictionary<string, string> dict, string key, TOut defval = default)
+        {
+            //var parseMethod = ;
+            Type mt = typeof(TOut);
+            MethodInfo parseMethod = mt switch
+            {
+                _ when mt == typeof(Color) => methodof<OptionalUI.OpColorPicker>("HexToColor", allContextsStatic),
+                _ when mt == typeof(string) => methodof(typeof(RatUtils), nameof(stringretself)),
+                _ => typeof(TOut).GetMethod("parse", allContextsStatic, null, new[] { typeof(string) }, null)
+            };
+            if (!dict.TryGetValue(key, out var rawval)) return defval;
+            try
+            {
+                return (TOut)parseMethod.Invoke(null, new[] { rawval });
+            }
+            catch
+            {
+
+            }
+            if (ShinyRatPlugin.DebugMode) Debug.LogWarning($"Failed parsing value for {typeof(TOut)}");
+            return defval;
+        }
+        internal static string stringretself(string x) => x;
         #endregion
     }
 }
