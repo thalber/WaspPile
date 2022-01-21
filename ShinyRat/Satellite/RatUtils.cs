@@ -143,11 +143,13 @@ namespace WaspPile.ShinyRat.Satellite
             return false;
         }
         internal static readonly Color echoGold = HSL2RGB(0.13f, 1, 0.63f);
+
+        internal static void Deconstruct<T1, T2>(this (T1, T2) tp, out T1 o1, out T2 o2) { o1 = tp.Item1; o2 = tp.Item2; }
         internal static void Deconstruct<T1, T2, T3>(this (T1, T2, T3) tp, out T1 o1, out T2 o2, out T3 o3)
         {
             o1 = tp.Item1; o2 = tp.Item2; o3 = tp.Item3;
         }
-        internal static TOut TryGetAndParse<TOut>(this Dictionary<string, string> dict, string key, TOut defval = default)
+        internal static TOut TryGetAndParse<TKey, TOut>(this Dictionary<TKey, string> dict, TKey key, TOut defval = default)
         {
             Type mt = typeof(TOut);
             MethodInfo parseMethod = mt switch
