@@ -149,7 +149,6 @@ namespace WaspPile.ShinyRat.Satellite
         }
         internal static TOut TryGetAndParse<TOut>(this Dictionary<string, string> dict, string key, TOut defval = default)
         {
-            //var parseMethod = ;
             Type mt = typeof(TOut);
             MethodInfo parseMethod = mt switch
             {
@@ -162,11 +161,11 @@ namespace WaspPile.ShinyRat.Satellite
             {
                 return (TOut)parseMethod.Invoke(null, new[] { rawval });
             }
-            catch
+            catch (Exception e)
             {
-
+                if (ShinyRatPlugin.DebugMode) Debug.LogWarning("Parse invocation fail!\n" + e);
             }
-            if (ShinyRatPlugin.DebugMode) Debug.LogWarning($"Failed parsing value for {typeof(TOut)}");
+            if (ShinyRatPlugin.DebugMode) Debug.LogWarning($"ShinyOI: Could not parse value for {typeof(TOut)}");
             return defval;
         }
         internal static string stringretself(string x) => x;
