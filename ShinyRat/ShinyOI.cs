@@ -212,7 +212,7 @@ namespace WaspPile.ShinyRat
             static IEnumerable<int> allbetween(int from, int to)
             {
                 int lowb = Mathf.Min(from, to), higb = Mathf.Max(from, to);
-                while (lowb <= higb) { yield return lowb; lowb++; }
+                while (lowb <= higb) { yield return lowb++; }
             }
 
             Color res = Color.grey;
@@ -225,7 +225,7 @@ namespace WaspPile.ShinyRat
                 _ => new[] {sg.Item2.value}
             };
             int errc = 0;
-            foreach (var relm in requiredElms) if (!Futile.atlasManager.DoesContainElementWithName(relm)) errc++;
+            foreach (var relm in requiredElms.SkipWhile(Futile.atlasManager.DoesContainElementWithName)) errc++;
             if (errc <= 0) res = Color.cyan;
             else if (errc < requiredElms.Length) res = Color.yellow;
             else res = Color.red;

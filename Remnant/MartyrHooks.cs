@@ -123,10 +123,7 @@ namespace WaspPile.Remnant
 
             //em
             On.Player.ThrownSpear += EchomodeDamageBonusActual;
-            //On.Player.MovementUpdate += EchomodeExtendRoll;
             IL.Player.MovementUpdate += IL_EchomodeClampRollc;
-            //IL.Player.UpdateAnimation += IL_EchomodeEnsureWhiplash;
-            //On.Player.UpdateAnimation += EchomodeExtendRoll;
             On.Creature.SpearStick += EchomodeDeflection;
             On.Weapon.Thrown += EchomodeVelBonus;
             On.Creature.Violence += EchomodePreventDamage;
@@ -157,11 +154,9 @@ namespace WaspPile.Remnant
             manualHooks.Add(new ILHook(methodof<Player>("EatMeatUpdate"), IL_GoldCure));
             On.SlugcatStats.SlugcatFoodMeter += slugFoodMeter;
             On.Player.Die += regdeath;
-            //nvm it gets inlined :(
-            //manualHooks.Add(new Hook(methodof<SLOrcacleState>("get_neuronsLeft"), methodof(mhk_t, nameof(noNeurons))));
-            manualHooks.Add(new ILHook(methodof<Oracle>("SetUpSwarmers"), KillMoon));
             CRIT_Enable();
             CONVO_Enable();
+            WORLD_Enable();
         }
 
         #region misc
@@ -649,6 +644,7 @@ namespace WaspPile.Remnant
         {
             CRIT_Disable();
             CONVO_Disable();
+            WORLD_Disable();
             On.RainWorldGame.ctor -= GameStarts;
             On.Player.ctor -= initFields;
             On.Player.Update -= RunAbilityCycle;

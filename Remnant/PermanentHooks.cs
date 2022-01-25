@@ -24,22 +24,37 @@ namespace WaspPile.Remnant
 {
     internal static class PermanentHooks
     {
+        internal static readonly Type phk_t = typeof(PermanentHooks);
         internal static List<IDetour> manualHooks = new();
         internal static void Enable()
         {
             On.MainLoopProcess.ctor += RefreshDebugSettings;
+            manualHooks.Add(new Hook(
+                methodof<SlugBaseCharacter>(nameof(SlugBaseCharacter.CanUsePassages)), 
+                methodof(phk_t, nameof(PassageHackby))
+                ));
         }
 
         private static void RefreshDebugSettings(On.MainLoopProcess.orig_ctor orig, MainLoopProcess self, ProcessManager manager, ProcessManager.ProcessID ID)
         {
             orig(self, manager, ID);
             RemnantPlugin.RefreshDebugSettings();
-            LogWarning("REMNANT LOG STATUS : " + RemnantPlugin.DebugString);
+            LogWarning("REMNANT LOG STATUS: " + RemnantPlugin.DebugString);
+            if (RemnantPlugin.DebugRules.Length > 0)
+            {
+                LogWarning("~~ vvvv ~~");
+                foreach (var rule in RemnantPlugin.DebugRules) LogWarning(rule);
+                LogWarning("~~ ^^^^ ~~");
+            }
         }
+        private static bool PassageHackby(Func<SlugBaseCharacter, SaveState, bool> orig, SlugBaseCharacter self, SaveState ss)
+            => (self is MartyrChar) ? false : orig(self, ss);
 
         internal static void Disable()
         {
             On.MainLoopProcess.ctor -= RefreshDebugSettings;
+            foreach (var hk in manualHooks) { if (hk.IsApplied) hk.Undo(); hk.Dispose(); }
+            manualHooks.Clear();
         }
     }
 }

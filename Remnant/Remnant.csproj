@@ -106,6 +106,7 @@
     <Compile Include="MartyrChar.cs" />
     <Compile Include="MartyrHooks.Conversations.cs" />
     <Compile Include="MartyrHooks.Creatures.cs" />
+    <Compile Include="MartyrHooks.World.cs" />
     <Compile Include="OutlawChar.cs" />
     <Compile Include="OutlawHooks.cs" />
     <Compile Include="PermanentHooks.cs" />

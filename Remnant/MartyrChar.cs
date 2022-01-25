@@ -29,13 +29,17 @@ namespace WaspPile.Remnant
         public MartyrChar() : base(CHARNAME, FormatVersion.V1, 2, false) {
             __ME = new WeakReference(this);
             //instance = this;
-
         }
         //public static MartyrChar instance;
         private static WeakReference __ME;
         internal static MartyrChar ME => __ME?.Target as MartyrChar;
 
         #region chardetails
+        public override bool PlaceKarmaFlower => false;
+        public override bool HasArenaPortrait(int playerNumber, bool dead)
+        {
+            return true;
+        }
         public override string Description => RemnantPlugin.DoTrolling 
             ? "REMNANT OF A MIND IS MATERIALIZED\nWEAKNESS IS BRIDGE TO STRENGTH\nINSERTION IS VIOLATION"
             : "The remnant of a mind, materialized, weakened in the physical plane but retaining\nabilities of the Void. In a state outside the Cycle itself, your journey will only last as long as you do.";

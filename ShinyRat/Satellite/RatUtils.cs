@@ -149,6 +149,8 @@ namespace WaspPile.ShinyRat.Satellite
         {
             o1 = tp.Item1; o2 = tp.Item2; o3 = tp.Item3;
         }
+
+        internal static TD MakeDel<TD>(MethodInfo m) where TD : Delegate => (TD)Delegate.CreateDelegate(typeof(TD), m);
         internal static TOut TryGetAndParse<TKey, TOut>(this Dictionary<TKey, string> dict, TKey key, TOut defval = default)
         {
             Type mt = typeof(TOut);

@@ -24,7 +24,7 @@ using URand = UnityEngine.Random;
 
 namespace WaspPile.Remnant
 {
-    static partial class MartyrHooks
+    public static partial class MartyrHooks
     {
         private static bool ProcessDialogue(this Conversation convo)
         {

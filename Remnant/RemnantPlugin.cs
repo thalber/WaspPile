@@ -85,7 +85,7 @@ namespace WaspPile.Remnant
         internal static void RefreshDebugSettings() => DebugString = Environment.GetEnvironmentVariable(CALLKEY);
         internal static string DebugString;
         internal static bool DebugMode => DebugString != null;
-        internal static string[] DebugRules => System.Text.RegularExpressions.Regex.Split(DebugString ?? string.Empty, ", ");
+        internal static string[] DebugRules => DebugMode? System.Text.RegularExpressions.Regex.Split(DebugString, ", ") : new string[0];
         private bool registered = false;
     }
 
