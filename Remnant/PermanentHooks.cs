@@ -29,10 +29,10 @@ namespace WaspPile.Remnant
         internal static void Enable()
         {
             On.MainLoopProcess.ctor += RefreshDebugSettings;
-            manualHooks.Add(new Hook(
-                methodof<SlugBaseCharacter>(nameof(SlugBaseCharacter.CanUsePassages)), 
-                methodof(phk_t, nameof(PassageHackby))
-                ));
+            //manualHooks.Add(new Hook(
+            //    methodof<SlugBaseCharacter>(nameof(SlugBaseCharacter.CanUsePassages)), 
+            //    methodof(phk_t, nameof(PassageHackby))
+            //    ));
         }
 
         private static void RefreshDebugSettings(On.MainLoopProcess.orig_ctor orig, MainLoopProcess self, ProcessManager manager, ProcessManager.ProcessID ID)

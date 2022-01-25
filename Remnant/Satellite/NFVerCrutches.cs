@@ -5,12 +5,12 @@ using System.Text;
 
 namespace System
 {
-/// <summary>
-/// Represents a 2-tuple, or pair, as a value type.
-/// </summary>
-/// <typeparam name="T1">The type of the tuple's first component.</typeparam>
-/// <typeparam name="T2">The type of the tuple's second component.</typeparam>
-public struct ValueTuple<T1, T2> : IEquatable<ValueTuple<T1, T2>>, IComparable, IComparable<ValueTuple<T1, T2>>
+    /// <summary>
+    /// Represents a 2-tuple, or pair, as a value type.
+    /// </summary>
+    /// <typeparam name="T1">The type of the tuple's first component.</typeparam>
+    /// <typeparam name="T2">The type of the tuple's second component.</typeparam>
+    public struct ValueTuple<T1, T2> : IEquatable<ValueTuple<T1, T2>>, IComparable, IComparable<ValueTuple<T1, T2>>
     {
         /// <summary>
         /// The current <see cref="ValueTuple{T1, T2}"/> instance's first component.
@@ -138,7 +138,6 @@ public struct ValueTuple<T1, T2> : IEquatable<ValueTuple<T1, T2>>, IComparable, 
     /// <typeparam name="T1">The type of the tuple's first component.</typeparam>
     /// <typeparam name="T2">The type of the tuple's second component.</typeparam>
     /// <typeparam name="T3">The type of the tuple's third component.</typeparam>
-    [Serializable]
     public struct ValueTuple<T1, T2, T3>
         : IEquatable<ValueTuple<T1, T2, T3>>, IComparable, IComparable<ValueTuple<T1, T2, T3>>
     {

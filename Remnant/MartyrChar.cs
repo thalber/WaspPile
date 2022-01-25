@@ -50,6 +50,10 @@ namespace WaspPile.Remnant
         public override Color? SlugcatEyeColor() => baseEyeCol;
         public override bool HasGuideOverseer => false;
         public override bool HasDreams => false;
+        public override bool CanUsePassages(SaveState save)
+        {
+            return false;
+        }
 
         public override void GetFoodMeter(out int maxFood, out int foodToSleep)
         {
