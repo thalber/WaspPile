@@ -179,12 +179,13 @@
     <EmbeddedResource Include="assets\text\English\dialogue\Ghost_CC.txt" />
     <EmbeddedResource Include="assets\text\English\dialogue\Ghost_LF.txt" />
     <EmbeddedResource Include="assets\text\English\dialogue\Ghost_SI.txt" />
-    <EmbeddedResource Include="assets\MarmyrPortrait.png" />
+    <EmbeddedResource Include="assets\Illustrations\MultiplayerPortraitX1.png" />
     <EmbeddedResource Include="assets\text\English\dialogue\Pebbles_Red_Green_Neuron.txt" />
     <EmbeddedResource Include="assets\text\English\dialogue\Ghost_SH.txt" />
     <EmbeddedResource Include="assets\text\English\dialogue\Ghost_UW.txt" />
     <EmbeddedResource Include="assets\text\English\dialogue\Ghost_SB.txt" />
     <EmbeddedResource Include="assets\text\English\dialogue\Pebbles_Red_No_Neuron.txt" />
+    <EmbeddedResource Include="assets\Illustrations\MultiplayerPortraitX0.png" />
     <Content Include="assets\text\English\dialogue\Pebbles_greenneuron_old.txt" />
     <Content Include="todo.txt" />
   </ItemGroup>

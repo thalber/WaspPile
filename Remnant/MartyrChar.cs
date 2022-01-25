@@ -97,15 +97,22 @@ namespace WaspPile.Remnant
             var patchedPath = new string[path.Length];
             Array.Copy(path, patchedPath, path.Length);
             //kinda janky for having 2 overlapping scenes but whatevs
+            var last = path[path.Length - 1];
             if (path.Length > 2 && path[path.Length - 2] == "SelectMenuDisrupt" && path.Last() != "scene.json")
                 patchedPath[path.Length - 2] = "SelectMenu";
+            if (last.StartsWith("MultiplayerPortrait"))
+            {
+                patchedPath[path.Length - 1] = $"MultiplayerPortraitX{(last.EndsWith("1.png")? 1 : 0)}.png";
+            }
+
             string oresname = "WaspPile.Remnant.assets." + string.Join(".", patchedPath);
             if (RemnantPlugin.DebugMode || true)
             {
-                Debug.LogWarning(oresname);
+                LogWarning(oresname);
+
             }
             var tryret = Assembly.GetExecutingAssembly().GetManifestResourceStream(oresname);
-            if (tryret != null && RemnantPlugin.DebugMode) Debug.LogWarning($"LOADING ER: {oresname}");
+            if (tryret != null && RemnantPlugin.DebugMode) LogWarning($"LOADING ER: {oresname}");
             return tryret;
         }
         public override Stream GetResource(params string[] path) => GetRes(path) ?? base.GetResource();
