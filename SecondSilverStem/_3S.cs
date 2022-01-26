@@ -35,22 +35,21 @@ namespace WaspPile.SecondSilverStem
             internal readonly string[] Data;
             internal readonly Dictionary<string, ILPattern> _children = new();
             internal readonly Dictionary<string, Type> _typedefs = new();
-            public void BindType(string k, Type t) => _typedefs.SetKey(k, t);
+            public void BindType(string key, Type type) => _typedefs.SetKey(key, type);
+            internal readonly Dictionary<string, MethodBase> _procdefs = new();
+            public void BindProc(string key, MethodBase proc) => _procdefs.SetKey(key, proc);
+            internal readonly Dictionary<string, FieldInfo> _fielddefs = new();
+            public void BindFld(string key, FieldInfo field) => _fielddefs.SetKey(key, field);
 
-            public IEnumerator<ILPattern> GetEnumerator()
-            {
-                throw new NotImplementedException();
-            }
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                throw new NotImplementedException();
-            }
+            public IEnumerator<ILPattern> GetEnumerator() => _children.Values.GetEnumerator();
+            IEnumerator IEnumerable.GetEnumerator() => _children.Values.GetEnumerator();
 
             internal readonly ILPatternParser _parser;
         }
         public class ILPattern
         {
             internal List<InstrMatchBlock> _preds = new();
+            internal ILPatternCollection _pcollection;
             //public IEnumerable<Func<Instruction, bool>> ReturnPredicates() => _preds.AsEnumerable();
         }
 
@@ -58,10 +57,10 @@ namespace WaspPile.SecondSilverStem
         {
             public ILPatternParser(ILPatternCollection ow)
             {
-                owner = ow;
+                _owner = ow;
             }
-            public readonly ILPatternCollection owner;
-            public string[] data => owner.Data;
+            public readonly ILPatternCollection _owner;
+            public string[] data => _owner.Data;
 
             public void Advance()
             {
@@ -83,13 +82,14 @@ namespace WaspPile.SecondSilverStem
                 {
                     case ILParseMode.NONE:
                         break;
-                    case ILParseMode.DEFS:
-                        owner.BindType(clnSplit[0], null);
+                    case ILParseMode.DEFS:  
+                        #warning put all def actions in here
+                        _owner.BindType(clnSplit[0], null);
                         break;
                     case ILParseMode.PATTERN:
                         try
                         {
-                            cPattern._preds.Add(parsePredicate(clnSplit));
+                            cPattern._preds.Add(makeMatchBlock(clnSplit));
                         }
                         catch { }
 
@@ -108,20 +108,20 @@ namespace WaspPile.SecondSilverStem
                 if (newMode == cMode) return;
                 if (cPattern is not null)
                 {
-                    owner._children.Add(cBlockName, cPattern);
+                    _owner._children.Add(cBlockName, cPattern);
                     cPattern = null;
                 }
                 cMode = newMode;
                 cBlockName = newBlockName;
                 if (cMode == ILParseMode.PATTERN)
                 {
-                    cPattern = new();
+                    cPattern = new() { _pcollection = _owner };
                 }
             }
-            internal InstrMatchBlock parsePredicate(string[] line)
+            internal InstrMatchBlock makeMatchBlock(string[] line)
             {
                 OpCodesByName.TryGetValue(line[0], out var oc);
-                return new InstrMatchBlock(oc, line);
+                return new InstrMatchBlock(oc, line, cPattern);
             }
             internal ILPattern cPattern;
             internal int cIndex = 0;
@@ -136,7 +136,7 @@ namespace WaspPile.SecondSilverStem
             internal string nextDefaultName => throw new NotImplementedException();
         }
 
-        public static readonly Dictionary<string, OpCode> OpCodesByName = new();
+        public static readonly Dictionary<string, OpCode> OpCodesByName = new(StringComparer.InvariantCultureIgnoreCase);
         static _3S()
         {
             foreach (var fld in typeof(OpCodes).GetFields(allContextsStatic)) try

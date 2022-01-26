@@ -1,1 +1,18 @@
 ﻿Goal: make an asset driven shorthand utility for ILHooking
+
+data format example:
+
+BEGIN DEFS
+TYPE t1
+FLD t1_field1
+PROC t1_method1
+END
+
+BEGIN PATTERN insert01
+ldarg_0
+isinst t1
+brfalse IL_B9
+ldfld t1_field1
+call?callvirt t1_method1
+stloc 12
+END

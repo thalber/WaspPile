@@ -156,10 +156,9 @@ namespace WaspPile.SecondSilverStem
         public static TD MakeDel<TD>(MethodInfo m) where TD : Delegate => (TD)Delegate.CreateDelegate(typeof(TD), m);
         public static object AttemptParseRefl(Type mt, string rawval)
         {
-            
             MethodInfo parseMethod = mt switch
             {
-                _ when mt == typeof(Color) => methodof<OptionalUI.OpColorPicker>("HexToColor", allContextsStatic),
+                //_ when mt == typeof(Color) => methodof<OptionalUI.OpColorPicker>("HexToColor", allContextsStatic),
                 _ when mt == typeof(string) => methodof(typeof(_3SUTL), nameof(stringretself)),
                 _ => mt.GetMethod("Parse", allContextsStatic, null, new[] { typeof(string) }, null)
             };
@@ -186,6 +185,7 @@ namespace WaspPile.SecondSilverStem
 }
 
 #region nfvcr
+#nullable enable
 namespace System
 {
     public struct ValueTuple<T1, T2> : IEquatable<ValueTuple<T1, T2>>, IComparable, IComparable<ValueTuple<T1, T2>>
@@ -604,10 +604,10 @@ namespace System
         public bool Equals(Range other) => other.Start.Equals(Start) && other.End.Equals(End);
 
         /// <summary>Returns the hash code for this instance.</summary>
-        //public override int GetHashCode()
-        //{
-        //    return HashHelpers.Combine(Start.GetHashCode(), End.GetHashCode());
-        //}
+        public override int GetHashCode()
+        {
+            return Start.GetHashCode() * End.GetHashCode();
+        }
 
         /// <summary>Converts the value of the current Range object to its equivalent string representation.</summary>
         public override string ToString()
@@ -616,13 +616,13 @@ namespace System
         }
 
         /// <summary>Create a Range object starting from start index to the end of the collection.</summary>
-        public static Range StartAt(Index start) => new Range(start, Index.End);
+        public static Range StartAt(Index start) => new(start, Index.End);
 
         /// <summary>Create a Range object starting from first element in the collection to the end Index.</summary>
-        public static Range EndAt(Index end) => new Range(Index.Start, end);
+        public static Range EndAt(Index end) => new(Index.Start, end);
 
         /// <summary>Create a Range object starting from first element to the end.</summary>
-        public static Range All => new Range(Index.Start, Index.End);
+        public static Range All => new(Index.Start, Index.End);
 
         /// <summary>Calculate the start offset and length of range object using a collection length.</summary>
         /// <param name="length">The length of the collection that the range will be used with. length has to be a positive value.</param>
@@ -656,4 +656,5 @@ namespace System
         }
     }
 }
+#nullable disable
 #endregion

@@ -99,5 +99,8 @@
     <Compile Include="_3S.Filters.cs" />
     <Compile Include="_3SUTL.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="SPECS.txt" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
