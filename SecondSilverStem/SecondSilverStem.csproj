@@ -96,6 +96,8 @@
     <Compile Include="_3S.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StemTestPlugin.cs" />
+    <Compile Include="_3S.Filters.cs" />
+    <Compile Include="_3SUTL.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

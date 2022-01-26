@@ -23,83 +23,70 @@ namespace WaspPile.SecondSilverStem
 {
     public static partial class _3S
     {
-        public class OperandMatcherBlock
+        public class InstrMatchBlock
         {
-            public OperandMatcherBlock(OpCode oc, string[] matchData)
+            /// <summary>
+            /// 
+            /// </summary>
+            /// <param name="oc">opcode</param>
+            /// <param name="matchData">string array pattern for matching operands. 0th elm is still opcode because there's no using system.range in nf3.5</param>
+            public InstrMatchBlock(OpCode oc, string[] matchData)
             {
                 _data = matchData;
             }
-            public OperandMatcherBase makeMatcher(OpCode oc, string subs)
+            public OperandMatcherBase makeMatcher(OpCode oc)
             {
                 int y = 2;
                 var l = y << 1;
                 OperandMatcherBase res = default;
-                switch (oc.OperandType)
+                res = oc.OperandType switch
                 {
-#error figure how the fuck to bind stuff compactly
-                    case OperandType.InlineBrTarget:
-                        break;
-                    case OperandType.InlineField:
-                        break;
-                    case OperandType.InlineI:
-                        break;
-                    case OperandType.InlineI8:
-                        break;
-                    case OperandType.InlineMethod:
-                        break;
-                    case OperandType.InlineNone:
-                        break;
-                    case OperandType.InlinePhi:
-                        break;
-                    case OperandType.InlineR:
-                        break;
-                    case OperandType.InlineSig:
-                        break;
-                    case OperandType.InlineString:
-                        break;
-                    case OperandType.InlineSwitch:
-                        break;
-                    case OperandType.InlineTok:
-                        break;
-                    case OperandType.InlineType:
-                        break;
-                    case OperandType.InlineVar:
-                        break;
-                    case OperandType.InlineArg:
-                        break;
-                    case OperandType.ShortInlineBrTarget:
-                        break;
-                    case OperandType.ShortInlineI:
-                        break;
-                    case OperandType.ShortInlineR:
-                        break;
-                    case OperandType.ShortInlineVar:
-                        break;
-                    case OperandType.ShortInlineArg:
-                        break;
-                    default:
-                        break;
-                }
+                    OperandType.InlineBrTarget => throw new NotImplementedException(),
+                    OperandType.InlineField => throw new NotImplementedException(),
+                    OperandType.InlineI => throw new NotImplementedException(),
+                    OperandType.InlineI8 => throw new NotImplementedException(),
+                    OperandType.InlineMethod => throw new NotImplementedException(),
+                    OperandType.InlineNone => throw new NotImplementedException(),
+                    OperandType.InlinePhi => throw new NotImplementedException(),
+                    OperandType.InlineR => throw new NotImplementedException(),
+                    OperandType.InlineSig => throw new NotImplementedException(),
+                    OperandType.InlineString => throw new NotImplementedException(),
+                    OperandType.InlineSwitch => throw new NotImplementedException(),
+                    OperandType.InlineTok => throw new NotImplementedException(),
+                    OperandType.InlineType => throw new NotImplementedException(),
+                    OperandType.InlineVar => throw new NotImplementedException(),
+                    OperandType.InlineArg => throw new NotImplementedException(),
+                    OperandType.ShortInlineBrTarget => throw new NotImplementedException(),
+                    OperandType.ShortInlineI => throw new NotImplementedException(),
+                    OperandType.ShortInlineR => throw new NotImplementedException(),
+                    OperandType.ShortInlineVar => throw new NotImplementedException(),
+                    OperandType.ShortInlineArg => throw new NotImplementedException(),
+                    _ => throw new NotImplementedException(),
+                };
                 return res;
             }
-
-            internal string[] _data;
+            
+            public bool Match(Instruction instr) 
+                => rootMatcher.Match(instr.Operand);
+            internal readonly string[] _data;
+            internal readonly OperandMatcherBase rootMatcher;
         }
 
         public abstract class OperandMatcherBase
         {
-            public OperandMatcherBase(string data, bool lazy = false)
+            public OperandMatcherBase(string[] data, bool lazy = false)
             {
                 _data = data;
                 _lazy = lazy;
             }
-            internal readonly string _data;
+            internal readonly string[] _data;
             internal readonly bool _lazy;
+            internal InstrMatchBlock _owner;
             public abstract bool Match(object operand);
         }
         public abstract class OperandMatcherG<T> : OperandMatcherBase
         {
-            protected OperandMatcherG(string data) : base(data)
+            protected OperandMatcherG(string[] data) : base(data)
             {
 
             }
@@ -108,7 +95,7 @@ namespace WaspPile.SecondSilverStem
         }
         public class SlowPrimitiveMatcher : OperandMatcherBase
         {
-            public SlowPrimitiveMatcher(string data) : base(data)
+            public SlowPrimitiveMatcher(string[] data) : base(data)
             {
             }
 
@@ -116,24 +103,35 @@ namespace WaspPile.SecondSilverStem
             {
                 try
                 {
-                    return operand == AttemptParseRefl(operand.GetType(), _data);
+                    return operand == AttemptParseRefl(operand.GetType(), _data[0]);
                 }
                 catch { return false; }
             }
         }
         public class LabelMatcher : OperandMatcherG<ILLabel>
         {
-            public LabelMatcher(string data) : base(data) { }
+            public LabelMatcher(string[] data) : base(data) { }
             protected override bool MatchG(ILLabel operand)
             {
-                int.TryParse(_data, out var r);
-                return operand.ToString() == _data || operand.Target.Offset == r;
+                int.TryParse(_data[0], out var r);
+                return operand.ToString() == _data[0] || operand.Target.Offset == r;
             }
         }
         public class Wildcard : OperandMatcherBase
         {
-            public Wildcard(string data) : base(data) { }
+            public Wildcard(string[] data) : base(data) { }
             public override bool Match(object operand) => true;
+        }
+        public class MethodMatcher : OperandMatcherG<MethodInfo>
+        {
+            public MethodMatcher(string[] data) : base(data)
+            {
+            }
+
+            protected override bool MatchG(MethodInfo operand)
+            {
+
+            }
         }
     }
 }
