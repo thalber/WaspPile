@@ -143,7 +143,8 @@ namespace WaspPile.SecondSilverStem
                 DEFS,
                 PATTERN,
             }
-            internal string nextDefaultName => throw new NotImplementedException();
+            internal string nextDefaultName => "group" + gnc++;
+            internal int gnc = 0;
         }
 
         public static readonly Dictionary<string, OpCode> OpCodesByName = new(StringComparer.InvariantCultureIgnoreCase);

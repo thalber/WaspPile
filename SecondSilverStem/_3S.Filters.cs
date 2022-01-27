@@ -66,6 +66,7 @@ namespace WaspPile.SecondSilverStem
                     //OperandType.InlineSig => throw new NotImplementedException(),
                     _ => null,
                 };
+                if (DebugMode) LogWarning($"Root matcher created: {(object)_rootMatcher ?? ("null")}");
             }
 
             public bool Match(Instruction instr) 
