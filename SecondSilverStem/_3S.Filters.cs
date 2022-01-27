@@ -41,29 +41,30 @@ namespace WaspPile.SecondSilverStem
                 {
                     OperandType.InlineNone => new Wildcard(this, new string[0]),
                     //primitives
-                    OperandType.InlineString => throw new NotImplementedException(),
-                    OperandType.InlineI => new SlowPrimitiveMatcher(this, ndt) { },
-                    OperandType.InlineI8 => throw new NotImplementedException(),
-                    OperandType.InlineR => throw new NotImplementedException(),
-                    OperandType.ShortInlineI => throw new NotImplementedException(),
-                    OperandType.ShortInlineR => throw new NotImplementedException(),
+                    OperandType.InlineString
+                    or OperandType.ShortInlineR
+                    or OperandType.InlineR
+                    or OperandType.InlineI8
+                    or OperandType.ShortInlineI
+                    or OperandType.InlineI 
+                    or OperandType.InlineI8 => new SlowPrimitiveMatcher(this, ndt),
                     //types, fields, methods, locvars
-                    OperandType.InlineField => new FieldMatcher(this, ndt) { },
-                    OperandType.InlineMethod => throw new NotImplementedException(),
-                    OperandType.InlineType => throw new NotImplementedException(),
-                    OperandType.ShortInlineVar => throw new NotImplementedException(),
-                    OperandType.InlineVar => throw new NotImplementedException(),
+                    OperandType.InlineField => new FieldMatcher(this, ndt),
+                    OperandType.InlineMethod => new MethodMatcher(this, ndt),
+                    OperandType.InlineType => new TypeMatcher(this, ndt),
+                    OperandType.ShortInlineVar 
+                    or OperandType.InlineVar => new LocVarMatcher(this, ndt),
                     //jumps
-                    OperandType.InlineSwitch => new LabelArrayMatcher(this, ndt) { },
-                    OperandType.ShortInlineBrTarget => throw new NotImplementedException(),
-                    OperandType.InlineBrTarget => throw new NotImplementedException(),
+                    OperandType.InlineSwitch => new LabelArrayMatcher(this, ndt),
+                    OperandType.ShortInlineBrTarget 
+                    or OperandType.InlineBrTarget => new LabelMatcher(this, ndt),
                     //others
-                    OperandType.InlineTok => throw new NotImplementedException(),
-                    OperandType.InlineArg => throw new NotImplementedException(),
-                    OperandType.ShortInlineArg => throw new NotImplementedException(),
-                    OperandType.InlinePhi => throw new NotImplementedException(),
-                    OperandType.InlineSig => throw new NotImplementedException(),
-                    _ => throw new NotImplementedException(),
+                    //OperandType.InlineTok => throw new NotImplementedException(),
+                    //OperandType.InlineArg => throw new NotImplementedException(),
+                    //OperandType.ShortInlineArg => throw new NotImplementedException(),
+                    //OperandType.InlinePhi => throw new NotImplementedException(),
+                    //OperandType.InlineSig => throw new NotImplementedException(),
+                    _ => null,
                 };
             }
 
@@ -100,6 +101,10 @@ namespace WaspPile.SecondSilverStem
 
             public abstract bool Match(object operand);
         }
+        /// <summary>
+        /// base for type specific matchers
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
         public abstract class OperandMatcherG<T> : OperandMatcherBase
         {
             protected OperandMatcherG(InstrMatchBlock imb, params string[] data) : base(imb, data)
@@ -119,23 +124,29 @@ namespace WaspPile.SecondSilverStem
             {
                 try
                 {
-                    return operand == AttemptParseRefl(operand.GetType(), _data0);
+                    var mt = operand.GetType();
+                    valcache.TryGetValue(mt, out var cachedRes);
+                    cachedRes ??= AttemptParseRefl(mt, _data0);
+                    valcache.SetKey(mt, cachedRes);
+                    return operand == cachedRes;
                 }
                 catch { return Lazy; }
             }
-        }
-        public class LabelMatcher : OperandMatcherG<ILLabel>
-        {
-            public LabelMatcher(InstrMatchBlock imb, params string[] data) : base(imb, data) { }
-            public override bool MatchG(ILLabel operand)
-            {
-                return Lazy ? operand.ToString().Contains(_data0) : operand.ToString() == _data0;
-            }
+            private Dictionary<Type, object> valcache = new();
         }
         public class Wildcard : OperandMatcherBase
         {
             public Wildcard(InstrMatchBlock imb, params string[] data) : base(imb, data) { Lazy = true; }
             public override bool Match(object operand) => true;
+        }
+        public class LocVarMatcher : OperandMatcherG<VariableDefinition>
+        {
+            public LocVarMatcher(InstrMatchBlock imb, params string[] data) : base(imb, data) { }
+            public override bool MatchG(VariableDefinition operand)
+            {
+                if (int.TryParse(_data0, out var vin)) return operand.Index == vin;
+                else return Lazy;
+            }
         }
         public class MethodMatcher : OperandMatcherG<MethodBase>
         {
@@ -156,15 +167,6 @@ namespace WaspPile.SecondSilverStem
                 return fld?.Equals(operand) ?? Lazy;
             }
         }
-        public class LocVarMatcher : OperandMatcherG<VariableDefinition>
-        {
-            public LocVarMatcher(InstrMatchBlock imb, params string[] data) : base(imb, data) { }
-            public override bool MatchG(VariableDefinition operand)
-            {
-                if (int.TryParse(_data0, out var vin)) return operand.Index == vin;
-                else return Lazy;
-            }
-        }
         public class TypeMatcher : OperandMatcherG<Type>
         {
             public TypeMatcher(InstrMatchBlock imb, params string[] data) : base(imb, data) { }
@@ -173,6 +175,14 @@ namespace WaspPile.SecondSilverStem
             {
                 if (Collection._typedefs.TryGetValue(_data0, out var mt)) return mt == operand;
                 else return Lazy;
+            }
+        }
+        public class LabelMatcher : OperandMatcherG<ILLabel>
+        {
+            public LabelMatcher(InstrMatchBlock imb, params string[] data) : base(imb, data) { }
+            public override bool MatchG(ILLabel operand)
+            {
+                return Lazy ? operand.ToString().Contains(_data0) : operand.ToString() == _data0;
             }
         }
         public class LabelArrayMatcher : OperandMatcherG<ILLabel[]>

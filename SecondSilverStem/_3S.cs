@@ -82,9 +82,19 @@ namespace WaspPile.SecondSilverStem
                 {
                     case ILParseMode.NONE:
                         break;
-                    case ILParseMode.DEFS:  
-                        #warning put all def actions in here
-                        _owner.BindType(clnSplit[0], null);
+                    case ILParseMode.DEFS:
+#warning put all def actions in here
+                        int ac = clnSplit.FirstOrDefault() switch { "TYPE" => 0, "PROC" => 1, "FLD" => 2, _ => -1 };
+                        if (ac is -1) goto wrap;
+                        for (int i = 1; i < clnSplit.Length; i++)
+                        {
+                            var css = clnSplit[i];
+                            switch (ac) {
+                                case 0: _owner.BindType(css, null); break;
+                                case 1: _owner.BindProc(css, null); break;
+                                case 2: _owner.BindFld(css, null); break;
+                            }
+                        }
                         break;
                     case ILParseMode.PATTERN:
                         try
