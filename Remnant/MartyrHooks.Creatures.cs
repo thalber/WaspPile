@@ -27,7 +27,13 @@ namespace WaspPile.Remnant
         internal const CreatureTemplate.Type CRIT_CT_GOLDCENTI = CreatureTemplate.Type.RedCentipede;
         internal const CreatureTemplate.Type CRIT_CT_GOLDSPITTER = CreatureTemplate.Type.SpitterSpider;
         internal static bool IsGolden(this Creature c)
-            => c is { Template: { type: CRIT_CT_GOLDCENTI or CRIT_CT_GOLDLIZ or CRIT_CT_GOLDSPITTER } };//c.Template.type == CRIT_CT_GOLDCENTI || c.Template.type == CRIT_CT_GOLDLIZ || c.Template.type == CRIT_CT_GOLDSPITTER;
+            =>
+        //c is { Template: 
+        //{ type: CRIT_CT_GOLDCENTI 
+        //    or CRIT_CT_GOLDLIZ 
+        //    or CRIT_CT_GOLDSPITTER }
+        //};
+        c.Template.type == CRIT_CT_GOLDCENTI || c.Template.type == CRIT_CT_GOLDLIZ || c.Template.type == CRIT_CT_GOLDSPITTER;
         internal class CentiGrafFields
         {
             internal CentiGrafFields(CentipedeGraphics cg)
@@ -474,7 +480,6 @@ namespace WaspPile.Remnant
                             amountFadedBy += incrementAdded;
                             sLeaser.sprites[j + self.bumps + num].color = Color.Lerp(self.lGraphics.effectColor, new Color(1f, 0f, 0f), amountFadedBy);
                         }
-
                     }
                 }
             }
@@ -547,30 +552,53 @@ namespace WaspPile.Remnant
         }
         private static void Liz_IL_makeGraphic(ILContext il)
         {
-            var mynum = il.Body.Variables[11];
+            var V_lastSpriteIndex = il.Body.Variables[11];
             var c = new ILCursor(il);
-            c.GotoNext(ins0 => ins0.MatchLdarg(0),
-                    ins1 => ins1.MatchLdarg(0),
-                    ins2 => ins2.MatchLdfld(nameof(LizardGraphics), nameof(LizardGraphics.lizard)),
-                    ins3 => ins3.MatchCallOrCallvirt<Creature>("get_mainBodyChunk"));
-            var exitl = c.DefineLabel();
-            var ex2 = c.Instrs[c.Index];
-            if (RemnantPlugin.DebugMode) LogWarning($"exit defined");
-            c.Index = 0;
-            int some = default;
+            Instruction escape = default;
             if (c.TryGotoNext(MoveType.Before,
-                x => x.MatchLdarg(0),
-                x => x.MatchLdloc(out some),
-                x => x.MatchLdarg(0),
-                x => x.MatchLdloc(some)
+                xx => xx.MatchLdarg(0),
+                xx => xx.MatchLdarg(0),
+                xx => xx.MatchLdfld<LizardGraphics>("lizard"),
+                xx => xx.MatchCallOrCallvirt<Creature>("get_mainBodyChunk"),
+                xx => xx.MatchNewobj<ChunkDynamicSoundLoop>(),
+                xx => xx.MatchStfld<LizardGraphics>("soundLoop")
+                ))
+            {
+                if (RemnantPlugin.DebugMode) LogWarning("liz graphics: Exit defined");
+                escape = c.Next;
+            }
+            //var l = c.DefineLabel();
+            //l.Target = escape;
+            //if (RemnantPlugin.DebugMode) LogWarning($"exit defined");
+            c.Index = 0;
+            //c.TryFindNext(out var cs,
+            //    xx => xx.MatchLdarg(0),
+            //    xx => xx.MatchLdfld<LizardGraphics>("lizard"),
+            //    xx => xx.MatchCallOrCallvirt<Creature>("get_Template"),
+            //    xx => xx.MatchLdfld<CreatureTemplate>("type"),
+            //    xx => xx.MatchLdcI4(11),
+            //    xx => xx.MatchBneUn(out _));
+            if (c.TryGotoNext(MoveType.Before,
+                xx => xx.MatchLdarg(0),
+                xx => xx.MatchLdfld<LizardGraphics>("lizard"),
+                xx => xx.MatchCallOrCallvirt<Creature>("get_Template"),
+                xx => xx.MatchLdfld<CreatureTemplate>("type"),
+                xx => xx.MatchLdcI4(11),
+                xx => xx.MatchBneUn(out _),
+                xx => xx.MatchCallOrCallvirt(methodof(typeof(URand), "get_value", allContextsStatic))
                 ))
             {
                 c.Emit(Ldarg_0);
-                c.Emit(Ldloc_S, mynum);
-                c.EmitDelegate<Func<LizardGraphics, int, int>>((self, spr) =>
+                c.Emit(Ldloc, V_lastSpriteIndex);
+                c.EmitDelegate<Func<LizardGraphics, int, bool>>((self, spr) =>
                 {
-                    if (self.lizard.IsGolden())
+                    if (RemnantPlugin.DebugMode) LogWarning($"lgc:: {self}, {spr}");
+                    var res = self.lizard.IsGolden();
+                    if (res)
                     {
+                        if (RemnantPlugin.DebugMode) LogWarning("GOLDLIZ cosmetics applied.");
+                        self.cosmetics ??= new();
+                        //if (self.cosmetics == mn)
                         spr = self.AddCosmetic(spr, new LizardCosmetics.SpineSpikes(self, spr));
                         spr = self.AddCosmetic(spr, new LizardCosmetics.TailFin(self, spr));
                         spr = self.AddCosmetic(spr, new LizardCosmetics.LongShoulderScales(self, spr));
@@ -578,20 +606,56 @@ namespace WaspPile.Remnant
                         spr = self.AddCosmetic(spr, new LizardCosmetics.TailGeckoScales(self, spr));
                         spr = self.AddCosmetic(spr, new LizardCosmetics.JumpRings(self, spr));
                         spr = self.AddCosmetic(spr, new LizardCosmetics.ShortBodyScales(self, spr));
-                        if (RemnantPlugin.DebugMode) LogWarning("GOLDLIZ cosmetics applied.");
                     }
-                    return spr;
+                    return res;
                 });
-                c.Emit(Stloc_S, mynum);
-                c.Emit(Br, ex2);
-                if (RemnantPlugin.DebugMode) LogWarning("GOLDLIZ: liz graphics ctor defiled successfully");
-                //File.WriteAllText(Path.Combine(RootFolderDirectory(), "ild.txt"), il.ToString());
+                c.Emit(Brtrue, escape);
+                if (RemnantPlugin.DebugMode) LogWarning("LizGraphics ctor defiled");
             }
-            else
-            {
-                LogWarning("GOLDLIZ: FAILED TO FIND INSERTION POINT!");
-                //if (RemnantPlugin.DebugMode) 
-            }
+            if (RemnantPlugin.DebugMode) il.dump(RootFolderDirectory(), "LizCosmeticsCtor.txt");
+
+            //c.GotoNext(ins0 => ins0.MatchLdarg(0),
+            //        ins1 => ins1.MatchLdarg(0),
+            //        ins2 => ins2.MatchLdfld(nameof(LizardGraphics), nameof(LizardGraphics.lizard)),
+            //        ins3 => ins3.MatchCallOrCallvirt<Creature>("get_mainBodyChunk"));
+            //var exitl = c.DefineLabel();
+            //var ex2 = c.Next;
+            //int some = default;
+            //if (c.TryGotoNext(
+            //    MoveType.Before,
+            //    x => x.MatchLdarg(0),
+            //    x => x.MatchLdloc(out some),
+            //    x => x.MatchLdarg(0),
+            //    x => x.MatchLdloc(some)
+            //    ))
+            //{
+                //c.Emit(Ldarg_0);
+                //c.Emit(Ldloc_S, mynum);
+                //c.EmitDelegate<Func<LizardGraphics, int, int>>((self, spr) =>
+                //{
+                //    if (self.lizard.IsGolden())
+                //    {
+                //        spr = self.AddCosmetic(spr, new LizardCosmetics.SpineSpikes(self, spr));
+                //        spr = self.AddCosmetic(spr, new LizardCosmetics.TailFin(self, spr));
+                //        spr = self.AddCosmetic(spr, new LizardCosmetics.LongShoulderScales(self, spr));
+                //        spr = self.AddCosmetic(spr, new LizardCosmetics.SpineSpikes(self, spr));
+                //        spr = self.AddCosmetic(spr, new LizardCosmetics.TailGeckoScales(self, spr));
+                //        spr = self.AddCosmetic(spr, new LizardCosmetics.JumpRings(self, spr));
+                //        spr = self.AddCosmetic(spr, new LizardCosmetics.ShortBodyScales(self, spr));
+                //        if (RemnantPlugin.DebugMode) LogWarning("GOLDLIZ cosmetics applied.");
+                //    }
+                //    return spr;
+                //});
+                //c.Emit(Stloc_S, mynum);
+                //c.Emit(Br, ex2);
+                //if (RemnantPlugin.DebugMode) LogWarning("GOLDLIZ: liz graphics ctor defiled successfully");
+                ////File.WriteAllText(Path.Combine(RootFolderDirectory(), "ild.txt"), il.ToString());
+            //}
+            //else
+            //{
+            //    LogWarning("GOLDLIZ: FAILED TO FIND INSERTION POINT!");
+            //    //if (RemnantPlugin.DebugMode) 
+            //}
         }
         private static void Liz_RecolorSpit(
             On.LizardSpit.orig_DrawSprites orig,

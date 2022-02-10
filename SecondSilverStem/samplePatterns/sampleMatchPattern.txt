@@ -1,0 +1,18 @@
+﻿//this
+
+BEGIN DEFS
+TYPE room absroom gate elecgate uad
+PROC rm_addobj rm_ctor elecgate_ctor
+FLD rm_gate 
+END
+
+BEGIN PATTERN room_loaded_p1
+ldarg_0
+ldarg_0
+newobj elecgate_ctor
+stfld rm_gate
+ldarg_0
+ldarg_0
+ldfld rm_gate
+callvirt?call rm_addobj
+END

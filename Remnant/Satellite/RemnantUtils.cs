@@ -85,7 +85,12 @@ namespace WaspPile.Remnant.Satellite
         {
             foreach (var fld in t.GetFields(allContextsStatic))
             {
-                if (!fld.FieldType.IsValueType) fld.SetValue(null, default);
+                try
+                {
+                    if (!fld.FieldType.IsValueType) fld.SetValue(null, default);
+                }
+                catch { }
+                
             }
         }
         internal static void CloneInstance<T>(T from, T to, BindingFlags context = allContextsInstance)

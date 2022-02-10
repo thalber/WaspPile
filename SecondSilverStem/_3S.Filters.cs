@@ -7,6 +7,7 @@ using System.IO;
 using RWCustom;
 using UnityEngine;
 using MonoMod.RuntimeDetour;
+using Mono.Cecil;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using System.Reflection;
@@ -16,6 +17,7 @@ using static UnityEngine.Mathf;
 using static Mono.Cecil.Cil.OpCodes;
 using static UnityEngine.Debug;
 using static WaspPile.SecondSilverStem._3SUTL;
+using static WaspPile.SecondSilverStem.StemTestPlugin;
 
 using URand = UnityEngine.Random;
 
@@ -34,6 +36,8 @@ namespace WaspPile.SecondSilverStem
             {
                 _data = matchData;
                 _op = oc;
+                stlog.LogWarning($"making new imb: {oc}");
+                foreach (var d in _data) stlog.LogWarning(d);
                 pattern = ow;
                 var ndt = new string[Math.Max(0, matchData.Length - 1)];
                 Array.Copy(matchData, 1, ndt, 0, ndt.Length);
@@ -69,8 +73,13 @@ namespace WaspPile.SecondSilverStem
                 if (DebugMode) LogWarning($"Root matcher created: {(object)_rootMatcher ?? ("null")}");
             }
 
-            public bool Match(Instruction instr) 
-                => instr.OpCode == _op && (_rootMatcher?.Match(instr.Operand) ?? true);
+            public bool Match(Instruction instr)
+            {
+                //stlog.LogWarning($"Running matchblock on {_op} against {instr.OpCode}");
+                var res = instr.OpCode == _op && (_rootMatcher?.Match(instr.Operand) ?? true);
+                //stlog.LogWarning($"result: {res}");
+                return res;
+            }
             internal readonly string[] _data;
             internal readonly OpCode _op;
             internal readonly OperandMatcherBase _rootMatcher;
@@ -112,7 +121,12 @@ namespace WaspPile.SecondSilverStem
             {
 
             }
-            public override sealed bool Match(object operand) => operand is T t && MatchG(t);
+            public override sealed bool Match(object operand)
+            {
+                var crs = operand is T t && MatchG(t);
+                StemTestPlugin.stlog.LogWarning($"generic opcomp: {operand?.GetType()} against {typeof(T)}, result {crs}");
+                return crs;
+            }
             public abstract bool MatchG(T operand);
         }
         /// <summary>
@@ -129,9 +143,13 @@ namespace WaspPile.SecondSilverStem
                     valcache.TryGetValue(mt, out var cachedRes);
                     cachedRes ??= AttemptParseRefl(mt, _data0);
                     valcache.SetKey(mt, cachedRes);
-                    return operand == cachedRes;
+                    var crs = operand?.Equals(cachedRes) ?? Lazy;
+                    stlog.LogWarning($"Comparing {mt} {operand} to {cachedRes} {cachedRes.GetType()}; result: {crs}");
+                    return crs;
                 }
-                catch { return Lazy; }
+                catch {
+                    stlog.LogWarning("spm comparison fail");
+                    return Lazy; }
             }
             private Dictionary<Type, object> valcache = new();
         }
@@ -168,11 +186,11 @@ namespace WaspPile.SecondSilverStem
                 return fld?.Equals(operand) ?? Lazy;
             }
         }
-        public class TypeMatcher : OperandMatcherG<Type>
+        public class TypeMatcher : OperandMatcherG<TypeReference>
         {
             public TypeMatcher(InstrMatchBlock imb, params string[] data) : base(imb, data) { }
 
-            public override bool MatchG(Type operand)
+            public override bool MatchG(TypeReference operand)
             {
                 if (Collection._typedefs.TryGetValue(_data0, out var mt)) return mt == operand;
                 else return Lazy;

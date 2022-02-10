@@ -14,8 +14,10 @@ using System.Reflection;
 using static RWCustom.Custom;
 using static UnityEngine.Mathf;
 using static Mono.Cecil.Cil.OpCodes;
+using Mono.Cecil;
 using static UnityEngine.Debug;
 using static WaspPile.SecondSilverStem._3SUTL;
+using static WaspPile.SecondSilverStem.StemTestPlugin;
 
 using URand = UnityEngine.Random;
 
@@ -31,26 +33,49 @@ namespace WaspPile.SecondSilverStem
                 Data = rawdata;
                 _parser = new(this);
                 while (!_parser.Done) _parser.Advance();
+                _parser.switchMode(ILPatternParser.ILParseMode.NONE, null);
+                _parser = null;
             }
             internal readonly string[] Data;
             internal readonly Dictionary<string, ILPattern> _children = new();
+            //defs
             internal readonly Dictionary<string, Type> _typedefs = new();
             public void BindType(string key, Type type) => _typedefs.SetKey(key, type);
+            public void BindTypes(params (string, Type)[] pairs)
+            {
+                foreach (var p in pairs) BindType(p.Item1, p.Item2);
+            }
             internal readonly Dictionary<string, MethodBase> _procdefs = new();
             public void BindProc(string key, MethodBase proc) => _procdefs.SetKey(key, proc);
+            public void BindProcs(params (string, MethodBase)[] pairs)
+            {
+                foreach (var p in pairs) BindProc(p.Item1, p.Item2);
+            }
             internal readonly Dictionary<string, FieldInfo> _fielddefs = new();
             public void BindFld(string key, FieldInfo field) => _fielddefs.SetKey(key, field);
-
+            public void BindFlds(params (string, FieldInfo)[] pairs)
+            {
+                foreach (var p in pairs) BindFld(p.Item1, p.Item2);
+            }
+            public void ResetBinds()
+            {
+                foreach (var k in _typedefs.Keys) _typedefs.SetKey(k, null);
+                foreach (var k in _procdefs.Keys) _procdefs.SetKey(k, null);
+                foreach (var k in _fielddefs.Keys) _fielddefs.SetKey(k, null);
+            }
+            //!defs
             public IEnumerator<ILPattern> GetEnumerator() => _children.Values.GetEnumerator();
             IEnumerator IEnumerable.GetEnumerator() => _children.Values.GetEnumerator();
-
             internal readonly ILPatternParser _parser;
         }
         public class ILPattern
         {
             internal List<InstrMatchBlock> _preds = new();
             internal ILPatternCollection _pcollection;
-            //public IEnumerable<Func<Instruction, bool>> ReturnPredicates() => _preds.AsEnumerable();
+            public IEnumerable<Func<Instruction, bool>> ReturnPredicates()
+            {
+                for (int i = 0; i < _preds.Count; i++) yield return (Func<Instruction, bool>)_preds[i];
+            }
         }
 
         public class ILPatternParser
@@ -58,18 +83,21 @@ namespace WaspPile.SecondSilverStem
             public ILPatternParser(ILPatternCollection ow)
             {
                 _owner = ow;
+                stlog.LogWarning($"Booting up ILPP: length {data.Length}");
             }
             public readonly ILPatternCollection _owner;
             public string[] data => _owner.Data;
 
             public void Advance()
             {
+                stlog.LogWarning("ILPP step " + cIndex);
+                stlog.LogWarning(cLine);
                 if (cLine.StartsWith("//") || cLine.Length == 0) goto wrap;
                 var clnSplit = cLine.Split(' ');
                 if (clnSplit[0] == "BEGIN")
                 {
                     if (clnSplit.Length < 2) goto wrap;
-                    var newBlockName = (clnSplit.Length > 2) ? clnSplit[3] : nextDefaultName;
+                    var newBlockName = (clnSplit.Length > 2) ? clnSplit[2] : nextDefaultName;
                     switchMode(ParseEnum<ILParseMode>(clnSplit[1]), newBlockName);
                     goto wrap;
                 }
@@ -109,15 +137,18 @@ namespace WaspPile.SecondSilverStem
                 }
             wrap:
                 cIndex++;
+                if (Done) switchMode(ILParseMode.NONE, null);
             }
-            public bool Done => cIndex < data.Length;
+            public bool Done => cIndex >= data.Length;
             public string cLine => data[cIndex];
 
             internal void switchMode(ILParseMode newMode, string newBlockName)
             {
                 if (newMode == cMode) return;
+                stlog.LogWarning($"!!! switching mode: {newMode}, {newBlockName}");
                 if (cPattern is not null)
                 {
+                    stlog.LogWarning("!!! pattern finalized");
                     _owner._children.Add(cBlockName, cPattern);
                     cPattern = null;
                 }
@@ -125,12 +156,15 @@ namespace WaspPile.SecondSilverStem
                 cBlockName = newBlockName;
                 if (cMode == ILParseMode.PATTERN)
                 {
+                    stlog.LogWarning($"Creating new pattern");
                     cPattern = new() { _pcollection = _owner };
                 }
             }
             internal InstrMatchBlock makeMatchBlock(string[] line)
             {
-                OpCodesByName.TryGetValue(line[0], out var oc);
+                var ocns = line.FirstOrDefault() ?? "nop";
+                OpCode oc = Nop;
+                foreach (var sub in ocns.Split('?')) if (OpCodesByName.TryGetValue(sub.ToLower(), out oc)) { break; }
                 return new InstrMatchBlock(oc, line, cPattern);
             }
             internal ILPattern cPattern;
@@ -147,12 +181,14 @@ namespace WaspPile.SecondSilverStem
             internal int gnc = 0;
         }
 
-        public static readonly Dictionary<string, OpCode> OpCodesByName = new(StringComparer.InvariantCultureIgnoreCase);
+
+        public static readonly Dictionary<string, OpCode> OpCodesByName = new();
         static _3S()
         {
             foreach (var fld in typeof(OpCodes).GetFields(allContextsStatic)) try
                 {
-                    if (fld.FieldType == typeof(OpCode)) OpCodesByName.Add(fld.Name, (OpCode)fld.GetValue(null));
+                    if (fld.FieldType == typeof(OpCode)) OpCodesByName.Add(fld.Name.ToLower(), (OpCode)fld.GetValue(null));
+                    stlog.LogWarning($"{fld.Name} oc registered");
                 } catch { }
         }
     }
