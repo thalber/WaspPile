@@ -202,6 +202,7 @@ namespace WaspPile.Remnant
         private static void PromptCycleWarning(On.Player.orig_ctor orig, Player self, AbstractCreature abstractCreature, World world)
         {
             orig(self, abstractCreature, world);
+            if (abstractCreature.world.game.Players.IndexOf(abstractCreature) == -1) return;
             abstractCreature.Room.realizedRoom?.AddObject(new CyclePrompt());
         }
         #endregion

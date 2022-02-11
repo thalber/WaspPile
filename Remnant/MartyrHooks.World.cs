@@ -29,10 +29,26 @@ namespace WaspPile.Remnant
             manualHooks.Add(new ILHook(methodof<Oracle>("SetUpSwarmers"), KillMoon));
             //IL.Room.Loaded += skipKF;
             On.AbstractPhysicalObject.Realize += skipKFrealize;
+            On.GhostWorldPresence.SpawnGhost += skipGhostPriming;
+            //On.RainWorldGame.ExitToVoidSeaSlideShow += cancelEndingScene;
+        }
+
+//        private static void cancelEndingScene(On.RainWorldGame.orig_ExitToVoidSeaSlideShow orig, RainWorldGame self)
+//        {
+//#warning test
+//            MartyrChar.ME.overrideNext("Empty", null);
+//            orig(self);
+//        }
+
+        private static bool skipGhostPriming(On.GhostWorldPresence.orig_SpawnGhost orig, GhostWorldPresence.GhostID ghostID, int karma, int karmaCap, int ghostPreviouslyEncountered, bool playingAsRed)
+        {
+#warning test
+            return orig(ghostID, karma, karmaCap, ghostPreviouslyEncountered, true);
         }
 
         private static void skipKFrealize(On.AbstractPhysicalObject.orig_Realize orig, AbstractPhysicalObject self)
         {
+#warning test
             if (self.type is AbstractPhysicalObject.AbstractObjectType.KarmaFlower) return;
             orig(self);
         }
@@ -63,7 +79,9 @@ namespace WaspPile.Remnant
 
         internal static void WORLD_Disable()
         {
-
+            On.AbstractPhysicalObject.Realize -= skipKFrealize;
+            On.GhostWorldPresence.SpawnGhost -= skipGhostPriming;
+            //On.RainWorldGame.ExitToVoidSeaSlideShow -= cancelEndingScene;
         }
     }
 }

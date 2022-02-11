@@ -87,7 +87,8 @@ namespace WaspPile.Remnant.Satellite
             {
                 try
                 {
-                    if (!fld.FieldType.IsValueType) fld.SetValue(null, default);
+                    if (fld.FieldType.IsValueType || fld.IsLiteral) continue;
+                    fld.SetValue(null, default);
                 }
                 catch { }
                 

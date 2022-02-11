@@ -28,11 +28,13 @@ namespace WaspPile.Remnant
 
         public MartyrChar() : base(CHARNAME, FormatVersion.V1, 2, false) {
             __ME = new WeakReference(this);
+            this.DevMode = RemnantPlugin.DebugMode;
             //instance = this;
         }
         //public static MartyrChar instance;
         private static WeakReference __ME;
         internal static MartyrChar ME => __ME?.Target as MartyrChar;
+        internal void overrideNext(string SceneImage, SceneImageFilter filter) => OverrideNextScene(SceneImage, filter);
 
         #region chardetails
         public override bool PlaceKarmaFlower => false;
@@ -54,7 +56,6 @@ namespace WaspPile.Remnant
         {
             return false;
         }
-
         public override void GetFoodMeter(out int maxFood, out int foodToSleep)
         {
             maxFood = 9;
@@ -91,6 +92,13 @@ namespace WaspPile.Remnant
 
         #region scenes and menus
         public override bool HasSlideshow(string slideshowName) => false;
+        public override bool HasScene(string sceneName) 
+            => sceneName switch
+        {
+            "Red_Ascend" 
+            or _ when sceneName.StartsWith("Outro_") => false,
+            _ => base.HasScene(sceneName)
+        };
         public override CustomScene BuildScene(string sceneName)
         {
             if (sceneName == "SelectMenu" && MartyrIsDead(CRW.options.saveSlot)) sceneName = "SelectMenuDisrupt";
