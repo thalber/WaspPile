@@ -199,13 +199,14 @@ namespace WaspPile.Remnant
             public override void SavePermanent(Dictionary<string, string> data, bool asDeath, bool asQuit)
             {
                 MartyrHooks.FieldCleanup();
-                if (RemnantConfig.noQuits.Value && asQuit && cycleNumber != 0)
+                if (RemnantConfig.noQuits.Value && asQuit && cycleNumber != 0 || imDone)
                 {
                     var meta = CurrentMiscSaveData(CHARNAME);
                     var deathmark = "ACTOR DESYNC";
                     meta.SetKey(PERMADEATHKEY, deathmark);
-                    CRW.processManager.RequestMainProcessSwitch(ProcessManager.ProcessID.MainMenu);
-                    Debug.Log($"REMNANT DISRUPTED: {deathmark}");
+                    var cpm = CRW.processManager;
+                    if (cpm.upcomingProcess != null) cpm.RequestMainProcessSwitch(ProcessManager.ProcessID.SlugcatSelect);
+                    Log($"REMNANT DISRUPTED: {deathmark}");
                 }
                 if (RemedyCache && !asDeath) { data.SetKey(ALLEVKEY, "ON"); LogWarning("REMEDY RETAINED"); }
                 else { data.SetKey(ALLEVKEY, "OFF"); LogWarning("SAVED AS DEATH, REMEDY REMOVED"); }
@@ -222,6 +223,9 @@ namespace WaspPile.Remnant
                 base.LoadPermanent(data);
             }
             private bool rc;
+            //ensures disrupt on save
+
+            internal bool imDone;
 
             internal bool RemedyCache {
                 get { if (RemnantPlugin.DebugMode) LogWarning("REMEDY CACHED: " + rc); return rc; } 

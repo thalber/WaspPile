@@ -39,6 +39,9 @@ namespace WaspPile.Remnant
             //ability
             public float maxEchoReserve;
             public float rechargeRate;
+            public float effRechargeRate => rechargeRate * (inVoid ? 5f : 1f);
+            public float depleteRate = 1f;
+            public float effDepleteRate => depleteRate * (inVoid ? 0.5f : 1f);
             public float echoReserve;
             public bool keyDown;
             public bool lastKeyDown;
@@ -64,6 +67,7 @@ namespace WaspPile.Remnant
             public float basePoleSpeed;
             public float baseWaterFric;
             public Color palBlack = new(0.1f, 0.1f, 0.1f);
+            public bool inVoid;
         }
         //same for martyr spears
         public class WeaponFields
@@ -107,7 +111,7 @@ namespace WaspPile.Remnant
             self.airInLungs = 1f;
             if (RemnantPlugin.DebugMode) Console.WriteLine($"Martyr ability up\nreserve: {mf.echoReserve}");
         }
-        
+
         internal static readonly List<IDetour> manualHooks = new();
         internal static readonly Dictionary<int, MartyrFields> playerFieldsByHash = new();
         internal static readonly Dictionary<int, WeaponFields> poweredWeapons = new();
@@ -530,7 +534,7 @@ namespace WaspPile.Remnant
             }
             if (RemnantPlugin.DebugMode)
             {
-                LogWarning("stamina pass 2");
+                //LogWarning("stamina pass 2");
                 LogWarning(Json.Serialize(InstFieldsToDict(self.slugcatStats)));
             }
         }
@@ -545,13 +549,15 @@ namespace WaspPile.Remnant
             //basic recharge/cooldown and activation
             mf.lastKeyDown = mf.keyDown;
             mf.keyDown = Input.GetKey(RemnantConfig.GetKeyForPlayer(self.room.game.Players.IndexOf(self.abstractCreature)));
+#warning change to any room with voidsea?
+            mf.inVoid = self.room.abstractRoom.name == "SB_L01";
             bool toggleRequested = (mf.keyDown && !mf.lastKeyDown);
             if (RemnantPlugin.DebugMode && toggleRequested) LogWarning("Martyr toggle req");
             if (mf.echoActive)
             {
                 self.aerobicLevel = 0f;
                 self.airInLungs = 1f;
-                mf.echoReserve -= 1f;
+                mf.echoReserve -= mf.effDepleteRate;
                 if (mf.echoReserve < 0 || toggleRequested || !self.Consious)
                 {
                     self.powerDown(ref mf, mf.echoReserve < 0);
@@ -559,7 +565,7 @@ namespace WaspPile.Remnant
             }
             else
             {
-                mf.echoReserve = Min(mf.maxEchoReserve, mf.echoReserve + mf.rechargeRate);
+                mf.echoReserve = Min(mf.maxEchoReserve, mf.echoReserve + mf.effRechargeRate);
                 mf.cooldown = Max(0, mf.cooldown - 1f);
                 if (toggleRequested && mf.cooldown == 0) self.powerUp(ref mf);
                 if (toggleRequested && mf.cooldown != 0) self.room.PlaySound(SoundID.Spear_Bounce_Off_Creauture_Shell, self.firstChunk.pos, 0.9f, 0.45f);
@@ -569,10 +575,10 @@ namespace WaspPile.Remnant
             self.slugcatStats.runspeedFac = mf.echoActive 
                 ? mf.baseRunSpeed * ECHOMODE_RUNSPEED_BONUS 
                 : mf.baseRunSpeed;
-            self.buoyancy = mf.echoActive 
+            self.buoyancy = mf.echoActive && !mf.inVoid
                 ? mf.baseBuoyancy * ECHOMODE_BUOYANCY_BONUS 
                 : mf.baseBuoyancy;
-            self.waterFriction = mf.echoActive 
+            self.waterFriction = mf.echoActive && !mf.inVoid 
                 ? mf.baseWaterFric * ECHOMODE_WATERFRIC_BONUS 
                 : mf.baseWaterFric;
             self.slugcatStats.poleClimbSpeedFac = mf.echoActive
@@ -583,7 +589,7 @@ namespace WaspPile.Remnant
                 : mf.baseScootSpeed;
             //visuals
             mf.lastFade = mf.fade;
-            mf.fade = Custom.LerpAndTick(mf.fade, mf.echoActive ? 1f : 0f, 0.08f, 0.04f);
+            mf.fade = LerpAndTick(mf.fade, mf.echoActive ? 1f : 0f, 0.08f, 0.04f);
             mf.lastBCol = mf.bCol;
             mf.lastECol = mf.eCol;
             mf.bCol = Color.Lerp(MartyrChar.deplBodyCol, MartyrChar.baseBodyCol, 1 - self.aerobicLevel);

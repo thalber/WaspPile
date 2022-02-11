@@ -27,61 +27,49 @@ namespace WaspPile.Remnant
         internal static void WORLD_Enable()
         {
             manualHooks.Add(new ILHook(methodof<Oracle>("SetUpSwarmers"), KillMoon));
-            //IL.Room.Loaded += skipKF;
             On.AbstractPhysicalObject.Realize += skipKFrealize;
-            On.GhostWorldPresence.SpawnGhost += skipGhostPriming;
-            //On.RainWorldGame.ExitToVoidSeaSlideShow += cancelEndingScene;
+            On.GhostWorldPresence.SpawnGhost += skipEchoPriming;
+            On.VoidSea.PlayerGhosts.AddGhost += skipPlayerGhosts;
+            IL.RainWorldGame.ExitToVoidSeaSlideShow += removeEnding;
         }
 
-//        private static void cancelEndingScene(On.RainWorldGame.orig_ExitToVoidSeaSlideShow orig, RainWorldGame self)
-//        {
-//#warning test
-//            MartyrChar.ME.overrideNext("Empty", null);
-//            orig(self);
-//        }
-
-        private static bool skipGhostPriming(On.GhostWorldPresence.orig_SpawnGhost orig, GhostWorldPresence.GhostID ghostID, int karma, int karmaCap, int ghostPreviouslyEncountered, bool playingAsRed)
-        {
-#warning test
-            return orig(ghostID, karma, karmaCap, ghostPreviouslyEncountered, true);
-        }
-
-        private static void skipKFrealize(On.AbstractPhysicalObject.orig_Realize orig, AbstractPhysicalObject self)
-        {
-#warning test
-            if (self.type is AbstractPhysicalObject.AbstractObjectType.KarmaFlower) return;
-            orig(self);
-        }
-
-        private static void skipKF(ILContext il)
+        private static void removeEnding(ILContext il)
         {
             ILCursor c = new(il);
-            c.GotoNext(MoveType.After, xx => xx.MatchLdloc(27), xx=> xx.MatchLdcI4(1), xx => xx.MatchSub(), xx => xx.MatchSwitch(out _));
-            //Instruction brp;
-            var v = c.Next;//.MatchBr(out var v);
-            c.GotoNext(MoveType.Before,
-                xx => xx.MatchLdarg(0),
-                xx => xx.MatchLdfld<Room>("game"),
-                xx => xx.MatchCallOrCallvirt<RainWorldGame>("get_StoryCharacter"),
-                xx => xx.MatchLdcI4(2),
-                xx => xx.MatchBeq(out _),
-                xx => xx.MatchLdarg(0)
-                );
             c.Emit(Ldarg_0);
-            c.EmitDelegate<Func<Room, bool>>(r => { var res = MartyrChar.ME.IsMe(r.game); if (RemnantPlugin.DebugMode) LogWarning("Skipping kf: " + res); return res; });
-            c.Emit(Brtrue, v);
-            if (RemnantPlugin.DebugMode)
+            c.EmitDelegate<Action<RainWorldGame>>(rwg =>
             {
-                LogWarning("Karma flower skip applied");
-                il.dump(RootFolderDirectory(), "room.loaded.txt");
-            }
+                if (rwg.TryGetSave<MartyrChar.MartyrSave>(out var ms))
+                {
+                    ms.imDone = true;
+                }
+            });
+            c.GotoNext(MoveType.Before,
+                xx => xx.MatchCallOrCallvirt<ProcessManager>("RequestMainProcessSwitch"),
+                xx => xx.MatchRet());
+            c.Prev.Operand = (int)ProcessManager.ProcessID.Credits;
+        }
+
+        private static void skipPlayerGhosts(On.VoidSea.PlayerGhosts.orig_AddGhost orig, VoidSea.PlayerGhosts self)
+        {
+            
+        }
+        private static bool skipEchoPriming(On.GhostWorldPresence.orig_SpawnGhost orig, GhostWorldPresence.GhostID ghostID, int karma, int karmaCap, int ghostPreviouslyEncountered, bool playingAsRed)
+        {
+            return orig(ghostID, karma, karmaCap, ghostPreviouslyEncountered, true);
+        }
+        private static void skipKFrealize(On.AbstractPhysicalObject.orig_Realize orig, AbstractPhysicalObject self)
+        {
+            if (self.type is AbstractPhysicalObject.AbstractObjectType.KarmaFlower) return;
+            orig(self);
         }
 
         internal static void WORLD_Disable()
         {
             On.AbstractPhysicalObject.Realize -= skipKFrealize;
-            On.GhostWorldPresence.SpawnGhost -= skipGhostPriming;
-            //On.RainWorldGame.ExitToVoidSeaSlideShow -= cancelEndingScene;
+            On.GhostWorldPresence.SpawnGhost -= skipEchoPriming;
+            On.VoidSea.PlayerGhosts.AddGhost -= skipPlayerGhosts;
+            IL.RainWorldGame.ExitToVoidSeaSlideShow -= removeEnding;
         }
     }
 }

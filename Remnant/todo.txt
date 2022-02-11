@@ -1,6 +1,6 @@
 ﻿+base ability lifecycle (improve triggering)
 +visuals (bubble container problems)
-+throwforce and damage ?(extra indication: hit-stop and bang)
++throwforce and damage?(extra indication: hit-stop and bang)
 +deflect
 +unhooking
 ?waterbounce(crude but origo seems same)
@@ -11,8 +11,10 @@
 ?testing
 +cycle limit?
 +one sitting option
-?face sprites (make a new set? mildly tedious)
-?arena compat
++face sprites (make a new set? mildly tedious)
++arena compat (and icons)
+-stat screen
+-fix neuronlight pos
 
 Lizards:
 	+register breed template changes
@@ -23,4 +25,4 @@ Lizards:
 Centipedes:
 	+Coloring (what the fuck is an hsl)
 	+dangles
-	anything else?
+	slightly slower
