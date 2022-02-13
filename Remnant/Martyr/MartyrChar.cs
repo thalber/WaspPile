@@ -12,7 +12,7 @@ using static UnityEngine.Debug;
 using static RWCustom.Custom;
 using static WaspPile.Remnant.Satellite.RemnantUtils;
 
-namespace WaspPile.Remnant
+namespace WaspPile.Remnant.Martyr
 {
     public class MartyrChar : SlugBaseCharacter
     {
@@ -26,9 +26,10 @@ namespace WaspPile.Remnant
         public static readonly Color deplEyeCol = new(0.7f, 0f, 0f);
         public static readonly Color echoGold = HSL2RGB(0.13f, 1, 0.63f);
 
-        public MartyrChar() : base(CHARNAME, FormatVersion.V1, 2, false) {
+        public MartyrChar() : base(CHARNAME, FormatVersion.V1, 2, false)
+        {
             __ME = new WeakReference(this);
-            this.DevMode = RemnantPlugin.DebugMode;
+            DevMode = RemnantPlugin.DebugMode;
             //instance = this;
         }
         //public static MartyrChar instance;
@@ -42,7 +43,7 @@ namespace WaspPile.Remnant
         {
             return true;
         }
-        public override string Description => RemnantPlugin.DoTrolling 
+        public override string Description => RemnantPlugin.DoTrolling
             ? "REMNANT OF A MIND IS MATERIALIZED\nWEAKNESS IS BRIDGE TO STRENGTH\nINSERTION IS VIOLATION"
             : "The remnant of a mind, materialized, weakened in the physical plane but retaining\nabilities of the Void. In a state outside the Cycle itself, your journey will only last as long as you do.";
         //proper colors
@@ -67,12 +68,13 @@ namespace WaspPile.Remnant
             SlugcatStats ssn = new(2, stats.malnourished);
             CloneInstance(ssn, stats);
             stats.throwingSkill = 2;
-            if (RemnantPlugin.DebugMode) {
+            if (RemnantPlugin.DebugMode)
+            {
                 LogWarning($"GetStats run: {stats.malnourished}");
                 LogWarning(Json.Serialize(InstFieldsToDict(stats)));
             }
         }
-        public override bool CanEatMeat(Player player, Creature creature) => (creature is Centipede || creature is not IPlayerEdible);
+        public override bool CanEatMeat(Player player, Creature creature) => creature is Centipede || creature is not IPlayerEdible;
         public override bool QuarterFood => true;
         public override string DisplayName => RemnantPlugin.DoTrolling ? "Martyr" : "The Martyr";
         public override string StartRoom => STARTROOM;
@@ -92,13 +94,13 @@ namespace WaspPile.Remnant
 
         #region scenes and menus
         public override bool HasSlideshow(string slideshowName) => false;
-        public override bool HasScene(string sceneName) 
+        public override bool HasScene(string sceneName)
             => sceneName switch
-        {
-            "Red_Ascend" 
-            or _ when sceneName.StartsWith("Outro_") => false,
-            _ => base.HasScene(sceneName)
-        };
+            {
+                "Red_Ascend"
+                or _ when sceneName.StartsWith("Outro_") => false,
+                _ => base.HasScene(sceneName)
+            };
         public override CustomScene BuildScene(string sceneName)
         {
             if (sceneName == "SelectMenu" && MartyrIsDead(CRW.options.saveSlot)) sceneName = "SelectMenuDisrupt";
@@ -114,7 +116,7 @@ namespace WaspPile.Remnant
                 patchedPath[path.Length - 2] = "SelectMenu";
             if (last.StartsWith("MultiplayerPortrait"))
             {
-                patchedPath[path.Length - 1] = $"MultiplayerPortraitX{(last.EndsWith("1.png")? 1 : 0)}.png";
+                patchedPath[path.Length - 1] = $"MultiplayerPortraitX{(last.EndsWith("1.png") ? 1 : 0)}.png";
             }
 
             string oresname = "WaspPile.Remnant.assets." + string.Join(".", patchedPath);
@@ -142,7 +144,8 @@ namespace WaspPile.Remnant
         public override void StartNewGame(Room room)
         {
             base.StartNewGame(room);
-            if (room.game.IsStorySession) {
+            if (room.game.IsStorySession)
+            {
                 var ss = room.game.GetStorySession.saveState;
                 ss.miscWorldSaveData.SLOracleState.neuronsLeft = 0;
                 //??...
@@ -150,7 +153,7 @@ namespace WaspPile.Remnant
                 ss.theGlow = true;
             }
             CurrentMiscSaveData(CHARNAME).TryRemoveKey(PERMADEATHKEY);
-            
+
         }
         public static bool MartyrIsDead(int saveslot)
         {
@@ -193,7 +196,7 @@ namespace WaspPile.Remnant
                     var deathmark = "VESSEL EXPIRATION";
                     meta.SetKey(PERMADEATHKEY, deathmark);
                     CRW.processManager.RequestMainProcessSwitch(ProcessManager.ProcessID.Statistics);
-                    Debug.Log($"REMNANT DISRUPTED: {deathmark}");
+                    Log($"REMNANT DISRUPTED: {deathmark}");
                 }
             }
             public override void SavePermanent(Dictionary<string, string> data, bool asDeath, bool asQuit)
@@ -227,9 +230,10 @@ namespace WaspPile.Remnant
 
             internal bool imDone;
 
-            internal bool RemedyCache {
-                get { if (RemnantPlugin.DebugMode) LogWarning("REMEDY CACHED: " + rc); return rc; } 
-                set { rc = value; if (RemnantPlugin.DebugMode) LogWarning("REMEDY CACHE SET TO: " + value); } 
+            internal bool RemedyCache
+            {
+                get { if (RemnantPlugin.DebugMode) LogWarning("REMEDY CACHED: " + rc); return rc; }
+                set { rc = value; if (RemnantPlugin.DebugMode) LogWarning("REMEDY CACHE SET TO: " + value); }
             }
         }
         #endregion saves

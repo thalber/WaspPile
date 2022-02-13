@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using SlugBase;
 using Menu;
 using UnityEngine;
+using WaspPile.Remnant.Martyr;
 
 namespace WaspPile.Remnant.Satellite
 {

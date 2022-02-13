@@ -22,7 +22,7 @@ using RocksConvo = SSOracleBehavior.PebblesConversation;
 
 using URand = UnityEngine.Random;
 
-namespace WaspPile.Remnant
+namespace WaspPile.Remnant.Martyr
 {
     public static partial class MartyrHooks
     {

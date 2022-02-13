@@ -13,11 +13,12 @@ using static UnityEngine.Debug;
 
 using MoonConvo = SLOracleBehaviorHasMark.MoonConversation;
 using RocksConvo = SSOracleBehavior.PebblesConversation;
+using WaspPile.Remnant.Martyr;
 
 namespace WaspPile.Remnant.Satellite
 {
-//#warning karma specevent does not work with fp
-//fixed
+    //#warning karma specevent does not work with fp
+    //fixed
     internal static class ConvoHelper
     {
         internal static bool TryEnqueuePatchedEvents(this Conversation c, InGameTranslator.LanguageID lang)

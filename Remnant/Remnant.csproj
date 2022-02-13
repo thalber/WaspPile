@@ -103,10 +103,10 @@
   <ItemGroup>
     <Compile Include="CommonHooks.cs" />
     <Compile Include="GlobalSuppressions.cs" />
-    <Compile Include="MartyrChar.cs" />
-    <Compile Include="MartyrHooks.Conversations.cs" />
-    <Compile Include="MartyrHooks.Creatures.cs" />
-    <Compile Include="MartyrHooks.World.cs" />
+    <Compile Include="Martyr\MartyrChar.cs" />
+    <Compile Include="Martyr\MartyrHooks.Conversations.cs" />
+    <Compile Include="Martyr\MartyrHooks.Creatures.cs" />
+    <Compile Include="Martyr\MartyrHooks.World.cs" />
     <Compile Include="OutlawChar.cs" />
     <Compile Include="OutlawHooks.cs" />
     <Compile Include="PermanentHooks.cs" />
@@ -116,7 +116,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="RemnantPlugin.cs" />
-    <Compile Include="MartyrHooks.cs" />
+    <Compile Include="Martyr\MartyrHooks.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RemnantConfig.cs" />
     <Compile Include="Satellite\ArenaIcons.cs" />

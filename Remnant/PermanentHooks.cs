@@ -19,6 +19,7 @@ using static Mono.Cecil.Cil.OpCodes;
 using static UnityEngine.Debug;
 
 using URand = UnityEngine.Random;
+using WaspPile.Remnant.Martyr;
 
 namespace WaspPile.Remnant
 {
@@ -47,8 +48,8 @@ namespace WaspPile.Remnant
                 LogWarning("~~ ^^^^ ~~");
             }
         }
-        private static bool PassageHackby(Func<SlugBaseCharacter, SaveState, bool> orig, SlugBaseCharacter self, SaveState ss)
-            => (self is MartyrChar) ? false : orig(self, ss);
+        //private static bool PassageHackby(Func<SlugBaseCharacter, SaveState, bool> orig, SlugBaseCharacter self, SaveState ss)
+        //    => (self is MartyrChar) ? false : orig(self, ss);
 
         internal static void Disable()
         {
