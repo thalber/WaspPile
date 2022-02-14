@@ -25,7 +25,7 @@ namespace WaspPile.Remnant.Martyr
     public static partial class MartyrHooks 
     {
         //TODO: stats are pretty arbitrary, reach agreement
-        internal const float ECHOMODE_DAMAGE_BONUS = 30f;
+        internal const float ECHOMODE_DAMAGE_BONUS = 3f;
         internal const float ECHOMODE_THROWFORCE_BONUS = 1.4f;
         internal const float ECHOMODE_RUNSPEED_BONUS = 1.7f;
         internal const float ECHOMODE_CRAWLSPEED_BONUS = 1.4f;

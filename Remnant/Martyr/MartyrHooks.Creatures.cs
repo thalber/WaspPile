@@ -22,7 +22,7 @@ namespace WaspPile.Remnant.Martyr
 {
     public static partial class MartyrHooks
     {
-        internal const float CRIT_GOLDEN_RESIST_MODIFIER = 25f;
+        internal const float CRIT_GOLDEN_RESIST_MODIFIER = 5f;
         internal const CreatureTemplate.Type CRIT_CT_GOLDLIZ = CreatureTemplate.Type.RedLizard;
         internal const CreatureTemplate.Type CRIT_CT_GOLDCENTI = CreatureTemplate.Type.RedCentipede;
         internal const CreatureTemplate.Type CRIT_CT_GOLDSPITTER = CreatureTemplate.Type.SpitterSpider;
@@ -77,6 +77,7 @@ namespace WaspPile.Remnant.Martyr
             {
                 var cgold = GetCreatureTemplate(t);
                 cgold.baseDamageResistance *= CRIT_GOLDEN_RESIST_MODIFIER;
+                cgold.baseStunResistance *= (CRIT_GOLDEN_RESIST_MODIFIER / 2);
                 cgold.shortcutColor = MartyrChar.echoGold;
                 if (RemnantPlugin.DebugMode)
                 {

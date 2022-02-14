@@ -100,7 +100,7 @@ namespace WaspPile.Remnant.Martyr
             c.Emit(Ldarg_0);
             c.EmitDelegate<Func<Conversation, bool>>(ProcessDialogue);
             c.Emit(Brtrue, exit);
-            LogWarning("MARTYR COMMS: SSOracle conversation defiled");
+            LogWarning("MARTYR COMMS: SLOracle conversation defiled");
         }
 
         public static void CONVO_Disable()

@@ -19,6 +19,7 @@ namespace WaspPile.Remnant.Martyr
         public const string CHARNAME = "Martyr";
         public const string PERMADEATHKEY = "DISRUPT";
         public const string ALLEVKEY = "REMEDY";
+        public const string LIFETIMEKEY = "TOTALLT";
         public const string STARTROOM = "SB_MARTYR1";
         public static readonly Color baseBodyCol = HSL2RGB(0.583f, 0.3583f, 0.225f);
         public static readonly Color deplBodyCol = HSL2RGB(0.5835f, 0.15f, 0.6f);

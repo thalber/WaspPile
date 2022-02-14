@@ -8,6 +8,7 @@ using System.Resources;
 using System.Reflection;
 using System.IO;
 using System.Runtime.InteropServices;
+using WaspPile.Remnant.Martyr;
 
 using static UnityEngine.Debug;
 using static WaspPile.Remnant.RemnantConfig;
@@ -62,7 +63,8 @@ namespace WaspPile.Remnant
                 typeof(PermanentHooks), 
                 typeof(OutlawHooks), 
                 typeof(RemnantPlugin), 
-                typeof(Satellite.ArenaIcons) })
+                //typeof(Satellite.ArenaIcons) 
+            })
             {
                 t.CleanUpStatic();
             }

@@ -16,7 +16,7 @@ using static WaspPile.Remnant.Satellite.RemnantUtils;
 using static WaspPile.Remnant.Satellite.ConvoHelper;
 //using static Mono.Cecil.Cil.OpCodes;
 using static UnityEngine.Debug;
-using static WaspPile.Remnant.MartyrHooks;
+using static WaspPile.Remnant.Martyr.MartyrHooks;
 using static WaspPile.Remnant.CommonHooks;
 
 using MoonConvo = SLOracleBehaviorHasMark.MoonConversation;
@@ -42,7 +42,7 @@ namespace WaspPile.Remnant.Satellite
         internal bool convoStarted = false;
         internal readonly List<Player> searchedPlayers = new();
 
-        internal Oracle pebbles => this.owner.oracle;
+        internal Oracle pebbles => owner.oracle;
 
         public override void Update()
         {
