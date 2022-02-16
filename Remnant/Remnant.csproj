@@ -119,6 +119,7 @@
     <Compile Include="Martyr\MartyrHooks.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RemnantConfig.cs" />
+    <Compile Include="Satellite\ArenaIcons.cs" />
     <Compile Include="Satellite\ConvoHelper.cs" />
     <Compile Include="Satellite\EnumExt_Remnant.cs" />
     <Compile Include="Satellite\MeetMartyrSubroutine.cs" />

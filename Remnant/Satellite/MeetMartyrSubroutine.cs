@@ -96,7 +96,6 @@ namespace WaspPile.Remnant.Satellite
                         owner.SetNewDestination(owner.oracle.room.MiddleOfRoom() + RNV() * 100f);
                         convo = owner.conversation;
                         convoStarted = true;
-
                     }
                     owner.movementBehavior = SSOracleBehavior.MovementBehavior.Talk;
                     if (message != null)
