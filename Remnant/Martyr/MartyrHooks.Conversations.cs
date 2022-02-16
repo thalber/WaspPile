@@ -10,6 +10,8 @@ using MonoMod.RuntimeDetour;
 using MonoMod.Cil;
 using Mono.Cecil.Cil;
 using WaspPile.Remnant.UAD;
+using SlugBase;
+
 
 using static RWCustom.Custom;
 using static WaspPile.Remnant.Satellite.RemnantUtils;
@@ -42,12 +44,17 @@ namespace WaspPile.Remnant.Martyr
             IL.SSOracleBehavior.PebblesConversation.AddEvents += IL_SSOB_OverrideConvos;
             IL.SSOracleBehavior.NewAction += insertPebblesSequence;
             //On.Conversation.SpecialEvent.Activate += speceventNotify5p;
+            On.SSOracleBehavior.SpecialEvent += applyCycleCure;
         }
 
-        private static void speceventNotify5p(On.Conversation.SpecialEvent.orig_Activate orig, Conversation.SpecialEvent self)
+        private static void applyCycleCure(On.SSOracleBehavior.orig_SpecialEvent orig, SSOracleBehavior self, string eventName)
         {
-            if (self.owner.interfaceOwner is SSOracleBehavior) self.eventName = "karma";
-            orig(self);
+            orig(self, eventName);
+            if (self.oracle.room.game.TryGetSave<MartyrChar.MartyrSave>(out var mss))
+            {
+                mss.redExtraCycles = true;
+                if (RemnantPlugin.DebugMode) LogWarning($"martyr lifetime extended to {mss.RemainingCycles}");
+            }
         }
 
         private static void insertPebblesSequence(ILContext il)
@@ -110,6 +117,7 @@ namespace WaspPile.Remnant.Martyr
             IL.SSOracleBehavior.PebblesConversation.AddEvents -= IL_SSOB_OverrideConvos;
             IL.SSOracleBehavior.NewAction -= insertPebblesSequence;
             //On.Conversation.SpecialEvent.Activate -= speceventNotify5p;
+            On.SSOracleBehavior.SpecialEvent -= applyCycleCure;
         }
     }
 }

@@ -10,6 +10,8 @@ using MonoMod.RuntimeDetour;
 using MonoMod.Cil;
 using Mono.Cecil.Cil;
 using WaspPile.Remnant.UAD;
+using WaspPile.Remnant.Martyr;
+using SlugBase;
 
 using static RWCustom.Custom;
 using static WaspPile.Remnant.Satellite.RemnantUtils;
@@ -67,8 +69,8 @@ namespace WaspPile.Remnant.Satellite
                 {
                     searchForMessageCounter--;
                     //if (abs_message != null) goto regdone;
-//#warning only works when object is in stomach? see and fix asap
-//Warp issue
+                    //#warning only works when object is in stomach? see and fix asap
+                    //Warp issue
                     foreach (var po in croom.updateList) if (po is DataPearl dp && dp.IsEchoPearl()) abs_message ??= dp.AbstractPearl;
                     if (guest != null)
                     {
@@ -79,7 +81,7 @@ namespace WaspPile.Remnant.Satellite
                         foreach (var g in player.grasps) if (g is not null && g.grabbed is DataPearl dp && dp.IsEchoPearl()) abs_message ??= dp.AbstractPearl;
                     }
                     owner.movementBehavior = SSOracleBehavior.MovementBehavior.Investigate;
-                //regdone:
+                    //regdone:
                     //LogWarning("MARK1");
                     //if (message != null) searchForMessageCounter = 0;
                 }
@@ -89,10 +91,12 @@ namespace WaspPile.Remnant.Satellite
                     if (!convoStarted)
                     {
                         convoID = (message == null) ? Conversation.ID.Pebbles_Red_No_Neuron : Conversation.ID.Pebbles_Red_Green_Neuron;
+                        owner.afterGiveMarkAction = this.action;
                         owner.InitateConversation(convoID, this);
                         owner.SetNewDestination(owner.oracle.room.MiddleOfRoom() + RNV() * 100f);
                         convo = owner.conversation;
                         convoStarted = true;
+
                     }
                     owner.movementBehavior = SSOracleBehavior.MovementBehavior.Talk;
                     if (message != null)
@@ -133,6 +137,7 @@ namespace WaspPile.Remnant.Satellite
                 }
                 uerrc = 0;
                 owner.restartConversationAfterCurrentDialoge = false;
+                
             }
             catch (Exception e)
             {
@@ -144,6 +149,16 @@ namespace WaspPile.Remnant.Satellite
                 }
             }
         }
+        public override void Deactivate()
+        {
+            base.Deactivate();
+        }
+        public override void Activate(SSOracleBehavior.Action oldAction, SSOracleBehavior.Action newAction)
+        {
+            base.Activate(oldAction, newAction);
+            owner.restartConversationAfterCurrentDialoge = false;
+        }
+
         internal int uerrc;
         internal int windup = 200;
         internal int searchForGuestCounter = 180;

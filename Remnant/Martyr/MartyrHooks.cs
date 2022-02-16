@@ -145,7 +145,7 @@ namespace WaspPile.Remnant.Martyr
                 }
                 catch (Exception e)
                 {
-                    Debug.Log("couldn't register extra kick: " + e.Message);
+                    if (RemnantPlugin.DebugMode) LogWarning($"couldn't register extra kick on {t}: " + e.Message);
                 }
             }
             //id

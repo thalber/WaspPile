@@ -20,6 +20,7 @@ namespace WaspPile.Remnant.Martyr
         public const string PERMADEATHKEY = "DISRUPT";
         public const string ALLEVKEY = "REMEDY";
         public const string LIFETIMEKEY = "TOTALLT";
+        public const string LTCUREKEY = "BONUSLT";
         public const string STARTROOM = "SB_MARTYR1";
         public static readonly Color baseBodyCol = HSL2RGB(0.583f, 0.3583f, 0.225f);
         public static readonly Color deplBodyCol = HSL2RGB(0.5835f, 0.15f, 0.6f);
@@ -207,6 +208,9 @@ namespace WaspPile.Remnant.Martyr
                 cycleLimit ??= RemnantConfig.martyrCycles.Value;
                 cycleCure ??= RemnantConfig.martyrCure.Value;
 
+                data.SetKey(LIFETIMEKEY, cycleLimit.ToString());
+                data.SetKey(LTCUREKEY, cycleCure.ToString());
+
                 if (RemnantConfig.noQuits.Value && asQuit && cycleNumber != 0 || imDone)
                 {
                     var meta = CurrentMiscSaveData(CHARNAME);
@@ -225,6 +229,8 @@ namespace WaspPile.Remnant.Martyr
             {
                 MartyrHooks.FieldCleanup();
                 //RemedyCache = data[ALLEVKEY] == "ON";
+                if (data.TryGetValue(LIFETIMEKEY, out var rawlt) && int.TryParse(rawlt, out var ltin)) cycleLimit = ltin;
+                if (data.TryGetValue(LTCUREKEY, out var rawcr) && int.TryParse(rawcr, out var crin)) cycleCure = crin;
                 data.TryGetValue(ALLEVKEY, out var res);
                 RemedyCache = res == "ON";
                 if (RemnantPlugin.DebugMode) LogWarning("LOADPERM RUN");
@@ -233,7 +239,7 @@ namespace WaspPile.Remnant.Martyr
             private bool rc;
             //ensures disrupt on save
             internal bool imDone;
-#warning number verif
+#warning number verif, check if saves correctly
             internal int? cycleLimit;
             internal int? cycleCure;
             internal int RemainingCycles
