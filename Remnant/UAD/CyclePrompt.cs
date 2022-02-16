@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using SlugBase;
+using WaspPile.Remnant.Martyr;
 
 namespace WaspPile.Remnant.UAD
 {
@@ -11,8 +13,10 @@ namespace WaspPile.Remnant.UAD
         {
             base.Update(eu);
             if (room?.game?.IsArenaSession ?? true) { this.Destroy(); return; }
-            string message = $"Remaining cycles: {RemnantConfig.martyrCycles.Value - room.game?.rainWorld.progression.currentSaveState.cycleNumber}";
+            if (!room.game.TryGetSave<MartyrChar.MartyrSave>(out var ms)) goto whatever;
+            string message = $"Remaining cycles: {ms.RemainingCycles}";
             room.game?.cameras[0].hud.textPrompt.AddMessage(message, 15, 400, false, false);
+            whatever:
             Destroy();
         }
     }

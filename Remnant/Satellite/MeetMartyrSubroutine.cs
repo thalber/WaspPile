@@ -56,6 +56,7 @@ namespace WaspPile.Remnant.Satellite
             }
             try
             {
+
                 if (searchForGuestCounter > 0)
                 {
                     searchForGuestCounter--;
@@ -91,7 +92,6 @@ namespace WaspPile.Remnant.Satellite
                         owner.InitateConversation(convoID, this);
                         owner.SetNewDestination(owner.oracle.room.MiddleOfRoom() + RNV() * 100f);
                         convo = owner.conversation;
-                        owner.restartConversationAfterCurrentDialoge = false;
                         convoStarted = true;
                     }
                     owner.movementBehavior = SSOracleBehavior.MovementBehavior.Talk;
@@ -132,6 +132,7 @@ namespace WaspPile.Remnant.Satellite
                     }
                 }
                 uerrc = 0;
+                owner.restartConversationAfterCurrentDialoge = false;
             }
             catch (Exception e)
             {
@@ -145,9 +146,9 @@ namespace WaspPile.Remnant.Satellite
         }
         internal int uerrc;
         internal int windup = 200;
-        internal int searchForGuestCounter = 250;
+        internal int searchForGuestCounter = 180;
         internal int searchForMessageCounter = 80;
-        internal SSOracleBehavior.PebblesConversation convo;
+        internal RocksConvo convo;
         public override Vector2? LookPoint => (windup > 0) 
             ? owner.oracle.room.MiddleOfRoom() 
             : abs_message?.realizedObject?.firstChunk.pos ?? guest?.firstChunk.pos;

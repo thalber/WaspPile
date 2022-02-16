@@ -33,10 +33,11 @@ namespace WaspPile.Remnant
             //SlugBase.PlayerManager.RegisterCharacter(new OutlawChar());
             for (int i = 0; i < abilityBinds.Length; i++)
             {
-                if (abilityBinds[i] == null) abilityBinds[i] = Config.Bind("Martyr", $"Ability hotkey for P{i + 1}", UnityEngine.KeyCode.LeftAlt, $"Martyr's ability keybind for player {i + 1}");
+                abilityBinds[i] ??= Config.Bind("Martyr", $"Ability hotkey for P{i + 1}", UnityEngine.KeyCode.LeftAlt, $"Martyr's ability keybind for player {i + 1}");
             }
-            if (martyrCycles == null) martyrCycles = Config.Bind("Martyr", "Cycle limit", 10, "Number of cycles available for a run");
-            if (noQuits == null) noQuits = Config.Bind("Martyr", "No quits", true, "Exiting the game kills the run");
+            martyrCycles ??= Config.Bind("Martyr", "Cycle limit", 10, "Number of cycles available for a run");
+            martyrCure ??= Config.Bind("Martyr", "Cure effect", 3, "How many extra cycles does meeting FP give");
+            noQuits ??= Config.Bind("Martyr", "No quits", true, "Exiting the game kills the run");
             registered = true;
 
         skipReg:

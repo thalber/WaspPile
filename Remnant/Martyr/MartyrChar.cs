@@ -191,7 +191,7 @@ namespace WaspPile.Remnant.Martyr
             public override void Save(Dictionary<string, string> data)
             {
                 base.Save(data);
-                if (cycleNumber >= RemnantConfig.martyrCycles.Value)
+                if (RemainingCycles < 0)
                 {
                     var meta = CurrentMiscSaveData(CHARNAME);
                     var deathmark = "VESSEL EXPIRATION";
@@ -203,6 +203,10 @@ namespace WaspPile.Remnant.Martyr
             public override void SavePermanent(Dictionary<string, string> data, bool asDeath, bool asQuit)
             {
                 MartyrHooks.FieldCleanup();
+
+                cycleLimit ??= RemnantConfig.martyrCycles.Value;
+                cycleCure ??= RemnantConfig.martyrCure.Value;
+
                 if (RemnantConfig.noQuits.Value && asQuit && cycleNumber != 0 || imDone)
                 {
                     var meta = CurrentMiscSaveData(CHARNAME);
@@ -228,8 +232,12 @@ namespace WaspPile.Remnant.Martyr
             }
             private bool rc;
             //ensures disrupt on save
-
             internal bool imDone;
+#warning number verif
+            internal int? cycleLimit;
+            internal int? cycleCure;
+            internal int RemainingCycles
+                => cycleLimit ?? 10 + (this.redExtraCycles ? cycleCure ?? 3 : 0) - cycleNumber;
 
             internal bool RemedyCache
             {
