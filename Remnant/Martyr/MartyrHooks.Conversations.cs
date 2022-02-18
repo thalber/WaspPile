@@ -45,6 +45,14 @@ namespace WaspPile.Remnant.Martyr
             IL.SSOracleBehavior.NewAction += insertPebblesSequence;
             //On.Conversation.SpecialEvent.Activate += speceventNotify5p;
             On.SSOracleBehavior.SpecialEvent += applyCycleCure;
+            On.SSOracleBehavior.NewAction += escapeMartyrSubroutine;
+        }
+
+        private static void escapeMartyrSubroutine(On.SSOracleBehavior.orig_NewAction orig, SSOracleBehavior self, SSOracleBehavior.Action nextAction)
+        {
+            //if (self.currSubBehavior == Satellite.EnumExt_Remnant.SSOB_Subr_MeetMartyr)
+            if (self.currSubBehavior is Satellite.MeetMartyrSubroutine mms && nextAction is SSOracleBehavior.Action.MeetWhite_Shocked) nextAction = SSOracleBehavior.Action.ThrowOut_Polite_ThrowOut;
+            orig(self, nextAction);
         }
 
         private static void applyCycleCure(On.SSOracleBehavior.orig_SpecialEvent orig, SSOracleBehavior self, string eventName)
@@ -60,7 +68,7 @@ namespace WaspPile.Remnant.Martyr
         private static void insertPebblesSequence(ILContext il)
         {
             ILCursor c = new(il);
-            c.GotoNext(MoveType.Before, xx=> xx.MatchNewobj<SSOracleBehavior.SSOracleMeetWhite>());
+            c.GotoNext(MoveType.Before, xx => xx.MatchNewobj<SSOracleBehavior.SSOracleMeetWhite>());
             c.Remove();
             c.Emit(Newobj, ctorof<Satellite.MeetMartyrSubroutine>(typeof(SSOracleBehavior)));
             //il.dump(RootFolderDirectory(), "ssob_newentry");

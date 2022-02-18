@@ -113,7 +113,7 @@ namespace WaspPile.Remnant.Satellite
                     //LogWarning("MARK5");
                     if (owner.action is SSOracleBehavior.Action.General_GiveMark) return;
                     var cev = convo.events.FirstOrDefault();
-                    if (cev is not null)
+                    if (convo.events.Count > 0)
                     {
                         //if (cev is Conversation.SpecialEvent spec && spec.eventName == "karma")
                         //{
@@ -159,8 +159,8 @@ namespace WaspPile.Remnant.Satellite
         }
 
         internal int uerrc;
-        internal int windup = 200;
-        internal int searchForGuestCounter = 180;
+        internal int windup = 120;
+        internal int searchForGuestCounter = 120;
         internal int searchForMessageCounter = 80;
         internal RocksConvo convo;
         public override Vector2? LookPoint => (windup > 0) 
