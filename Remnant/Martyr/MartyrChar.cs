@@ -21,6 +21,7 @@ namespace WaspPile.Remnant.Martyr
         public const string ALLEVKEY = "REMEDY";
         public const string LIFETIMEKEY = "TOTALLT";
         public const string LTCUREKEY = "BONUSLT";
+        public const string LTSWITCHKEY = "BLTACTIVE";
         public const string STARTROOM = "SB_MARTYR1";
         public static readonly Color baseBodyCol = HSL2RGB(0.583f, 0.3583f, 0.225f);
         public static readonly Color deplBodyCol = HSL2RGB(0.5835f, 0.15f, 0.6f);
@@ -179,15 +180,18 @@ namespace WaspPile.Remnant.Martyr
         //}
         public override CustomSaveState CreateNewSave(PlayerProgression progression)
         {
-            var res = new MartyrSave(progression, this);
+            var res = new MartyrSave(progression, this, RemnantConfig.martyrCycles.Value, RemnantConfig.martyrCure.Value);
             res.deathPersistentSaveData.karmaCap = 8;
             res.deathPersistentSaveData.karma = 8;
             return res;
         }
         public class MartyrSave : CustomSaveState
         {
-            public MartyrSave(PlayerProgression prog, SlugBaseCharacter schar) : base(prog, schar)
+            public MartyrSave(PlayerProgression prog, SlugBaseCharacter schar, 
+                int clim = 10, int ccure = 3) : base(prog, schar)
             {
+                this.cycleLimit = clim;
+                this.cycleCure = ccure;
             }
             public override void Save(Dictionary<string, string> data)
             {
@@ -207,7 +211,14 @@ namespace WaspPile.Remnant.Martyr
 
                 cycleLimit ??= RemnantConfig.martyrCycles.Value;
                 cycleCure ??= RemnantConfig.martyrCure.Value;
-
+                if (RemnantPlugin.DebugMode)
+                {
+                    LogWarning($"martyr session length settings: {cycleLimit}, {cycleCure}; bonus cycles active: {cureApplied}");
+                }
+                if (cureApplied)
+                {
+                    data.SetKey(LTSWITCHKEY, "1");
+                }
                 data.SetKey(LIFETIMEKEY, cycleLimit.ToString());
                 data.SetKey(LTCUREKEY, cycleCure.ToString());
 
@@ -232,8 +243,9 @@ namespace WaspPile.Remnant.Martyr
                 if (data.TryGetValue(LIFETIMEKEY, out var rawlt) && int.TryParse(rawlt, out var ltin)) cycleLimit = ltin;
                 if (data.TryGetValue(LTCUREKEY, out var rawcr) && int.TryParse(rawcr, out var crin)) cycleCure = crin;
                 data.TryGetValue(ALLEVKEY, out var res);
+                data.TryGetValue(LTSWITCHKEY, out var o); cureApplied = o is not null;
                 RemedyCache = res == "ON";
-                if (RemnantPlugin.DebugMode) LogWarning("LOADPERM RUN");
+                //if (RemnantPlugin.DebugMode) LogWarning("LOADPERM RUN");
                 base.LoadPermanent(data);
             }
             private bool rc;
@@ -242,8 +254,9 @@ namespace WaspPile.Remnant.Martyr
 #warning number verif, check if saves correctly
             internal int? cycleLimit;
             internal int? cycleCure;
+            internal bool cureApplied = false;
             internal int RemainingCycles
-                => cycleLimit ?? 10 + (this.redExtraCycles ? cycleCure ?? 3 : 0) - cycleNumber;
+                => (cureApplied? ((int)cycleLimit + (int)cycleCure) : (int)cycleLimit) - cycleNumber;
 
             internal bool RemedyCache
             {

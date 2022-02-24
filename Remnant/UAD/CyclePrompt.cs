@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using SlugBase;
 using WaspPile.Remnant.Martyr;
+using static UnityEngine.Debug;
 
 namespace WaspPile.Remnant.UAD
 {
@@ -16,7 +17,8 @@ namespace WaspPile.Remnant.UAD
             if (!room.game.TryGetSave<MartyrChar.MartyrSave>(out var ms)) goto whatever;
             string message = $"Remaining cycles: {ms.RemainingCycles}";
             room.game?.cameras[0].hud.textPrompt.AddMessage(message, 15, 400, false, false);
-            whatever:
+            if (RemnantPlugin.DebugMode) { LogWarning($"notif player: {ms.RemainingCycles} ({ms.cycleLimit}, {ms.cycleCure}, {ms.cureApplied})"); }
+        whatever:
             Destroy();
         }
     }

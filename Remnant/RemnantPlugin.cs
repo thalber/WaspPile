@@ -16,7 +16,9 @@ using static WaspPile.Remnant.Satellite.RemnantUtils;
 
 namespace WaspPile.Remnant
 {
-
+    /// <summary>
+    /// main BepInPlugin
+    /// </summary>
     [BepInPlugin("EchoWorld.Remnant", "Remnant", "0.0.1")]
     public class RemnantPlugin : BaseUnityPlugin
     {
@@ -83,6 +85,7 @@ namespace WaspPile.Remnant
         //internal UnityEngine.Texture2D martyrPortrait;
         internal const string martyrFaceName = "marmyrPortrait";
 
+        //some old in-dev names
         internal static bool DoTrolling => File.Exists(Path.Combine(RWCustom.Custom.RootFolderDirectory(), "gatobabosa.txt"));
         internal const string CALLKEY = "MARTYRDEBUG";
         internal static void RefreshDebugSettings() => DebugString = Environment.GetEnvironmentVariable(CALLKEY);

@@ -51,13 +51,14 @@ namespace WaspPile.Remnant.Martyr
         private static void escapeMartyrSubroutine(On.SSOracleBehavior.orig_NewAction orig, SSOracleBehavior self, SSOracleBehavior.Action nextAction)
         {
             //if (self.currSubBehavior == Satellite.EnumExt_Remnant.SSOB_Subr_MeetMartyr)
-            if (self.currSubBehavior is Satellite.MeetMartyrSubroutine mms && nextAction is SSOracleBehavior.Action.MeetWhite_Shocked) nextAction = SSOracleBehavior.Action.ThrowOut_Polite_ThrowOut;
+            if (self.currSubBehavior is Satellite.MeetMartyrSubroutine && nextAction is SSOracleBehavior.Action.MeetWhite_Shocked) nextAction = SSOracleBehavior.Action.ThrowOut_Polite_ThrowOut;
             orig(self, nextAction);
         }
 
         private static void applyCycleCure(On.SSOracleBehavior.orig_SpecialEvent orig, SSOracleBehavior self, string eventName)
         {
             orig(self, eventName);
+            if (eventName is not "karma") return;
             if (self.oracle.room.game.TryGetSave<MartyrChar.MartyrSave>(out var mss))
             {
                 mss.redExtraCycles = true;

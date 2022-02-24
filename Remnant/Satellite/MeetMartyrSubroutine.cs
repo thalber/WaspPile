@@ -28,6 +28,7 @@ using URand = UnityEngine.Random;
 
 namespace WaspPile.Remnant.Satellite
 {
+    //add animation for extracting the pearl
     public class MeetMartyrSubroutine : SSOracleBehavior.ConversationBehavior
     {
         public MeetMartyrSubroutine(SSOracleBehavior owner) : base(owner,
