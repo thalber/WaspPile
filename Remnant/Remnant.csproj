@@ -125,6 +125,7 @@
     <Compile Include="Satellite\MeetMartyrSubroutine.cs" />
     <Compile Include="Satellite\RemnantUtils.cs" />
     <Compile Include="Satellite\NFVerCrutches.cs" />
+    <Compile Include="Satellite\TWeakReference.cs" />
     <Compile Include="UAD\CyclePrompt.cs" />
   </ItemGroup>
   <ItemGroup>

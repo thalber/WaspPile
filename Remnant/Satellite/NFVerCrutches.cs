@@ -5,6 +5,7 @@ using System.Text;
 
 namespace System
 {
+#nullable enable
     /// <summary>
     /// Represents a 2-tuple, or pair, as a value type.
     /// </summary>
@@ -257,5 +258,5 @@ namespace System
             return "(" + Item1?.ToString() + ", " + Item2?.ToString() + ", " + Item3?.ToString() + ")";
         }
     }
-
+#nullable restore
 }

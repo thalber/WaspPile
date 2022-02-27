@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 using System.Reflection;
+using WaspPile.Remnant.Satellite;
 
 using static UnityEngine.Debug;
 using static RWCustom.Custom;
@@ -31,13 +32,13 @@ namespace WaspPile.Remnant.Martyr
 
         public MartyrChar() : base(CHARNAME, FormatVersion.V1, 2, false)
         {
-            __ME = new WeakReference(this);
+            //__ME = new WeakReference(this);
+            ME = new(this);
             DevMode = RemnantPlugin.DebugMode;
             //instance = this;
         }
         //public static MartyrChar instance;
-        private static WeakReference __ME;
-        internal static MartyrChar ME => __ME?.Target as MartyrChar;
+        internal static TWeakReference<MartyrChar> ME;
         internal void overrideNext(string SceneImage, SceneImageFilter filter) => OverrideNextScene(SceneImage, filter);
 
         #region chardetails
@@ -192,7 +193,10 @@ namespace WaspPile.Remnant.Martyr
             {
                 this.cycleLimit = clim;
                 this.cycleCure = ccure;
+                ME = new(this);
             }
+            internal static TWeakReference<MartyrSave> ME;
+
             public override void Save(Dictionary<string, string> data)
             {
                 base.Save(data);

@@ -158,9 +158,21 @@ namespace WaspPile.Remnant.Martyr
             manualHooks.Add(new ILHook(methodof<Player>("EatMeatUpdate"), IL_GoldCure));
             On.SlugcatStats.SlugcatFoodMeter += slugFoodMeter;
             On.Player.Die += regdeath;
+
+            On.RedsIllness.RedsCycles += replaceHudText;
             CRIT_Enable();
             CONVO_Enable();
             WORLD_Enable();
+        }
+
+        private static int replaceHudText(On.RedsIllness.orig_RedsCycles orig, bool extraCycles)
+        {
+            var cms = MartyrChar.MartyrSave.ME?.Target;
+            if (cms is not null)
+            {
+                return extraCycles ? (int)cms.cycleLimit + (int)cms.cycleCure : (int)cms.cycleLimit;
+            }
+            return orig(extraCycles);
         }
 
         #region misc
@@ -356,7 +368,7 @@ namespace WaspPile.Remnant.Martyr
                         force: URand.Range(7f, 10f),
                         damage: 0.01f,
                         stun: URand.Range(0.4f, 1.1f),
-                        deafen: 0f,
+                        deafen: 0f, //don't want that ear ringing
                         killTagHolder: self.thrownBy,
                         killTagHolderDmgFactor: 0.3f,
                         minStun: 0.01f,
@@ -543,7 +555,7 @@ namespace WaspPile.Remnant.Martyr
         {
             if (!playerFieldsByHash.TryGetValue(self.GetHashCode(), out var mf))
             {
-                if (self.room.game.IsArenaSession && MartyrChar.ME.IsMe(self)) self.RegMartyrInst();
+                if (self.room.game.IsArenaSession && MartyrChar.ME.Target.IsMe(self)) self.RegMartyrInst();
                 goto skipNotMine;
             }
             //basic recharge/cooldown and activation
@@ -602,7 +614,7 @@ namespace WaspPile.Remnant.Martyr
         {
             orig(self, abstractCreature, world);
 
-            if (!MartyrChar.ME?.IsMe(self) ?? true) return;
+            if (!MartyrChar.ME?.Target.IsMe(self) ?? true) return;
             self.RegMartyrInst();
         }
         internal static void RegMartyrInst(this Player self)
@@ -675,6 +687,8 @@ namespace WaspPile.Remnant.Martyr
 
             On.Player.ctor -= PromptCycleWarning;
             On.SlugcatStats.SlugcatFoodMeter -= slugFoodMeter;
+
+            On.RedsIllness.RedsCycles -= replaceHudText;
 
             foreach (var h in manualHooks) { h.Undo(); }
             manualHooks.Clear();
