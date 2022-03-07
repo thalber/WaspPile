@@ -40,6 +40,8 @@ namespace WaspPile.Remnant
             martyrCycles ??= Config.Bind("Martyr", "Cycle limit", 10, "Number of cycles available for a run");
             martyrCure ??= Config.Bind("Martyr", "Cure effect", 3, "How many extra cycles does meeting FP give");
             noQuits ??= Config.Bind("Martyr", "No quits", true, "Exiting the game kills the run");
+
+            //forceDebugMode ??= Config.Bind()
             registered = true;
 
         skipReg:

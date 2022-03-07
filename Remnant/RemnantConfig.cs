@@ -21,5 +21,7 @@ namespace WaspPile.Remnant
         internal static ConfigEntry<bool> noQuits;
         internal static ConfigEntry<int> martyrCycles;
         internal static ConfigEntry<int> martyrCure;
+
+        internal static ConfigEntry<bool> forceDebugMode;
     }
 }

@@ -41,7 +41,7 @@ namespace WaspPile.Remnant.Satellite
         
         internal DataPearl.AbstractDataPearl abs_message;
         internal DataPearl message => abs_message?.realizedObject as DataPearl;
-        internal Player guest => owner.player;
+        //internal Player guest => owner.player;
         internal bool convoStarted = false;
         internal readonly List<Player> searchedPlayers = new();
 
@@ -63,9 +63,36 @@ namespace WaspPile.Remnant.Satellite
                 if (searchForGuestCounter > 0)
                 {
                     searchForGuestCounter--;
-                    //guest ??= (Player)croom.updateList.FirstOrDefault(uad => (uad is Player p) && !searchedPlayers.Contains(p));
+                    owner.player ??= (Player)croom.updateList.FirstOrDefault(uad => (uad is Player p) && !searchedPlayers.Contains(p));
                     owner.movementBehavior = SSOracleBehavior.MovementBehavior.KeepDistance;
                 }
+                //else if (pullOut > 0)
+                //{
+                //    pullOut--;
+                //    if (pullOut % 10 == 0 && RemnantPlugin.DebugMode) LogWarning($"searching for message... {pullOut}");
+                //    if (guest is not null)
+                //    {
+                //        pullOutHold ??= new Vector2(roomCenter.x + URand.Range(-22f, 22f), roomCenter.y - URand.Range(75, 85));
+                //        //immobilise
+                //        guest.Stun(5);
+                //        //pull
+                //        if (pullOut < 70)
+                //        {
+                //            var tarvel = Vector2.ClampMagnitude((Vector2)pullOutHold - guest.firstChunk.pos, 8f);
+                //            guest.firstChunk.vel = Vector2.Lerp(guest.firstChunk.vel, tarvel, 0.09f);
+                //        }
+                //        //regurgitate
+                //        if (pullOut < 10)
+                //        {
+                //            if (guest.objectInStomach is DataPearl.AbstractDataPearl abp && abp.IsEchoPearl())
+                //            {
+                //                guest.Regurgitate();
+                //            }
+                //            //foreach (var g in guest.grasps) if (g is not null && g.grabbed is DataPearl dp && dp.IsEchoPearl()) abs_message ??= dp.AbstractPearl;
+                //        }
+                //    }
+                //    else pullOut = 0;
+                //}
                 else if (searchForMessageCounter > 0)
                 {
                     searchForMessageCounter--;
@@ -73,11 +100,11 @@ namespace WaspPile.Remnant.Satellite
                     //#warning only works when object is in stomach? see and fix asap
                     //Warp issue
                     foreach (var po in croom.updateList) if (po is DataPearl dp && dp.IsEchoPearl()) abs_message ??= dp.AbstractPearl;
-                    if (guest != null)
+                    if (player is not null)
                     {
-                        if (guest.objectInStomach is DataPearl.AbstractDataPearl abp && abp.IsEchoPearl())
+                        if (player.objectInStomach is DataPearl.AbstractDataPearl abp && abp.IsEchoPearl())
                         {
-                            guest.Regurgitate();
+                            player.Regurgitate();
                         }
                         foreach (var g in player.grasps) if (g is not null && g.grabbed is DataPearl dp && dp.IsEchoPearl()) abs_message ??= dp.AbstractPearl;
                     }
@@ -160,12 +187,14 @@ namespace WaspPile.Remnant.Satellite
         }
 
         internal int uerrc;
-        internal int windup = 120;
-        internal int searchForGuestCounter = 120;
-        internal int searchForMessageCounter = 80;
+        internal byte windup = 15;
+        internal byte searchForGuestCounter = 13;
+        internal byte searchForMessageCounter = 6;
+        internal byte pullOut = 88;
         internal RocksConvo convo;
         public override Vector2? LookPoint => (windup > 0) 
             ? owner.oracle.room.MiddleOfRoom() 
-            : abs_message?.realizedObject?.firstChunk.pos ?? guest?.firstChunk.pos;
+            : abs_message?.realizedObject?.firstChunk.pos ?? player?.firstChunk.pos;
+        internal Vector2? pullOutHold;
     }
 }
