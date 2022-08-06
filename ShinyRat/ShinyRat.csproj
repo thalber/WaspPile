@@ -105,4 +105,7 @@
     <EmbeddedResource Include="assets\plat.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>if defined RWMods (copy /Y "$(TargetPath)" "%25RWMods%25")</PostBuildEvent>
+  </PropertyGroup>
 </Project>

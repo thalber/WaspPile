@@ -96,7 +96,8 @@ namespace WaspPile.ShinyRat
             if (Futile.atlasManager is not null)
             {
                 ratTex = new(125, 125);
-                using var str = Assembly.GetExecutingAssembly().GetManifestResourceStream("WaspPile.ShinyRat.assets.plat.png"); BinaryReader br = new(str);
+                using var str = Assembly.GetExecutingAssembly().GetManifestResourceStream("WaspPile.ShinyRat.assets.plat.png");
+                BinaryReader br = new(str);
                 ratTex.LoadImage(br.ReadBytes((int)str.Length));
                 Futile.atlasManager.LoadAtlasFromTexture("ShinyRat", ratTex);
                 atlasDone = true;

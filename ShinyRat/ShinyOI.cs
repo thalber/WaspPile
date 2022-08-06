@@ -114,8 +114,10 @@ namespace WaspPile.ShinyRat
                 }
                 else if (ShinyRatPlugin.ME.atlasDone)
                 {
-                    FSprite logoSprite = new(Futile.atlasManager.GetElementWithName("ShinyRat"));
-                    logoSprite.scale = 0.5f;
+                    FSprite logoSprite = new(Futile.atlasManager.GetElementWithName("ShinyRat"))
+                    {
+                        scale = 0.5f
+                    };
                     page.ratLogo.container.AddChild(logoSprite);
                 }
             }
@@ -140,7 +142,7 @@ namespace WaspPile.ShinyRat
         internal RatPage[] ratPages;
         internal sealed class RatPage
         {
-            private ShinyOI owner;
+            private readonly ShinyOI owner;
             internal RatPage(ShinyOI ow)
             {
                 owner = ow;
@@ -235,6 +237,7 @@ namespace WaspPile.ShinyRat
 
         ~ShinyOI()
         {
+            freedom = new();
             PERPETUALTORMENT?.Dispose();
         }
         static ShinyOI()
